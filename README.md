@@ -1,6 +1,6 @@
 # ink — language specification
 
-A minimal dark reference for Ink's complete intended language. Large typography, 25 linked chapters, 22 code panels with a custom Ink lexer, selectable code, copy controls and a downloadable draft. The purpose and status sections explain the idea and distinguish the working prototype from the future language.
+A minimal dark reading guide to Ink. Large typography, 25 language topics, 20 code examples on rounded, subtly lighter backgrounds with custom highlighting, and a downloadable full draft. The introduction explains the purpose and makes clear that the current compiler implements only part of the design. There are no framed prose cards, decorative arrows, dividers, metadata labels or top navigation bar.
 
 The website source lives in this private personal repository. It has no hosted deployment or third-party runtime requests; the generated site, font and JavaScript are local assets.
 
@@ -25,9 +25,10 @@ The static production output is `dist/`. The preview uses the same address.
 ## Edit
 
 - `content/spec.md` is the full draft source. It is a snapshot of `siliconjungle/ink-lang/docs/language-specification-draft.md` at compiler repository commit `711947af48e7b60c7d546943e397d54227be34af`, with the obsolete naming/implementation paragraph corrected, proposed commands renamed to `ink`, and the small-core/database requirement made explicit.
+- `content/readable-spec.md` is the shorter page text: the same 25 topics, written directly with the syntax examples retained. The two schematic arrow diagrams are explained in prose instead. The full draft download remains unchanged.
 - `scripts/generate.mjs` renders every chapter and highlights fenced syntax at build time. It also writes the raw draft download and the supported `totals.ink` example.
 - `src/style.css` contains the design and responsive rules.
-- `src/main.ts` contains copy controls, navigation and Pretext measurement.
+- `src/main.ts` contains copy controls, Pretext measurement.
 - `src/layout.ts` contains the numeric layout helpers checked by FreeRange.
 
 After changing the Markdown or generator, rerun `npm run generate` (or restart `npm run dev`). CSS and TypeScript use Vite hot reload in development. Production previews need a rebuild and browser reload.
@@ -43,8 +44,8 @@ npm run check
 npm run audit:layout
 ```
 
-Build-time Markdown rendering preserves the complete 25-chapter draft. The draft still contains unresolved grammar and proof-calculus work; it is not a finished formal language standard. Current executable capabilities are documented separately in [Ink's implementation status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md).
+Build-time Markdown rendering preserves all 25 topics. The download preserves the complete original draft. The draft still contains unresolved grammar and proof-calculus work; it is not a finished formal language standard. Current executable capabilities are documented separately in [Ink's implementation status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md).
 
 ## Design
 
-Inspired by Hunchroom's restrained typography and straightforward navigation. All syntax colours are defined locally; there is no generic language highlighter or canvas-only text. IBM Plex Mono is bundled from Fontsource under its included SIL Open Font License.
+Inspired by Hunchroom's restrained typography. Sections are separated by whitespace. Code has rounded corners and a separate dark background. All syntax colours are defined locally; there is no generic language highlighter or canvas-only text. IBM Plex Mono is bundled from Fontsource under its included SIL Open Font License.

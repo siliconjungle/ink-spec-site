@@ -52,8 +52,7 @@ function highlight(text) {
 let codeIndex = 0;
 function codePanel(text, label = "Ink · draft syntax") {
   const id = `code-${++codeIndex}`;
-  const lines = text.split("\n").length;
-  return `<div class="code-panel"><div class="code-bar"><span>${label}</span><span class="code-meta"><span>${lines} lines</span><span class="scroll-hint" hidden>scroll →</span><button type="button" class="copy" aria-label="Copy ${esc(label)} example" data-copy="${id}">copy</button></span></div><pre tabindex="0" aria-label="${esc(label)} example"><code id="${id}">${highlight(text)}</code></pre></div>`;
+  return `<div class="code-panel"><button type="button" class="copy" aria-label="Copy ${esc(label)} example" data-copy="${id}">copy</button><pre tabindex="0" aria-label="${esc(label)} example"><code id="${id}">${highlight(text)}</code></pre></div>`;
 }
 const renderer = new Renderer();
 renderer.code = ({ text }) =>
@@ -81,48 +80,21 @@ const spec = await readFile(
   new URL("../content/spec.md", import.meta.url),
   "utf8",
 );
-const chapters = [...spec.matchAll(/^## (\d+) (.+)$/gm)];
-if (chapters.length !== 25)
-  throw new Error("Expected the entire 25-chapter specification.");
-const shortNames = [
-  "Design commitments",
-  "A complete application",
-  "Values & types",
-  "Functions",
-  "State & changes",
-  "Derived computation",
-  "Effects",
-  "Proofs & contracts",
-  "Verification boundaries",
-  "Optimisation rules",
-  "Representation proofs",
-  "Knowledge database",
-  "Search & selection",
-  "Runtime adaptation",
-  "Serialisation",
-  "Software as a database",
-  "Compiler architecture",
-  "Native & WebAssembly",
-  "Packages & commands",
-  "Surface grammar",
-  "Performance evaluation",
-  "Implementation stages",
-  "Open decisions",
-  "Worked certificate",
-  "Reference execution",
-];
-const nav = chapters
-  .map(
-    (m, i) =>
-      `<a href="#chapter-${m[1]}"><span>${m[1].padStart(2, "0")}</span>${shortNames[i]}</a>`,
-  )
-  .join("");
+const readingSpec = await readFile(
+  new URL("../content/readable-spec.md", import.meta.url),
+  "utf8",
+);
+const chapters = [...readingSpec.matchAll(/^## (\d+) (.+)$/gm)];
+if (chapters.length !== 25) throw new Error("Expected all 25 language topics.");
 const sections = chapters
   .map((m, i) => {
-    const text = spec
-      .slice(m.index + m[0].length, chapters[i + 1]?.index ?? spec.length)
+    const text = readingSpec
+      .slice(
+        m.index + m[0].length,
+        chapters[i + 1]?.index ?? readingSpec.length,
+      )
       .trim();
-    return `<section class="chapter" id="chapter-${m[1]}" aria-labelledby="title-${m[1]}"><header class="chapter-title"><span class="chapter-number">${m[1].padStart(2, "0")}</span><h2 id="title-${m[1]}">${esc(m[2])}</h2><a class="permalink" href="#chapter-${m[1]}" aria-label="Link to ${esc(m[2])}">↗</a></header><div class="prose">${marked.parse(text)}</div></section>`;
+    return `<section class="chapter" id="chapter-${m[1]}" aria-labelledby="title-${m[1]}"><h2 id="title-${m[1]}">${esc(m[2])}</h2><div class="prose">${marked.parse(text)}</div></section>`;
   })
   .join("\n");
 const hello = `module totals;
@@ -134,13 +106,14 @@ const heroCode = codePanel(hello, "totals.ink · supported today");
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: a language for data, changes and computation. Read the full draft specification for a small compiler and an extensible database of checked optimisations."><title>ink — language specification</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"></head>
 <body><a class="skip" href="#specification">Skip to the specification</a>
-<div class="site-shell"><header class="topbar"><a href="#" class="brand">ink<span> / language specification</span></a><nav aria-label="Main navigation"><a href="#purpose">purpose</a><a href="#specification">spec</a><a href="https://github.com/siliconjungle/ink-spec-site" target="_blank" rel="noopener">github ↗</a></nav></header>
-<main><section class="hero" aria-labelledby="ink-title"><div class="hero-meta"><span>Experimental programming language</span><span>Draft 0.1 / October 2026</span></div><div class="hero-heading"><h1 id="ink-title">ink</h1><div class="hero-summary"><h2>Less work.<br> Same meaning.</h2><p data-measure>Describe your data, how it changes, and the result you need. Let checked knowledge find a better way to compute it.</p></div></div><div class="hero-bottom"><span>A small core. An expanding body of knowledge.</span><a href="#chapter-2">Read the syntax <span aria-hidden="true">↓</span></a></div></section>
-<section id="purpose" class="purpose" aria-labelledby="purpose-title"><div class="purpose-copy"><span class="eyebrow">Why Ink exists</span><h2 id="purpose-title">Make improvements<br> reusable.</h2><p>Most compilers improve when someone changes the compiler. Ink explores a different route: a small core, with optimisation knowledge stored in a growing database.</p><p>Programs describe logical data and explicit changes. A proof can establish that a fused calculation, a maintained total, or a different representation preserves their meaning. Measurements decide whether it is worth using.</p><p>New knowledge should help existing programs skip more work. It must earn its place twice: by being correct, and by being useful.</p></div><div class="purpose-example">${heroCode}<p class="example-note">Write the computation once. A checked database package can replace intermediate collections with a single traversal.</p><div class="principle"><span>01</span><div><strong>Meaning stays stable.</strong><p>Data layout and algorithms can change. Observable results must agree.</p></div></div><div class="principle"><span>02</span><div><strong>Evidence travels with knowledge.</strong><p>Imported proofs are checked locally. Faster is a separate, measured claim.</p></div></div></div></section>
-<section id="status" class="status" aria-labelledby="status-title"><div><span class="eyebrow">Where it stands</span><h2 id="status-title">A real prototype.<br> An unfinished language.</h2></div><div><p>The compiler supports pure <code>u64</code> collection programs and a broader stateful inventory subset, with native and WebAssembly execution. Immutable proof objects can authorise eligible source replacements.</p><p>This page contains the <strong>full intended draft</strong>, including features still to build. Generic functions, refinements, the complete proof surface, automatic adaptation and durable recovery remain unfinished. The current checker and backends are part of the trust boundary.</p><a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md" target="_blank" rel="noopener">Implementation status ↗</a></div></section>
-<div id="specification" class="spec-heading"><div><span class="eyebrow">The language, in detail</span><h2>Specification</h2></div><a href="/ink-specification.md" download>Download draft <span aria-hidden="true">↓</span></a></div>
-<div class="reference"><aside class="contents"><div class="contents-label">Contents <span>25 sections</span></div><nav aria-label="Specification contents">${nav}</nav></aside><details class="mobile-contents"><summary>Jump to a section <span>25 sections ↓</span></summary><nav aria-label="Mobile specification contents">${nav}</nav></details><div class="chapters">${sections}</div></div>
-</main><footer><span class="footer-brand">ink</span><span>Draft 0.1 · Designed to change.</span><div><a href="https://github.com/chenglou/pretext">Pretext</a><span> / </span><a href="https://github.com/chenglou/freerange">FreeRange</a></div></footer></div><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
+<main class="site-shell"><h1 id="ink-title">ink</h1>
+<div class="intro" id="purpose"><p data-measure>Ink connects data, changes and computation. You describe the result you need, and proofs let the compiler find equivalent ways to do less work.</p>
+<p>The compiler stays small. Its optimisation knowledge lives in a database of code and proofs that can grow independently. The compiler checks them, and benchmarks decide which implementations are worth using.</p>
+<p class="status-note">Ink is still being built; some syntax below is planned. Read the <a href="/ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
+${heroCode}
+<div id="specification" class="chapters">${sections}</div>
+<p class="source-link"><a href="https://github.com/siliconjungle/ink-spec-site">Source on GitHub</a></p>
+</main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 await writeFile(new URL("../index.html", import.meta.url), html);
 await mkdir(new URL("../public", import.meta.url), { recursive: true });
 await writeFile(

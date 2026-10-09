@@ -36,32 +36,6 @@ for (const button of document.querySelectorAll<HTMLButtonElement>(
   });
 }
 
-for (const link of document.querySelectorAll(".mobile-contents a")) {
-  link.addEventListener("click", () => {
-    const contents =
-      document.querySelector<HTMLDetailsElement>(".mobile-contents");
-    if (contents) contents.open = false;
-  });
-}
-
-const chapterLinks =
-  document.querySelectorAll<HTMLAnchorElement>(".contents nav a");
-const observer = new IntersectionObserver(
-  (entries) => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      for (const link of chapterLinks) {
-        if (link.hash === `#${entry.target.id}`)
-          link.setAttribute("aria-current", "location");
-        else link.removeAttribute("aria-current");
-      }
-    }
-  },
-  { rootMargin: "-5% 0px -70% 0px" },
-);
-for (const chapter of document.querySelectorAll(".chapter"))
-  observer.observe(chapter);
-
 // Prepare once after the font loads; resize only does cached arithmetic.
 // CSS owns wrapping and DOM text remains selectable/searchable/accessible.
 async function measuredPanels() {
@@ -69,7 +43,7 @@ async function measuredPanels() {
   await document.fonts.ready;
   const elements = new Map<
     Element,
-    { naturalWidth: number; hint: HTMLElement | null; code: HTMLElement }
+    { naturalWidth: number; code: HTMLElement }
   >();
   for (const panel of document.querySelectorAll<HTMLElement>(".code-panel")) {
     const code = panel.querySelector("code");
@@ -90,13 +64,12 @@ async function measuredPanels() {
     panel.dataset.compactWidth = String(measureNaturalWidth(compact));
     elements.set(panel, {
       naturalWidth,
-      hint: panel.querySelector(".scroll-hint"),
       code,
     });
   }
   const lede = document.querySelector<HTMLElement>("[data-measure]");
   const preparedLede = lede
-    ? prepare(lede.textContent ?? "", "15px Arial")
+    ? prepare(lede.textContent ?? "", "18px Arial")
     : null;
   const resize = new ResizeObserver((entries) => {
     for (const entry of entries) {
@@ -104,14 +77,14 @@ async function measuredPanels() {
       if (!Number.isFinite(observedWidth) || observedWidth <= 0) continue;
       const width = panelWidth(observedWidth);
       if (entry.target === lede && lede && preparedLede) {
-        const result = layout(preparedLede, width, 24);
+        const result = layout(preparedLede, width, 28);
         if (
           !Number.isInteger(result.lineCount) ||
           result.lineCount < 0 ||
           result.lineCount > 1_000_000
         )
           continue;
-        lede.style.minHeight = `${textHeight(result.lineCount, 24)}px`;
+        lede.style.minHeight = `${textHeight(result.lineCount, 28)}px`;
         lede.dataset.measuredLines = String(result.lineCount);
       } else {
         const record = elements.get(entry.target);
@@ -124,7 +97,6 @@ async function measuredPanels() {
         if (!Number.isFinite(measuredWidth) || measuredWidth < 0) continue;
         record.code.style.minWidth = `${Math.ceil(measuredWidth)}px`;
         const scroll = needsScroll(measuredWidth, codeViewport(width));
-        if (record.hint) record.hint.hidden = !scroll;
         (entry.target as HTMLElement).dataset.scrollExpected = String(scroll);
       }
     }
