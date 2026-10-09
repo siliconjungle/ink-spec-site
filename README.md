@@ -2,7 +2,7 @@
 
 A minimal dark reading guide to Ink. Large typography, 25 language topics, 20 code examples on rounded, subtly lighter backgrounds with custom highlighting, and a downloadable full draft. The introduction explains the purpose and makes clear that the current compiler implements only part of the design. There are no framed prose cards, decorative arrows, dividers, metadata labels or top navigation bar.
 
-The website source lives in this private personal repository. It has no hosted deployment or third-party runtime requests; the generated site, font and JavaScript are local assets.
+The website is published at [siliconjungle.github.io/ink-spec-site](https://siliconjungle.github.io/ink-spec-site/) from this public personal repository. It makes no third-party runtime requests; the generated site, font and JavaScript are bundled assets.
 
 ## Run locally
 
@@ -21,6 +21,16 @@ npm run preview
 ```
 
 The static production output is `dist/`. The preview uses the same address.
+
+## GitHub Pages
+
+Pushes to `main` run `.github/workflows/pages.yml`, which builds, checks and deploys the static page. The workflow can also be started manually from GitHub Actions.
+
+```sh
+npm run build:pages
+```
+
+The Pages build uses `/ink-spec-site/` as its base and writes `dist-pages/`. The separate output keeps the local preview in `dist/` working at its usual root URL. Downloads, fonts and scripts work beneath the project URL.
 
 ## Edit
 

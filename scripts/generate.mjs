@@ -104,12 +104,12 @@ fn total(xs: List<u64>) -> u64 {
 }`;
 const heroCode = codePanel(hello, "totals.ink · supported today");
 const html = `<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: a language for data, changes and computation. Read the full draft specification for a small compiler and an extensible database of checked optimisations."><title>ink — language specification</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: a language for data, changes and computation. Read the full draft specification for a small compiler and an extensible database of checked optimisations."><title>ink — language specification</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body><a class="skip" href="#specification">Skip to the specification</a>
 <main class="site-shell"><h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p data-measure>Ink connects data, changes and computation. You describe the result you need, and proofs let the compiler find equivalent ways to do less work.</p>
 <p>The compiler stays small. Its optimisation knowledge lives in a database of code and proofs that can grow independently. The compiler checks them, and benchmarks decide which implementations are worth using.</p>
-<p class="status-note">Ink is still being built; some syntax below is planned. Read the <a href="/ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
+<p class="status-note">Ink is still being built; some syntax below is planned. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
 ${heroCode}
 <div id="specification" class="chapters">${sections}</div>
 <p class="source-link"><a href="https://github.com/siliconjungle/ink-spec-site">Source on GitHub</a></p>
