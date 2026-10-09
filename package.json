@@ -1,0 +1,24 @@
+{
+  "name": "ink-spec-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run generate && vite --host 127.0.0.1 --port 4318 --strictPort",
+    "generate": "node scripts/generate.mjs",
+    "check": "tsc --noEmit && fr src/layout.ts",
+    "audit:layout": "fr --audit src/layout.ts",
+    "build": "npm run generate && npm run check && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4318 --strictPort"
+  },
+  "dependencies": {
+    "@chenglou/pretext": "0.0.9",
+    "@fontsource/ibm-plex-mono": "5.3.0"
+  },
+  "devDependencies": {
+    "@chenglou/freerange": "0.0.5",
+    "marked": "18.1.0",
+    "typescript": "5.9.3",
+    "vite": "8.3.4"
+  }
+}
