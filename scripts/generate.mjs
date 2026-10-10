@@ -110,7 +110,7 @@ const html = `<!doctype html>
 <div class="intro" id="purpose"><p data-measure>Ink is a programming language built around data and changes. Its aim is to make software faster by proving when work can be combined, skipped or represented differently.</p>
 <p>The core defines what a program means and checks proofs. A separate database supplies algorithms, representations and optimisation knowledge. New knowledge should improve programs without adding another special-purpose rule to the compiler.</p>
 <p>Separate backends turn checked programs into executable code. The goal is to let one program combine CPU and GPU work, choosing a plan that includes the cost of moving data between them.</p>
-<p class="status-note">Native, Wasm and a limited WebGPU/wgpu subset run today. General mixed-target routing is being built, and some syntax below is planned. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
+<p class="status-note">Native and Wasm run today. Checked pure call graphs can combine CPU and GPU stages; typed GPU pipelines can keep arrays resident. Broader proof-backed routing is still being built, and some syntax below is planned. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
 ${heroCode}
 <div id="specification" class="chapters">${sections}</div>
 <p class="source-link"><a href="https://github.com/siliconjungle/ink-spec-site">Source on GitHub</a></p>

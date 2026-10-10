@@ -8,7 +8,7 @@ The design has three parts: a small core that checks meaning and evidence, a dat
 
 One program should be able to use Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Moving data, converting layouts and waiting for results cost time too. The goal is to choose the whole execution plan, including those connections.
 
-The repositories are separated today. Native, Wasm and a limited GPU subset run. General mixed-target routing and moving the remaining specialised optimisation checks into database packages are ongoing work.
+The repositories are separated today. Native, Wasm and GPU subsets run. Checked pure call graphs can combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. Typed GPU pipelines also keep arrays resident across steps. Broader proof-backed routing and moving the remaining specialised optimisation checks into database packages are ongoing work.
 
 ## 2 An inventory program
 
@@ -346,7 +346,7 @@ The baseline must already produce useful loops, calls and buffers. Foreign kerne
 
 ## 18 Native code and WebAssembly
 
-C and Rust backends use existing toolchains to produce native machine code or WebAssembly. A shared GPU backend emits WGSL and runs through WebGPU in a browser or wgpu on desktop. The current GPU subset handles u32 collection pipelines and retains compiled CPU fallback.
+C and Rust backends use existing toolchains to produce native machine code or WebAssembly. A shared GPU backend emits WGSL and runs through WebGPU in a browser or wgpu on desktop. It supports u32 collection pipelines and a newer typed-array subset with signed words, floats, vectors, records and bounded loops. Both retain compiled CPU fallback. Portable GPU floats can differ from CPU results; their contract is documented separately.
 
 These live in separate repositories: [C lowering](https://github.com/siliconjungle/ink-lowering-c), [Rust lowering](https://github.com/siliconjungle/ink-lowering-rust), [Wasm adapters](https://github.com/siliconjungle/ink-lowering-wasm) and [GPU lowering](https://github.com/siliconjungle/ink-lowering-gpu). The [language core](https://github.com/siliconjungle/ink-lang/tree/main/core) can build without any of them.
 
@@ -364,7 +364,9 @@ drain_events(instance) -> encoded_events
 close(instance)
 ```
 
-The binary ABI must specify buffer ownership, lengths, validation and message versions. The current GPU runtime measures upload, allocation, dispatch and readback before choosing CPU or GPU per eligible function. Routing individual parts across targets, with checked physical bridges, remains implementation work.
+The binary ABI must specify buffer ownership, lengths, validation and message versions. Checked deterministic v1 call graphs now run across Wasm/WebGPU or native C/wgpu, returning scalar results between stages. The external database producer can share repeated pure calls and choose between checked plans using complete-call timings. A simple tested pipeline kept its CPU baseline because transfers made the mixed plan slower.
+
+The newer v2 host pipeline API keeps intermediate arrays resident across GPU steps. Connecting those pipelines to source-equivalence proofs remains work: portable floating-point behaviour needs a different observation contract from exact v1 equality. See the [routing contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/source-routing.md) and [compute contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/gpu-compute.md).
 
 Browser hosts provide storage and event adapters. Proof search can happen at build time; a browser does not need to ship an optimiser. The current implemented ABI is documented separately in the compiler repository.
 
