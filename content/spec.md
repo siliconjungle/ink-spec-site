@@ -6,7 +6,7 @@ This language describes data, permitted changes, and required results. Its compi
 
 The performance ambition is to compete with expert implementations on specified workloads and hardware, then extend that coverage. No language can promise to be the fastest on every program. The engineering objective is to remove avoidable work, approach hardware limits on the remaining work, and make improvements reusable.
 
-This is the full design draft for Ink. The compiler implements the subset described in [STATUS.md](https://github.com/siliconjungle/ink-lang/blob/2a1873359e89f78ffa92859fe18b6d08cb8b6036/STATUS.md); the draft is not a claim that every feature below exists. The executable core contract below describes the current shared representation. The `ink` command is primary; `lang` remains a compatibility command for archived experiments.
+This is the full design draft for Ink. The compiler implements the subset described in [STATUS.md](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/STATUS.md); the draft is not a claim that every feature below exists. The executable core contract below describes the current shared representation. The `ink` command is primary; `lang` remains a compatibility command for archived experiments.
 
 ## Implemented architecture
 
@@ -19,7 +19,7 @@ execution and general evidence checking. It builds independently. The
 | [ink-knowledge](https://github.com/siliconjungle/ink-knowledge) | Immutable entries, authenticated snapshots, typed discovery and performance observations |
 | [ink-planner](https://github.com/siliconjungle/ink-planner) | Bounded compositional search, applicability proofs and plan selection |
 | [ink-runtime](https://github.com/siliconjungle/ink-runtime) | Checked-graph execution, host ABIs, scheduling, profiling, bundle assembly and pure fallback |
-| [Lowerings](https://github.com/siliconjungle/ink-lang/blob/2a1873359e89f78ffa92859fe18b6d08cb8b6036/docs/backend-packages.md) | C/Rust/Wasm/JavaScript target emission and WGSL/WebGPU/wgpu device operations |
+| [Lowerings](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/backend-packages.md) | C/Rust/Wasm/JavaScript target emission and WGSL/WebGPU/wgpu device operations |
 
 Each canonical knowledge entry has a content identity, kind, semantics version,
 exact dependencies, typed interface and payload. SQLite is a rebuildable
@@ -41,11 +41,13 @@ mathematical domains; arbitrary entry kinds do not grant executable authority.
 Historical experiment fixtures live under `knowledge/research`, outside production
 discovery. General stateful replacement and migration remain unfinished.
 
-JavaScript lowering emits ES modules while preserving Ink's core types, wrapping
-integers and binary32 operation order. The initial target supports pure numeric,
-Bool, vector, record and list functions. Browser runtime selection compares
-JavaScript, Wasm and WebGPU whole execution costs; stateful JavaScript execution
-and per-stage adaptive placement remain unfinished. See [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/2a1873359e89f78ffa92859fe18b6d08cb8b6036/docs/javascript-backend.md).
+C, Rust, JavaScript and Wasm implement the currently executable pure and stateful
+language, including exact values, tables, transactions, ordered events, keeps and
+portable snapshots. JavaScript emits literal ES modules with explicit wrapping
+and binary32 operation order. Complete C emission uses a shared Rust primitive
+runtime. Browser selection compares eligible JavaScript, Wasm and WebGPU pure
+execution costs; per-stage adaptive placement remains unfinished. See the
+[parity contract](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/lowering-parity.md) and [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/javascript-backend.md).
 
 C/Rust toolchains produce native machine code and Wasm. The GPU package emits
 WGSL and operates WebGPU/wgpu devices; runtime assembles artifacts with compiled
@@ -56,7 +58,7 @@ stages, but general proved resident-buffer routing is unfinished.
 The proof checker is written in Rust; Lean is separate research tooling.
 The checker, correspondence bridges, emitted C/Rust/JavaScript/WGSL, toolchains, runtime
 adapters and GPU drivers remain trusted implementations. This draft does not
-claim end-to-end verified machine code. See [the repository contract](https://github.com/siliconjungle/ink-lang/blob/2a1873359e89f78ffa92859fe18b6d08cb8b6036/docs/repository-architecture.md).
+claim end-to-end verified machine code. See [the repository contract](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/repository-architecture.md).
 
 ## Executable core versions
 
@@ -123,7 +125,7 @@ primitives in `core/src/transaction.rs`. Canonical database decision laws can be
 bound to a checked source change through exact definition checking. This covers
 the commit decision, with explicit domain-error precedence and word exhaustion;
 it does not certify the action body or physical rollback and enables no shortcut.
-See [the boundary and remaining correspondence work](https://github.com/siliconjungle/ink-lang/blob/2a1873359e89f78ffa92859fe18b6d08cb8b6036/docs/change-boundary-correspondence.md).
+See [the boundary and remaining correspondence work](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/change-boundary-correspondence.md).
 
 Pure mathematical replacement proofs preserve total values. They exclude host
 resource exhaustion, allocation/OOM and native trap traces. Stateful replacement
@@ -149,9 +151,9 @@ and correspondence decision; a new equivalent implementation belongs in knowledg
 The extension adds wrapping i32, portable f32, numeric vectors/records, pure local
 bindings, multiple array inputs and array outputs. Safe indexed reads use
 `at_or`; `repeat` has a literal bound no greater than 65,536. Map, indexed map,
-zip, ordered CPU reductions and integer scan/sort have reference and compiled
+zip, filter, ordered reductions and integer scan/sort have reference and compiled
 implementations. Typed host pipelines can keep GPU arrays resident across steps
-and iterations. See [the compute contract](https://github.com/siliconjungle/ink-lang/blob/2a1873359e89f78ffa92859fe18b6d08cb8b6036/docs/gpu-compute.md) for exact operations,
+and iterations. See [the compute contract](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/gpu-compute.md) for exact operations,
 packed ABI, capability limits, fallback and reproduction.
 
 Portable GPU f32 follows WGSL-permitted evaluation behaviour, including rounding,
@@ -166,7 +168,7 @@ knowledge production may share identical calls and rank complete-cost plans;
 the core checks typed source equality and knows no target or cost model. Browser
 and native backends can execute admitted v1 CPU/GPU graphs with scalar host
 results. The explicit v2 resident pipeline API has a separate host contract;
-it is not yet a proved source replacement. See [source routing](https://github.com/siliconjungle/ink-lang/blob/2a1873359e89f78ffa92859fe18b6d08cb8b6036/docs/source-routing.md).
+it is not yet a proved source replacement. See [source routing](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/source-routing.md).
 
 ## 1 Design commitments
 
@@ -335,7 +337,11 @@ fn sum_copy(xs: List<Int>) -> Int {
 }
 ```
 
-`if`, `match`, bounded `for`, tuples, lambdas and exhaustive enum matching form the basic control language. A block returns through explicit `return`. `?` propagates an error in a `Result`-returning declaration; it has no implicit exception behaviour.
+`if`, `match`, bounded `for`, tuples, lambdas and exhaustive enum matching form the basic control language. A block returns through explicit `return`. `?` exits its containing `Result`-returning declaration with Err. A query or
+Result-valued keep returns that Err as an ordinary value: reading/calling it does
+not automatically abort a change. A caller can apply `?` to propagate it.
+Nested change errors still poison the transaction even when discarded. Host
+execution failures propagate and require rollback.
 
 The checked total fragment accepts structural recursion and recursion with a proved decreasing measure. Unrestricted recursion and `while` require `partial fn`. Partial functions may diverge and cannot be invoked during type checking or proof reduction. They are excluded from transactions and maintained queries in the initial version. External drivers may call them.
 

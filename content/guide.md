@@ -51,7 +51,7 @@ New laws can improve existing programs without adding optimisation cases to the 
 
 ```sh
 target/release/ink build totals.ink \
-  --optimise knowledge/store/snapshot.json -o build/totals.o
+  --optimise knowledge/store/snapshot.json -o build/totals
 ```
 
 Build plans record the selected transformations and proof dependencies. `--selection selection.json` replays a pinned plan without searching or reading the current database. [Selection and proof contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/semantic-optimisation.md).
@@ -64,23 +64,25 @@ Build plans record the selected transformations and proof dependencies. `--selec
 | Browser CPU | JavaScript ES modules or WebAssembly |
 | GPU | WGSL through browser WebGPU or native wgpu |
 
-Pure programs can compile directly to JavaScript:
+Pure and stateful programs compile to JavaScript:
 
 ```sh
 target/release/ink build totals.ink --target javascript -o totals.mjs
 ```
 
-Import the module and call `functions.total([1, 2, 3])`; its `u64` result is `39n`. JavaScript preserves Ink's wrapping words, exact `u64` and `f32` rounding. This initial target handles pure numeric, Bool, vector, record and list programs. [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md).
+Import the module and call `functions.total([1, 2, 3])`; its `u64` result is `39n`. JavaScript preserves Ink's wrapping words, exact `u64` and `f32` rounding. It also supports exact integers, strings, IDs, Option/Result, tables, transactions and portable snapshots. Stateful modules export `createState()`. [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md).
 
 Supported pure graphs can combine CPU and GPU stages. GPU pipelines can keep arrays resident across steps and iterations. Browser bundles compare eligible JavaScript, Wasm and WebGPU execution, including conversions, transfers and setup, and retain compiled CPU fallback. No target is always fastest.
 
-GPU support is a subset: some operations stay on CPU, and GPU floats can differ from CPU results. Rendering is the host application's job. Read the [GPU compute contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/gpu-compute.md) before choosing a target.
+GPU kernels support eligible flat 32-bit collection operations, including composed maps, filters, scans and integer sorts. Transactions and opaque values run on the CPU host. Resource limits can also select CPU, and GPU floats can differ from CPU results. Rendering is the host application's job. Read the [GPU compute contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/gpu-compute.md) before choosing a target.
+
+The [target parity contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/lowering-parity.md) lists supported operations, host interfaces and validation. Complete C emission uses a shared Rust primitive runtime; it is not a freestanding C-only implementation.
 
 ## State and snapshots
 
 A successful change commits its writes and ordered events together. A failed change rolls them back. Queries and maintained results must agree with the state they observe, including tentative writes inside a transaction.
 
-Portable snapshots let hosts save and restore logical state. A durable adapter must provide persistence, recovery and event delivery. General live migration and arbitrary program rewind remain future work. [State and host ABI](https://github.com/siliconjungle/ink-lang/blob/main/docs/wasm-abi.md).
+C, Rust, JavaScript and Wasm share the same portable snapshot format for a checked program. Hosts can save and restore logical state. A durable adapter must provide persistence, recovery and event delivery. General live migration and arbitrary program rewind remain future work. [State and host ABI](https://github.com/siliconjungle/ink-lang/blob/main/docs/wasm-abi.md).
 
 ## Knowledge and execution
 
@@ -97,6 +99,6 @@ Entries have content identities, explicit kinds, semantics versions, typed inter
 
 ## Current scope
 
-Ink is a working prototype. Pure rewrites compose today; specialised stateful proofs and implementations also exist. Stateful JavaScript execution, live browser source editing, general stateful replacement, automatic migration, richer modules and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
+Ink is a working prototype. Pure rewrites compose today; specialised stateful proofs and implementations also exist. Live browser source editing, general stateful replacement, automatic migration, richer modules and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
 
 For the complete design, read the [language reference](%BASE_URL%reference.html) or download the [full draft](%BASE_URL%ink-specification.md). For implementation details, see [status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md), [architecture](https://github.com/siliconjungle/ink-lang/blob/main/docs/repository-architecture.md) and [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md).
