@@ -3,10 +3,10 @@ import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const source = process.argv[2];
-if (!source) throw new Error('Usage: npm run sync:reference -- /path/to/ink-lang');
+if (!source) throw new Error('Usage: npm run sync:reference -- /path/to/ink-lang [revision]');
 const root = resolve(source);
 const git = (...args) => execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trim();
-const revision = git('rev-parse', 'HEAD');
+const revision = git('rev-parse', '--verify', `${process.argv[3] || 'HEAD'}^{commit}`);
 // Read committed bytes so the recorded revision describes the actual download.
 const draft = git('show', `${revision}:docs/language-specification-draft.md`)
   .replace(/\]\((?!https?:|#)([^)]+)\)/g, (_match, target) => {

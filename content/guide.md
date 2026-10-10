@@ -70,6 +70,8 @@ target/release/ink build totals.ink \
 
 Build plans record the selected transformations and proof dependencies. `--selection selection.json` replays a pinned plan without searching or reading the current database. [Selection and proof contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/semantic-optimisation.md).
 
+Whole-action proofs can also replace a complete action in a restricted domain. For example, a database law can reduce two removals of the same key to one, while preserving replies, every table, rollback, versions and ordered events. These proofs cover every initial state and argument; the compiler checks the proposed alternative against the actual source. [Whole-action contract and limits](https://github.com/siliconjungle/ink-lang/blob/main/docs/action-transitions.md).
+
 ## Where it runs
 
 | Target | Execution path |
@@ -115,6 +117,6 @@ Entries have content identities, explicit kinds, semantics versions, typed inter
 
 ## Current scope
 
-Ink is a working prototype. Expression rewrites compose in pure functions and eligible action regions today; specialised stateful proofs and implementations also exist. Live browser source editing, general stateful replacement, automatic migration, richer libraries and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
+Ink is a working prototype. Expression rewrites compose in pure functions and eligible action regions; complete action replacement is checked for a restricted subset. General physical representations, numerical state/action boundaries, live browser source editing, automatic migration, richer libraries and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
 
 For the complete design, read the [language reference](%BASE_URL%reference.html) or download the [full draft](%BASE_URL%ink-specification.md). For implementation details, see [status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md), [architecture](https://github.com/siliconjungle/ink-lang/blob/main/docs/repository-architecture.md) and [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md).
