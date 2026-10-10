@@ -17,6 +17,8 @@ target/release/ink run totals.ink total arguments.json
 
 The result is `39`. The argument file contains one list for the function's one parameter. Native and Wasm builds use existing C/Rust toolchains; optimisation search also needs Python.
 
+For a relocatable installation with pinned optional tools, use `python3 tools/install.py --prefix DIRECTORY`. `ink doctor` reports tool availability; `ink explain SOURCE` shows checked types, effects and optimisation plans. [Installation and inspection](https://github.com/siliconjungle/ink-lang/blob/main/docs/installation.md).
+
 ## What you can write
 
 Pure functions handle collections, word arithmetic, `i32`, `f32`, vectors, records and bounded loops. They suit data transforms, aggregates and particle simulation steps:
