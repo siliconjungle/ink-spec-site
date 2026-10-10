@@ -13,6 +13,9 @@ This is the full design draft for Ink. The compiler implements the subset descri
 The `ink-core` crate owns types, executable semantics, reference evaluation and
 general evidence checking. It builds without knowledge or backend checkouts.
 The distribution combines independently pinned packages; it is not the core.
+The core is currently a separate crate inside the language repository; knowledge
+and lowering packages are independent repositories. General runtime adaptation
+and complete stateful source-to-representation proofs are still production work.
 
 [ink-knowledge](https://github.com/siliconjungle/ink-knowledge) holds immutable
 JSON definitions, theorems, candidate implementations and external proof-producing

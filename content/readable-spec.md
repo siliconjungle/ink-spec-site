@@ -14,13 +14,15 @@ The design has three parts, maintained in separate repositories:
 
 The core can build without the database or backends. The complete compiler combines pinned versions of them. Adding an algorithm should mean adding a checked package, rather than teaching the core an optimisation rule.
 
+Today, the core lives in its own crate inside the language repository. Knowledge and lowering packages have their own repositories. The database stores JSON definitions, candidates and proof objects; the core has its own restricted Rust proof checker. Lean is separate research tooling. It is not needed to build an Ink program.
+
 Placement is per computation, rather than one target for the entire program. A browser program can combine Wasm and WebGPU; a desktop program can combine native CPU code and wgpu. Moving data, converting layouts and waiting for results cost time too. The database planner compares complete execution plans, including those connections.
 
-Checked pure call graphs already combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. A separate typed GPU pipeline API keeps arrays resident across steps; those host pipelines are not yet proved source replacements. Full stateful representation replacement and moving the remaining specialised optimisation checks into database packages are ongoing work.
+Checked pure call graphs already combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. A separate typed GPU pipeline API keeps arrays resident across steps; those host pipelines are not yet proved source replacements. Existing stateful programs support transactions, events and portable snapshots, but general proofs connecting their source to interchangeable physical implementations remain unfinished. Older aggregate, bounded-cache and layout checks also still need to move into database packages.
 
 ## 2 An inventory program
 
-This program stores inventory and keeps its total stock up to date. `state` holds data, `change` updates it, `query` reads it, and `keep` describes a result that depends on it.
+This example shows the intended language, including syntax that is still proposed. It stores inventory and keeps its total stock up to date. `state` holds data, `change` updates it, `query` reads it, and `keep` describes a result that depends on it. The smaller totals example above runs in the current compiler.
 
 ```text
 module inventory;
@@ -322,7 +324,7 @@ Search has time, memory and candidate limits. If it runs out of budget or cannot
 
 ## 14 Changing implementations at runtime
 
-Static mode chooses implementations before execution. Adaptive mode observes a bounded sample, proposes alternatives, checks their evidence, compiles and measures them, then migrates at a transaction boundary.
+Runtime adaptation is planned. Static selection and bounded CPU/GPU measurements exist for specific subsets today. The intended adaptive mode observes a bounded sample, proposes alternatives, checks their evidence, compiles and measures them, then migrates at a transaction boundary.
 
 A profile is not a proof. Specialising for a property such as “values fit in 16 bits” needs a maintained bound or a guard with a correct fallback.
 
@@ -340,7 +342,7 @@ A durable host commits deltas and events before acknowledging success. Recovery 
 
 ## 16 Code as data
 
-Code, schemas, proofs and plans are typed objects with dependencies and history. Source files are the editable view of those objects.
+The design treats code, schemas, proofs and plans as typed objects with dependencies and history. Versioned program objects and content-addressed knowledge packages exist today; a unified editable store for all of them remains a goal.
 
 An edit creates new identities. Incremental compilation follows the affected dependencies; existing proofs are reusable only with compatible definitions.
 
@@ -591,7 +593,7 @@ A nested change shares this working state and event list. Keeps read the same te
 
 Pure equivalence means equal results for every allowed input. State-machine equivalence also includes commit/abort results, commit positions and ordered events for every allowed input sequence. Layout, caches and ordinary timing are not public observations.
 
-Proof objects use these general operations:
+The richer proof language is proposed to use these general operations. Today's first-order checker supports a smaller set: equality, congruence, theorem application, cases, structural induction and checked word-arithmetic certificates.
 
 | Proof term | Purpose |
 | --- | --- |

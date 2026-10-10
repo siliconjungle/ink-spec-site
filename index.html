@@ -2,10 +2,11 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: a language for data, changes and computation. A small semantic core, a growing database of checked optimisations and composable CPU/GPU backends."><title>ink — language specification</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body><a class="skip" href="#specification">Skip to the specification</a>
 <main class="site-shell"><h1 id="ink-title">ink</h1>
-<div class="intro" id="purpose"><p data-measure>Ink is a programming language for data, changes and the results they produce. It is being built to make software faster by proving which work can be combined, skipped or done differently.</p>
-<p>The design keeps the core small. It defines what a program means and checks evidence. A separate, growing database supplies equivalent algorithms and representations. The aim is to extend optimisation by adding knowledge, rather than adding special cases to the compiler.</p>
-<p>A program can use several backends together: Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Existing C and Rust toolchains produce the machine code. Choosing where work runs includes the cost of moving data and waiting for results.</p>
-<p class="status-note">Ink is an experimental implementation. Native, Wasm and GPU subsets run today, including checked pure CPU/GPU call graphs. Full stateful replacement proofs and parts of the syntax below are still being built. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
+<div class="intro" id="purpose"><p data-measure>Ink is a programming language built around data and how it changes. The aim is to make programs faster by proving which computations are equivalent, which can be combined and which work can be skipped.</p>
+<p>You describe the result you need. A small core defines what that means and checks proposed replacements. A separate knowledge database supplies algorithms, representations and proofs. New knowledge should improve existing programs without adding another optimisation rule to the core.</p>
+<p>One program can combine Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Separate lowering packages handle those systems. Existing C and Rust toolchains produce the machine code. Choosing where work runs must include the time spent moving data, converting it and waiting.</p>
+<p>A proof establishes correctness. Measurements establish whether a choice is faster. More knowledge creates more choices; the compiler still needs to find one that fits the program, data and hardware.</p>
+<p class="status-note">Ink is a working prototype. Native, Wasm and GPU subsets run today; the full language below is a design draft. General stateful replacement, runtime adaptation and some syntax remain unfinished. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy totals.ink · supported today example" data-copy="code-20">copy</button><pre tabindex="0" aria-label="totals.ink · supported today example"><code id="code-20"><span class="tok-keyword">module</span> totals;
 
 <span class="tok-keyword">fn</span> <span class="tok-function">total</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u64</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u64</span> {
@@ -35,10 +36,11 @@
 </tr>
 </tbody></table>
 </div><p>The core can build without the database or backends. The complete compiler combines pinned versions of them. Adding an algorithm should mean adding a checked package, rather than teaching the core an optimisation rule.</p>
+<p>Today, the core lives in its own crate inside the language repository. Knowledge and lowering packages have their own repositories. The database stores JSON definitions, candidates and proof objects; the core has its own restricted Rust proof checker. Lean is separate research tooling. It is not needed to build an Ink program.</p>
 <p>Placement is per computation, rather than one target for the entire program. A browser program can combine Wasm and WebGPU; a desktop program can combine native CPU code and wgpu. Moving data, converting layouts and waiting for results cost time too. The database planner compares complete execution plans, including those connections.</p>
-<p>Checked pure call graphs already combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. A separate typed GPU pipeline API keeps arrays resident across steps; those host pipelines are not yet proved source replacements. Full stateful representation replacement and moving the remaining specialised optimisation checks into database packages are ongoing work.</p>
+<p>Checked pure call graphs already combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. A separate typed GPU pipeline API keeps arrays resident across steps; those host pipelines are not yet proved source replacements. Existing stateful programs support transactions, events and portable snapshots, but general proofs connecting their source to interchangeable physical implementations remain unfinished. Older aggregate, bounded-cache and layout checks also still need to move into database packages.</p>
 </div></section>
-<section class="chapter" id="chapter-2" aria-labelledby="title-2"><h2 id="title-2">An inventory program</h2><div class="prose"><p>This program stores inventory and keeps its total stock up to date. <code>state</code> holds data, <code>change</code> updates it, <code>query</code> reads it, and <code>keep</code> describes a result that depends on it.</p>
+<section class="chapter" id="chapter-2" aria-labelledby="title-2"><h2 id="title-2">An inventory program</h2><div class="prose"><p>This example shows the intended language, including syntax that is still proposed. It stores inventory and keeps its total stock up to date. <code>state</code> holds data, <code>change</code> updates it, <code>query</code> reads it, and <code>keep</code> describes a result that depends on it. The smaller totals example above runs in the current compiler.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-1"><span class="tok-keyword">module</span> inventory;
 
 <span class="tok-keyword">id</span> <span class="tok-type">ItemId</span>;
@@ -322,7 +324,7 @@
 <p>The objective may be latency, throughput, memory or energy. Include proof checking, compilation, migration, guards, data transfers, layout conversion and synchronisation in the cost. A correct candidate that runs slower should stay unselected.</p>
 <p>Search has time, memory and candidate limits. If it runs out of budget or cannot establish a proof, keep the best accepted implementation.</p>
 </div></section>
-<section class="chapter" id="chapter-14" aria-labelledby="title-14"><h2 id="title-14">Changing implementations at runtime</h2><div class="prose"><p>Static mode chooses implementations before execution. Adaptive mode observes a bounded sample, proposes alternatives, checks their evidence, compiles and measures them, then migrates at a transaction boundary.</p>
+<section class="chapter" id="chapter-14" aria-labelledby="title-14"><h2 id="title-14">Changing implementations at runtime</h2><div class="prose"><p>Runtime adaptation is planned. Static selection and bounded CPU/GPU measurements exist for specific subsets today. The intended adaptive mode observes a bounded sample, proposes alternatives, checks their evidence, compiles and measures them, then migrates at a transaction boundary.</p>
 <p>A profile is not a proof. Specialising for a property such as “values fit in 16 bits” needs a maintained bound or a guard with a correct fallback.</p>
 <p>Trials use snapshots or synthetic inputs and cannot deliver real events. Switching back must preserve every committed user change. Cooldowns and migration budgets prevent constant switching.</p>
 </div></section>
@@ -331,7 +333,7 @@
 <p>The portable format is versioned and canonical: integers have fixed encodings, strings carry lengths, and tables use canonical key order. Decoding validates sizes, schemas and integrity. Physical caches may use other layouts.</p>
 <p>A durable host commits deltas and events before acknowledging success. Recovery loads a checkpoint and replays later committed deltas. In-memory mode needs no mandatory disk I/O. Schema upgrades use explicit migration functions.</p>
 </div></section>
-<section class="chapter" id="chapter-16" aria-labelledby="title-16"><h2 id="title-16">Code as data</h2><div class="prose"><p>Code, schemas, proofs and plans are typed objects with dependencies and history. Source files are the editable view of those objects.</p>
+<section class="chapter" id="chapter-16" aria-labelledby="title-16"><h2 id="title-16">Code as data</h2><div class="prose"><p>The design treats code, schemas, proofs and plans as typed objects with dependencies and history. Versioned program objects and content-addressed knowledge packages exist today; a unified editable store for all of them remains a goal.</p>
 <p>An edit creates new identities. Incremental compilation follows the affected dependencies; existing proofs are reusable only with compatible definitions.</p>
 <p>State and computation are connected through explicit changes and maintained results. This does not mean every data value is executable code. Initially, persistent callbacks use serialisable arguments and explicit state rather than arbitrary captured closures.</p>
 </div></section>
@@ -538,7 +540,7 @@ statement     <span class="tok-operator">=</span> (<span class="tok-string">&quo
     discard working and events
     <span class="tok-keyword">return</span> error with the unchanged committed <span class="tok-keyword">state</span></code></pre></div><p>A nested change shares this working state and event list. Keeps read the same tentative or committed state as their reader.</p>
 <p>Pure equivalence means equal results for every allowed input. State-machine equivalence also includes commit/abort results, commit positions and ordered events for every allowed input sequence. Layout, caches and ordinary timing are not public observations.</p>
-<p>Proof objects use these general operations:</p>
+<p>The richer proof language is proposed to use these general operations. Today&#39;s first-order checker supports a smaller set: equality, congruence, theorem application, cases, structural induction and checked word-arithmetic certificates.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Specification table"><table>
 <thead>
 <tr>
