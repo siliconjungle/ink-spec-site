@@ -6,7 +6,7 @@ This language describes data, permitted changes, and required results. Its compi
 
 The performance ambition is to compete with expert implementations on specified workloads and hardware, then extend that coverage. No language can promise to be the fastest on every program. The engineering objective is to remove avoidable work, approach hardware limits on the remaining work, and make improvements reusable.
 
-This is the full design draft for Ink. The compiler implements the subset described in [STATUS.md](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/STATUS.md); the draft is not a claim that every feature below exists. The executable core contract below describes the current shared representation. The `ink` command is primary; `lang` remains a compatibility command for archived experiments.
+This is the full design draft for Ink. The compiler implements the subset described in [STATUS.md](https://github.com/siliconjungle/ink-lang/blob/d076dddd8d0f2f6b79352364fae606bc55ffbcae/STATUS.md); the draft is not a claim that every feature below exists. The executable core contract below describes the current shared representation. The `ink` command is primary; `lang` remains a compatibility command for archived experiments.
 
 ## Implemented architecture
 
@@ -19,7 +19,7 @@ execution and general evidence checking. It builds independently. The
 | [ink-knowledge](https://github.com/siliconjungle/ink-knowledge) | Immutable entries, authenticated snapshots, typed discovery and performance observations |
 | [ink-planner](https://github.com/siliconjungle/ink-planner) | Bounded compositional search, applicability proofs and plan selection |
 | [ink-runtime](https://github.com/siliconjungle/ink-runtime) | Checked-graph execution, host ABIs, scheduling, profiling, bundle assembly and pure fallback |
-| [Lowerings](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/backend-packages.md) | C/Rust/Wasm/JavaScript target emission and WGSL/WebGPU/wgpu device operations |
+| [Lowerings](https://github.com/siliconjungle/ink-lang/blob/d076dddd8d0f2f6b79352364fae606bc55ffbcae/docs/backend-packages.md) | C/Rust/Wasm/JavaScript target emission and WGSL/WebGPU/wgpu device operations |
 
 Each canonical knowledge entry has a content identity, kind, semantics version,
 exact dependencies, typed interface and payload. SQLite is a rebuildable
@@ -47,7 +47,7 @@ portable snapshots. JavaScript emits literal ES modules with explicit wrapping
 and binary32 operation order. Complete C emission uses a shared Rust primitive
 runtime. Browser selection compares eligible JavaScript, Wasm and WebGPU pure
 execution costs; per-stage adaptive placement remains unfinished. See the
-[parity contract](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/lowering-parity.md) and [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/javascript-backend.md).
+[parity contract](https://github.com/siliconjungle/ink-lang/blob/d076dddd8d0f2f6b79352364fae606bc55ffbcae/docs/lowering-parity.md) and [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/d076dddd8d0f2f6b79352364fae606bc55ffbcae/docs/javascript-backend.md).
 
 C/Rust toolchains produce native machine code and Wasm. The GPU package emits
 WGSL and operates WebGPU/wgpu devices; runtime assembles artifacts with compiled
@@ -58,7 +58,7 @@ stages, but general proved resident-buffer routing is unfinished.
 The proof checker is written in Rust; Lean is separate research tooling.
 The checker, correspondence bridges, emitted C/Rust/JavaScript/WGSL, toolchains, runtime
 adapters and GPU drivers remain trusted implementations. This draft does not
-claim end-to-end verified machine code. See [the repository contract](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/repository-architecture.md).
+claim end-to-end verified machine code. See [the repository contract](https://github.com/siliconjungle/ink-lang/blob/d076dddd8d0f2f6b79352364fae606bc55ffbcae/docs/repository-architecture.md).
 
 ## Executable core versions
 
@@ -108,6 +108,7 @@ The executable semantic commitments are:
 | Stateful tables and keeps | Tables are logical keyed collections. Reads inside a change observe earlier tentative writes. Derived values must match recomputation. Physical storage and caches are not logical state. |
 | Changes | An outer successful change returning Ok commits once, including an otherwise empty change. Err, `?`, nested failed changes and host execution errors roll back tentative writes and discard transaction events. Nested failure poisons its enclosing change even if the Result is ignored. |
 | Queries | Declared reads only; queries publish no events and do not advance the committed version. |
+| Table resources | In the executable subset, `Table<K,V>` is a declared root capability. It cannot occur as an ordinary parameter, return, field, event, keep or nested table value. Literal root methods produce ordinary values; root escapes reject during checking. |
 | Events | Successful commits append events in emission order, identified by commit and position. Aborts preserve the previous outbox. Host acknowledgement removes an acknowledged prefix without changing logical table contents. |
 | Commit exhaustion | A change cannot wrap the commit sequence. Exhaustion rolls back and returns a host error. |
 | Snapshots | Transaction-boundary logical tables, committed version and pending ordered events; physical caches are rebuilt. Existing snapshot identities/codecs remain unchanged by the core-file split. No captured call stack, schema migration or durable crash recovery is implied. |
@@ -125,7 +126,7 @@ primitives in `core/src/transaction.rs`. Canonical database decision laws can be
 bound to a checked source change through exact definition checking. This covers
 the commit decision, with explicit domain-error precedence and word exhaustion;
 it does not certify the action body or physical rollback and enables no shortcut.
-See [the boundary and remaining correspondence work](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/change-boundary-correspondence.md).
+See [the boundary and remaining correspondence work](https://github.com/siliconjungle/ink-lang/blob/d076dddd8d0f2f6b79352364fae606bc55ffbcae/docs/change-boundary-correspondence.md).
 
 Pure mathematical replacement proofs preserve total values. They exclude host
 resource exhaustion, allocation/OOM and native trap traces. Stateful replacement
@@ -142,7 +143,7 @@ ink emit-state core.json --core -o generated-state
 ```
 
 The richer type system, general ownership/arenas, foreign effects, concurrency,
-durability and migration in the design below remain subsequent milestones.
+generic stateful replacement and migration in the design below remain subsequent milestones. Runtime filesystem/IndexedDB adapters now provide a documented native C/Rust and compiled-JavaScript/Wasm durability baseline; they replace whole snapshots rather than implementing the draft's incremental-log protocol. See `docs/durable-host.md`.
 A new executable operation or changed meaning requires an explicit core-version
 and correspondence decision; a new equivalent implementation belongs in knowledge.
 
@@ -153,7 +154,7 @@ bindings, multiple array inputs and array outputs. Safe indexed reads use
 `at_or`; `repeat` has a literal bound no greater than 65,536. Map, indexed map,
 zip, filter, ordered reductions and integer scan/sort have reference and compiled
 implementations. Typed host pipelines can keep GPU arrays resident across steps
-and iterations. See [the compute contract](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/gpu-compute.md) for exact operations,
+and iterations. See [the compute contract](https://github.com/siliconjungle/ink-lang/blob/d076dddd8d0f2f6b79352364fae606bc55ffbcae/docs/gpu-compute.md) for exact operations,
 packed ABI, capability limits, fallback and reproduction.
 
 Portable GPU f32 follows WGSL-permitted evaluation behaviour, including rounding,
@@ -168,7 +169,7 @@ knowledge production may share identical calls and rank complete-cost plans;
 the core checks typed source equality and knows no target or cost model. Browser
 and native backends can execute admitted v1 CPU/GPU graphs with scalar host
 results. The explicit v2 resident pipeline API has a separate host contract;
-it is not yet a proved source replacement. See [source routing](https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/docs/source-routing.md).
+it is not yet a proved source replacement. See [source routing](https://github.com/siliconjungle/ink-lang/blob/d076dddd8d0f2f6b79352364fae606bc55ffbcae/docs/source-routing.md).
 
 ## 1 Design commitments
 
@@ -722,7 +723,19 @@ WebAssembly is the browser CPU target. Browser GPU execution requires a separate
 
 ## 19 Packages and developer commands
 
-Modules use explicit imports:
+The executable distribution supports explicit file namespaces and embedded standard helpers (`docs/modules.md`):
+
+```ink
+module app.inventory;
+import "stock.ink" as stock;
+import "std:words" as words;
+```
+
+All top-level declarations are currently exported. The loader rejects import cycles,
+resolves relative file paths and preserves ordinary checked core semantics. Private
+exports, package resolution and richer library/proof syntax remain proposed below.
+
+The broader package design uses explicit imports:
 
 ```text
 module app.inventory;

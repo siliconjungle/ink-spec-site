@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: typed programs, composable checked optimisations, and native/JavaScript/Wasm/GPU execution."><title>ink — language reference</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body><a class="skip" href="#specification">Skip to the content</a><main class="site-shell"><h1 class="reference-title">ink <span>/ reference</span></h1>
-<div class="intro"><p data-measure>The language design, from values and transactions to proofs and execution.</p><p>This reference includes proposed syntax. For the working subset, start with the <a href="%BASE_URL%index.html">practical guide</a> and <a href="https://github.com/siliconjungle/ink-lang/blob/af3c6c4c1d760bb7d01162176168a74bccbc88d9/STATUS.md">implementation status</a>.</p></div>
+<div class="intro"><p data-measure>The language design, from values and transactions to proofs and execution.</p><p>This reference includes proposed syntax. For the working subset, start with the <a href="%BASE_URL%index.html">practical guide</a> and <a href="https://github.com/siliconjungle/ink-lang/blob/d076dddd8d0f2f6b79352364fae606bc55ffbcae/STATUS.md">implementation status</a>.</p></div>
 <nav class="reading-links" aria-label="Reference topics"><a href="#chapter-3">Types</a><a href="#chapter-5">State</a><a href="#chapter-8">Proofs</a><a href="#chapter-12">Knowledge</a><a href="#chapter-20">Grammar</a><a href="%BASE_URL%ink-specification.md" download>Full draft</a></nav>
 <div id="specification" class="chapters"><section class="chapter" id="chapter-1" aria-labelledby="title-chapter-1"><h2 id="title-chapter-1">How it works</h2><div class="prose"><p>You describe a program&#39;s data, changes and results. Implementations may change only when the required meaning is preserved. For example, a table query can rescan every row or maintain a total after updates; the latter needs evidence covering future changes and failed transactions as well as today&#39;s answer.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
@@ -321,7 +321,8 @@
 <p>JavaScript implements Ink&#39;s types: explicit 32-bit wrapping and multiplication, BigInt-backed wrapping <code>u64</code>, and separate binary32 rounding after each float operation. Bool, vectors, records and nested lists retain their checked types. Inputs are captured, validated and preserved. Lazy branches and fallbacks remain lazy. Results of <code>u64</code> functions are BigInt; JSON hosts must encode them explicitly.</p>
 <p>The initial target supports pure compute functions and rejects state/actions and opaque stateful types. Browser runtime bundles compare eligible JavaScript, Wasm and WebGPU whole-computation costs. Measurements select execution; they never establish proof conditions. Per-stage adaptive placement and editable browser source compilation remain unfinished. See the <a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md">JavaScript contract</a> and <a href="https://github.com/siliconjungle/ink-lowering-js">lowerer repository</a>.</p>
 </div></section>
-<section class="chapter" id="chapter-19" aria-labelledby="title-chapter-19"><h2 id="title-chapter-19">Modules and commands</h2><div class="prose"><p>Imports are explicit. The prelude supplies built-in types and basic constructors and operators. Other names must be imported.</p>
+<section class="chapter" id="chapter-19" aria-labelledby="title-chapter-19"><h2 id="title-chapter-19">Modules and commands</h2><div class="prose"><p>The current distribution implements explicit relative file imports such as <code>import &quot;stock.ink&quot; as stock;</code> and embedded <code>std:words</code> / <code>std:lists</code> helpers. It exports all top-level declarations and rejects import cycles. Private exports and package resolution remain proposed. <a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/modules.md">Implemented module contract</a>.</p>
+<p>In the broader design, imports are explicit. The prelude supplies built-in types and basic constructors and operators. Other names must be imported.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-12">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-12"><span class="tok-keyword">module</span> app.inventory;
 <span class="tok-keyword">import</span> core.collections.{<span class="tok-type">Table</span>, <span class="tok-type">List</span>};
 <span class="tok-keyword">import</span> core.<span class="tok-keyword">arithmetic</span>.{checked_add};</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal · proposed commands example" data-copy="code-13">copy</button><pre tabindex="0" aria-label="Terminal · proposed commands example"><code id="code-13">ink check
@@ -438,7 +439,7 @@ statement     <span class="tok-operator">=</span> (<span class="tok-string">&quo
 </tr>
 <tr>
 <td>Make it usable</td>
-<td>Modules, diagnostics, installation, debugging and editor support</td>
+<td>Modules, diagnostics, installation, debugging</td>
 <td>Someone outside the project can build and diagnose a substantial program</td>
 </tr>
 <tr>
@@ -455,7 +456,7 @@ statement     <span class="tok-operator">=</span> (<span class="tok-string">&quo
 </div><p>The first useful demonstration adds a proved alternative to the database, changes a scan into maintained computation, preserves queries and events across future changes, and transfers a checkpoint between implementations. Compare it with a handwritten maintained baseline.</p>
 <p>Tests, fuzzing and benchmarks are useful checks. They do not substitute for the proofs a verified mode promises.</p>
 </div></section>
-<section class="chapter" id="chapter-23" aria-labelledby="title-chapter-23"><h2 id="title-chapter-23">What remains to decide</h2><div class="prose"><p>The prototype has versioned core objects, checked proof entries and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, durable storage protocols and stable release interfaces.</p>
+<section class="chapter" id="chapter-23" aria-labelledby="title-chapter-23"><h2 id="title-chapter-23">What remains to decide</h2><div class="prose"><p>The prototype has versioned core objects, checked proof entries and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, incremental durable storage protocols and stable release interfaces.</p>
 <p>The prototype implements only part of this design. Its current status is documented in the compiler repository. The interpreter, checker and implementation packages should evolve together so semantic disagreements appear early.</p>
 </div></section>
 <section class="chapter" id="chapter-24" aria-labelledby="title-chapter-24"><h2 id="title-chapter-24">Maintaining a total</h2><div class="prose"><p>A table holds exact integer weights. Replacing one row changes its total by subtracting the old value and adding the new one:</p>
@@ -549,5 +550,5 @@ tactic       <span class="tok-operator">=</span> <span class="tok-string">&quot;
              | <span class="tok-string">&quot;cases&quot;</span> name
              | <span class="tok-string">&quot;induction&quot;</span> name ;</code></pre></div><p>Unsupported certificates are rejected. Optional optimisations retain the baseline. The checker itself remains a trusted implementation until its correctness is established separately.</p>
 </div></section></div>
-<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a><a href="https://github.com/siliconjungle/ink-lang/tree/af3c6c4c1d760bb7d01162176168a74bccbc88d9">Implementation af3c6c4</a></footer>
+<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a><a href="https://github.com/siliconjungle/ink-lang/tree/d076dddd8d0f2f6b79352364fae606bc55ffbcae">Implementation d076ddd</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

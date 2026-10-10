@@ -34,6 +34,18 @@ fn kick(vs: List<Vec3<f32>>, dt: f32,
 
 Stateful programs add typed tables, queries, atomic changes, events and maintained results. They suit inventory, counters and other application logic. External I/O belongs to the host. See the [particle example](https://github.com/siliconjungle/ink-lang/blob/main/examples/particles.ink) and [state examples](https://github.com/siliconjungle/ink-lang/blob/main/docs/wasm-abi.md).
 
+## Modules
+
+Split programs into explicit source imports. Functions, types, state and events keep their own module namespace:
+
+```ink
+module example;
+import "std:words" as words;
+fn bounded(x: u32) -> u32 { return words.clamp32(x, 0, 100); }
+```
+
+Relative file imports use `import "stock.ink" as stock;`. The compiler ships small word/list helper modules and checks the linked program before lowering. [Modules and library helpers](https://github.com/siliconjungle/ink-lang/blob/main/docs/modules.md).
+
 ## How optimisation works
 
 The planner finds applicable laws in the knowledge store and composes them through larger expressions. The semantic core checks each replacement and its conditions against the actual program.
@@ -82,7 +94,7 @@ The [target parity contract](https://github.com/siliconjungle/ink-lang/blob/main
 
 A successful change commits its writes and ordered events together. A failed change rolls them back. Queries and maintained results must agree with the state they observe, including tentative writes inside a transaction.
 
-C, Rust, JavaScript and Wasm share the same portable snapshot format for a checked program. Hosts can save and restore logical state. A durable adapter must provide persistence, recovery and event delivery. General live migration and arbitrary program rewind remain future work. [State and host ABI](https://github.com/siliconjungle/ink-lang/blob/main/docs/wasm-abi.md).
+C, Rust, JavaScript and Wasm share the same portable snapshot format for a checked program. Runtime adapters persist native C/Rust and compiled JavaScript or C/Rust Wasm state through synced files or IndexedDB in the browser. Native executables accept `--durable FILE`. They recover state and pending events before retrying calls; delivery is at least once, with receiver deduplication. [Durable host contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/durable-host.md). General live migration and arbitrary program rewind remain future work. [State and host ABI](https://github.com/siliconjungle/ink-lang/blob/main/docs/wasm-abi.md).
 
 ## Knowledge and execution
 
@@ -99,6 +111,6 @@ Entries have content identities, explicit kinds, semantics versions, typed inter
 
 ## Current scope
 
-Ink is a working prototype. Pure rewrites compose today; specialised stateful proofs and implementations also exist. Live browser source editing, general stateful replacement, automatic migration, richer modules and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
+Ink is a working prototype. Pure rewrites compose today; specialised stateful proofs and implementations also exist. Live browser source editing, general stateful replacement, automatic migration, richer libraries and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
 
 For the complete design, read the [language reference](%BASE_URL%reference.html) or download the [full draft](%BASE_URL%ink-specification.md). For implementation details, see [status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md), [architecture](https://github.com/siliconjungle/ink-lang/blob/main/docs/repository-architecture.md) and [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md).

@@ -375,7 +375,9 @@ The initial target supports pure compute functions and rejects state/actions and
 
 ## 19 Modules and commands
 
-Imports are explicit. The prelude supplies built-in types and basic constructors and operators. Other names must be imported.
+The current distribution implements explicit relative file imports such as `import "stock.ink" as stock;` and embedded `std:words` / `std:lists` helpers. It exports all top-level declarations and rejects import cycles. Private exports and package resolution remain proposed. [Implemented module contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/modules.md).
+
+In the broader design, imports are explicit. The prelude supplies built-in types and basic constructors and operators. Other names must be imported.
 
 ```text
 module app.inventory;
@@ -496,7 +498,7 @@ The next steps follow the small-core boundary. Each needs its own evidence.
 | Complete stateful replacements | External row/column and maintained-query implementations | Proofs cover actual changes, errors, aborts, event order, snapshots and future calls |
 | Finish the knowledge boundary | Move remaining specialised optimisation authority into the database | A new valid candidate works without changing the compiler |
 | Improve execution | Ownership, fewer copies, compact storage and direct construction | Complete workloads improve against matching-layout baselines |
-| Make it usable | Modules, diagnostics, installation, debugging and editor support | Someone outside the project can build and diagnose a substantial program |
+| Make it usable | Modules, diagnostics, installation, debugging | Someone outside the project can build and diagnose a substantial program |
 | Extend search and adaptation | Bounded search, profiles, guarded selection and migration | Exhaustion keeps a correct baseline; switching preserves state |
 | Harden deployment | Independent checking, resource limits, recovery and defined concurrency | Claims and failure behaviour have reproducible evidence |
 
@@ -506,7 +508,7 @@ Tests, fuzzing and benchmarks are useful checks. They do not substitute for the 
 
 ## 23 What remains to decide
 
-The prototype has versioned core objects, checked proof entries and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, durable storage protocols and stable release interfaces.
+The prototype has versioned core objects, checked proof entries and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, incremental durable storage protocols and stable release interfaces.
 
 The prototype implements only part of this design. Its current status is documented in the compiler repository. The interpreter, checker and implementation packages should evolve together so semantic disagreements appear early.
 
