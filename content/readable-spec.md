@@ -12,7 +12,7 @@ The design has three parts, maintained in separate repositories:
 | [Knowledge database](https://github.com/siliconjungle/ink-knowledge) | Equivalent algorithms, representations, proofs, search and selection evidence |
 | [Lowering packages](https://github.com/siliconjungle/ink-lang/blob/main/docs/backend-packages.md) | Turning checked programs into executable code and connecting them to their hosts |
 
-The core can build without the database or backends. The complete compiler combines pinned versions of them. Adding an algorithm should mean adding a checked package, rather than teaching the core an optimisation rule.
+The core can build without the database or backends. The complete compiler combines pinned versions of them. Adding an algorithm should mean adding its definition and proof to the database. The core checks new entries using the same general rules.
 
 Today, the core lives in its own crate inside the language repository. Knowledge and lowering packages have their own repositories. The database stores JSON definitions, candidates and proof objects; the core has its own restricted Rust proof checker. Lean is separate research tooling. It is not needed to build an Ink program.
 
@@ -204,7 +204,7 @@ Hosts perform I/O and may store events in a durable outbox. Delivery can be retr
 
 ## 8 Proofs and contracts
 
-A theorem states a property; its proof must establish it. Today, proof packages use a restricted first-order language with equality, inductive data, structural induction and checked word-arithmetic certificates. Ink checks them locally with its own Rust checker. Lean is used for separate research proofs; it is not required to compile a program.
+A theorem states a property; its proof must establish it. Today, proof entries use a restricted first-order language with equality, inductive data, structural induction and checked word-arithmetic certificates. Ink checks them locally with its own Rust checker. Lean is used for separate research proofs; it is not required to compile a program.
 
 The surface syntax below is proposed. It is not yet a supported way to write proofs in an Ink source file.
 
@@ -230,7 +230,7 @@ fn increment_small(x: u32) -> u32
 
 Callers must establish `requires`; bodies must establish `ensures`. External inputs are validated. An unknown condition cannot be assumed because it held in previous runs.
 
-A richer dependent type system remains a design proposal. Tactics and AI may propose evidence; neither can approve it. Release proof packages cannot use `admit` or unchecked axioms. The current checker is itself trusted, rather than formally verified.
+A richer dependent type system remains a design proposal. Tactics and AI may propose evidence; neither can approve it. Accepted proofs cannot use `admit` or unchecked axioms. The current checker is itself trusted, rather than formally verified.
 
 ## 9 What a proof guarantees
 
@@ -279,7 +279,7 @@ implementation cached_sum for SumMachine {
 
 A `requires` condition must be established at each use. Substitution must preserve types, ownership and effects, without capturing variables.
 
-An equality proves that an alternative is valid, not that it is faster. Representation changes and incremental algorithms need implementation packages with a simulation proof. The package names in this example are references to definitions, not built-ins.
+An equality proves that an alternative is valid, not that it is faster. Representation changes and incremental algorithms need implementation entries with a simulation proof. The names in this example refer to database definitions, not built-ins.
 
 ## 11 Changing representations
 
@@ -291,7 +291,11 @@ Migration must preserve logical state, IDs, commit position, pending events and 
 
 ## 12 The knowledge database
 
-The database currently lives in the separate [ink-knowledge repository](https://github.com/siliconjungle/ink-knowledge), as versioned JSON objects and tools that produce proof packages. It is a knowledge store, not a new database engine. A future index can make discovery faster without changing what the checker accepts.
+The database currently lives in the separate [ink-knowledge repository](https://github.com/siliconjungle/ink-knowledge), as versioned JSON entries and tools that produce proofs. It is a knowledge store, not a new database engine. A future index can make discovery faster without changing what the checker accepts.
+
+Each entry describes a definition, theorem, alternative implementation or measurement. Entries refer to the exact entries they depend on. The intended workflow is to add knowledge to the database; the optimiser searches it, checks applicable alternatives and chooses among them.
+
+The prototype also calls exported groups of entries “packages” or “bundles”. Those are a way to copy a chosen alternative and its proof dependencies for an offline, reproducible build. They are not a separate source of optimisation authority or a requirement to install an algorithm by hand. Today, tools still use explicit indexes and proposal files; general automatic discovery from newly added entries remains work.
 
 Objects are immutable and identified by their content. A compiler version and a knowledge snapshot can evolve independently. Builds pin the knowledge they use and check supplied proofs locally, including offline.
 
@@ -342,7 +346,7 @@ A durable host commits deltas and events before acknowledging success. Recovery 
 
 ## 16 Code as data
 
-The design treats code, schemas, proofs and plans as typed objects with dependencies and history. Versioned program objects and content-addressed knowledge packages exist today; a unified editable store for all of them remains a goal.
+The design treats code, schemas, proofs and plans as typed objects with dependencies and history. Versioned program objects and content-addressed knowledge entries exist today; a unified editable store for all of them remains a goal.
 
 An edit creates new identities. Incremental compilation follows the affected dependencies; existing proofs are reusable only with compatible definitions.
 
@@ -503,21 +507,21 @@ The next steps follow the small-core boundary. Each needs its own evidence.
 
 | Stage | Deliverable | Acceptance condition |
 | --- | --- | --- |
-| Freeze the core | Precise supported operations and observation contracts | Source, reference execution and proof packages agree on their meaning |
+| Freeze the core | Precise supported operations and observation contracts | Source, reference execution and proof entries agree on their meaning |
 | Complete stateful replacements | External row/column and maintained-query implementations | Proofs cover actual changes, errors, aborts, event order, snapshots and future calls |
-| Finish the package boundary | Move remaining specialised optimisation authority into knowledge | A new valid candidate works without changing the compiler |
+| Finish the knowledge boundary | Move remaining specialised optimisation authority into the database | A new valid candidate works without changing the compiler |
 | Improve execution | Ownership, fewer copies, compact storage and direct construction | Complete workloads improve against matching-layout baselines |
 | Make it usable | Modules, diagnostics, installation, debugging and editor support | Someone outside the project can build and diagnose a substantial program |
 | Extend search and adaptation | Bounded search, profiles, guarded selection and migration | Exhaustion keeps a correct baseline; switching preserves state |
 | Harden deployment | Independent checking, resource limits, recovery and defined concurrency | Claims and failure behaviour have reproducible evidence |
 
-The first useful demonstration imports a checked package, changes a scan into maintained computation, preserves queries and events across future changes, and transfers a checkpoint between implementations. Compare it with a handwritten maintained baseline.
+The first useful demonstration adds a proved alternative to the database, changes a scan into maintained computation, preserves queries and events across future changes, and transfers a checkpoint between implementations. Compare it with a handwritten maintained baseline.
 
 Tests, fuzzing and benchmarks are useful checks. They do not substitute for the proofs a verified mode promises.
 
 ## 23 What remains to decide
 
-The prototype has versioned core objects, checked proof packages and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, durable storage protocols and stable release interfaces.
+The prototype has versioned core objects, checked proof entries and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, durable storage protocols and stable release interfaces.
 
 The prototype implements only part of this design. Its current status is documented in the compiler repository. The interpreter, checker and implementation packages should evolve together so semantic disagreements appear early.
 

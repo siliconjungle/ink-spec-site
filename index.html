@@ -35,7 +35,7 @@
 <td>Turning checked programs into executable code and connecting them to their hosts</td>
 </tr>
 </tbody></table>
-</div><p>The core can build without the database or backends. The complete compiler combines pinned versions of them. Adding an algorithm should mean adding a checked package, rather than teaching the core an optimisation rule.</p>
+</div><p>The core can build without the database or backends. The complete compiler combines pinned versions of them. Adding an algorithm should mean adding its definition and proof to the database. The core checks new entries using the same general rules.</p>
 <p>Today, the core lives in its own crate inside the language repository. Knowledge and lowering packages have their own repositories. The database stores JSON definitions, candidates and proof objects; the core has its own restricted Rust proof checker. Lean is separate research tooling. It is not needed to build an Ink program.</p>
 <p>Placement is per computation, rather than one target for the entire program. A browser program can combine Wasm and WebGPU; a desktop program can combine native CPU code and wgpu. Moving data, converting layouts and waiting for results cost time too. The database planner compares complete execution plans, including those connections.</p>
 <p>Checked pure call graphs already combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. A separate typed GPU pipeline API keeps arrays resident across steps; those host pipelines are not yet proved source replacements. Existing stateful programs support transactions, events and portable snapshots, but general proofs connecting their source to interchangeable physical implementations remain unfinished. Older aggregate, bounded-cache and layout checks also still need to move into database packages.</p>
@@ -212,7 +212,7 @@
 <p>Time, randomness and external responses enter as explicit inputs. Recording those inputs allows deterministic replay.</p>
 <p>Hosts perform I/O and may store events in a durable outbox. Delivery can be retried; exactly-once external effects require the receiver’s cooperation. Storage failures and resource exhaustion remain explicit host concerns.</p>
 </div></section>
-<section class="chapter" id="chapter-8" aria-labelledby="title-8"><h2 id="title-8">Proofs and contracts</h2><div class="prose"><p>A theorem states a property; its proof must establish it. Today, proof packages use a restricted first-order language with equality, inductive data, structural induction and checked word-arithmetic certificates. Ink checks them locally with its own Rust checker. Lean is used for separate research proofs; it is not required to compile a program.</p>
+<section class="chapter" id="chapter-8" aria-labelledby="title-8"><h2 id="title-8">Proofs and contracts</h2><div class="prose"><p>A theorem states a property; its proof must establish it. Today, proof entries use a restricted first-order language with equality, inductive data, structural induction and checked word-arithmetic certificates. Ink checks them locally with its own Rust checker. Lean is used for separate research proofs; it is not required to compile a program.</p>
 <p>The surface syntax below is proposed. It is not yet a supported way to write proofs in an Ink source file.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-7">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-7"><span class="tok-keyword">theorem</span> <span class="tok-function">int_add_zero</span>(x: <span class="tok-type">Int</span>): x <span class="tok-operator">+</span> <span class="tok-number">0</span> <span class="tok-operator">==</span> x
     <span class="tok-keyword">by</span> <span class="tok-keyword">normalize</span>;
@@ -226,7 +226,7 @@
     <span class="tok-keyword">return</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>;
 }</code></pre></div><p><code>normalize</code> and <code>arithmetic</code> request proof search. They are not trusted shortcuts. Search must produce a certificate the checker accepts. A solver saying “valid” is insufficient.</p>
 <p>Callers must establish <code>requires</code>; bodies must establish <code>ensures</code>. External inputs are validated. An unknown condition cannot be assumed because it held in previous runs.</p>
-<p>A richer dependent type system remains a design proposal. Tactics and AI may propose evidence; neither can approve it. Release proof packages cannot use <code>admit</code> or unchecked axioms. The current checker is itself trusted, rather than formally verified.</p>
+<p>A richer dependent type system remains a design proposal. Tactics and AI may propose evidence; neither can approve it. Accepted proofs cannot use <code>admit</code> or unchecked axioms. The current checker is itself trusted, rather than formally verified.</p>
 </div></section>
 <section class="chapter" id="chapter-9" aria-labelledby="title-9"><h2 id="title-9">What a proof guarantees</h2><div class="prose"><p>These are separate claims:</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Specification table"><table>
@@ -274,13 +274,15 @@
     <span class="tok-keyword">observe</span> <span class="tok-operator">=</span> cached_sum_observe;
     <span class="tok-keyword">certificate</span> <span class="tok-operator">=</span> cached_sum_correct;
 }</code></pre></div><p>A <code>requires</code> condition must be established at each use. Substitution must preserve types, ownership and effects, without capturing variables.</p>
-<p>An equality proves that an alternative is valid, not that it is faster. Representation changes and incremental algorithms need implementation packages with a simulation proof. The package names in this example are references to definitions, not built-ins.</p>
+<p>An equality proves that an alternative is valid, not that it is faster. Representation changes and incremental algorithms need implementation entries with a simulation proof. The names in this example refer to database definitions, not built-ins.</p>
 </div></section>
 <section class="chapter" id="chapter-11" aria-labelledby="title-11"><h2 id="title-11">Changing representations</h2><div class="prose"><p>A representation proof connects logical state to physical state. It must cover initialisation, query results, successful changes, errors, ordered events and all future permitted updates.</p>
 <p>Abort must leave committed state and events unchanged. Caches must stay correct when queries observe tentative writes. Required termination behaviour must also agree.</p>
 <p>Migration must preserve logical state, IDs, commit position, pending events and active readers. A fast direct migration needs the same evidence as decoding the old state and encoding the new one.</p>
 </div></section>
-<section class="chapter" id="chapter-12" aria-labelledby="title-12"><h2 id="title-12">The knowledge database</h2><div class="prose"><p>The database currently lives in the separate <a href="https://github.com/siliconjungle/ink-knowledge">ink-knowledge repository</a>, as versioned JSON objects and tools that produce proof packages. It is a knowledge store, not a new database engine. A future index can make discovery faster without changing what the checker accepts.</p>
+<section class="chapter" id="chapter-12" aria-labelledby="title-12"><h2 id="title-12">The knowledge database</h2><div class="prose"><p>The database currently lives in the separate <a href="https://github.com/siliconjungle/ink-knowledge">ink-knowledge repository</a>, as versioned JSON entries and tools that produce proofs. It is a knowledge store, not a new database engine. A future index can make discovery faster without changing what the checker accepts.</p>
+<p>Each entry describes a definition, theorem, alternative implementation or measurement. Entries refer to the exact entries they depend on. The intended workflow is to add knowledge to the database; the optimiser searches it, checks applicable alternatives and chooses among them.</p>
+<p>The prototype also calls exported groups of entries “packages” or “bundles”. Those are a way to copy a chosen alternative and its proof dependencies for an offline, reproducible build. They are not a separate source of optimisation authority or a requirement to install an algorithm by hand. Today, tools still use explicit indexes and proposal files; general automatic discovery from newly added entries remains work.</p>
 <p>Objects are immutable and identified by their content. A compiler version and a knowledge snapshot can evolve independently. Builds pin the knowledge they use and check supplied proofs locally, including offline.</p>
 <p>Search and measurements belong outside the core. Search proposes a replacement and supplies its proof; the core checks it against the actual program. Measurements can rank valid alternatives, but they cannot make an invalid replacement valid.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Specification table"><table>
@@ -333,7 +335,7 @@
 <p>The portable format is versioned and canonical: integers have fixed encodings, strings carry lengths, and tables use canonical key order. Decoding validates sizes, schemas and integrity. Physical caches may use other layouts.</p>
 <p>A durable host commits deltas and events before acknowledging success. Recovery loads a checkpoint and replays later committed deltas. In-memory mode needs no mandatory disk I/O. Schema upgrades use explicit migration functions.</p>
 </div></section>
-<section class="chapter" id="chapter-16" aria-labelledby="title-16"><h2 id="title-16">Code as data</h2><div class="prose"><p>The design treats code, schemas, proofs and plans as typed objects with dependencies and history. Versioned program objects and content-addressed knowledge packages exist today; a unified editable store for all of them remains a goal.</p>
+<section class="chapter" id="chapter-16" aria-labelledby="title-16"><h2 id="title-16">Code as data</h2><div class="prose"><p>The design treats code, schemas, proofs and plans as typed objects with dependencies and history. Versioned program objects and content-addressed knowledge entries exist today; a unified editable store for all of them remains a goal.</p>
 <p>An edit creates new identities. Incremental compilation follows the affected dependencies; existing proofs are reusable only with compatible definitions.</p>
 <p>State and computation are connected through explicit changes and maintained results. This does not mean every data value is executable code. Initially, persistent callbacks use serialisable arguments and explicit state rather than arbitrary captured closures.</p>
 </div></section>
@@ -454,7 +456,7 @@ statement     <span class="tok-operator">=</span> (<span class="tok-string">&quo
 <tbody><tr>
 <td>Freeze the core</td>
 <td>Precise supported operations and observation contracts</td>
-<td>Source, reference execution and proof packages agree on their meaning</td>
+<td>Source, reference execution and proof entries agree on their meaning</td>
 </tr>
 <tr>
 <td>Complete stateful replacements</td>
@@ -462,8 +464,8 @@ statement     <span class="tok-operator">=</span> (<span class="tok-string">&quo
 <td>Proofs cover actual changes, errors, aborts, event order, snapshots and future calls</td>
 </tr>
 <tr>
-<td>Finish the package boundary</td>
-<td>Move remaining specialised optimisation authority into knowledge</td>
+<td>Finish the knowledge boundary</td>
+<td>Move remaining specialised optimisation authority into the database</td>
 <td>A new valid candidate works without changing the compiler</td>
 </tr>
 <tr>
@@ -487,10 +489,10 @@ statement     <span class="tok-operator">=</span> (<span class="tok-string">&quo
 <td>Claims and failure behaviour have reproducible evidence</td>
 </tr>
 </tbody></table>
-</div><p>The first useful demonstration imports a checked package, changes a scan into maintained computation, preserves queries and events across future changes, and transfers a checkpoint between implementations. Compare it with a handwritten maintained baseline.</p>
+</div><p>The first useful demonstration adds a proved alternative to the database, changes a scan into maintained computation, preserves queries and events across future changes, and transfers a checkpoint between implementations. Compare it with a handwritten maintained baseline.</p>
 <p>Tests, fuzzing and benchmarks are useful checks. They do not substitute for the proofs a verified mode promises.</p>
 </div></section>
-<section class="chapter" id="chapter-23" aria-labelledby="title-23"><h2 id="title-23">What remains to decide</h2><div class="prose"><p>The prototype has versioned core objects, checked proof packages and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, durable storage protocols and stable release interfaces.</p>
+<section class="chapter" id="chapter-23" aria-labelledby="title-23"><h2 id="title-23">What remains to decide</h2><div class="prose"><p>The prototype has versioned core objects, checked proof entries and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, durable storage protocols and stable release interfaces.</p>
 <p>The prototype implements only part of this design. Its current status is documented in the compiler repository. The interpreter, checker and implementation packages should evolve together so semantic disagreements appear early.</p>
 </div></section>
 <section class="chapter" id="chapter-24" aria-labelledby="title-24"><h2 id="title-24">Maintaining a total</h2><div class="prose"><p>A table holds exact integer weights. Replacing one row changes its total by subtracting the old value and adding the new one:</p>

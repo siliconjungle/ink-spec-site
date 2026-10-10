@@ -17,6 +17,14 @@ The core is currently a separate crate inside the language repository; knowledge
 and lowering packages are independent repositories. General runtime adaptation
 and complete stateful source-to-representation proofs are still production work.
 
+Individual database entries are the unit of optimisation knowledge. Each
+definition, theorem or candidate names its exact dependencies. The prototype's
+“packages” are portable groups of those entries for checking and reproducible
+builds, not a separate algorithm-installation model. The intended workflow is to
+add entries to the database and let external search discover applicable choices.
+Today's tools still use explicit indexes and proposal files; general automatic
+discovery is not complete.
+
 [ink-knowledge](https://github.com/siliconjungle/ink-knowledge) holds immutable
 JSON definitions, theorems, candidate implementations and external proof-producing
 search. Complete pure replacement proofs are checked against the actual program.
