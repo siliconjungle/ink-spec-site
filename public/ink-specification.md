@@ -6,7 +6,7 @@ This language describes data, permitted changes, and required results. Its compi
 
 The performance ambition is to compete with expert implementations on specified workloads and hardware, then extend that coverage. No language can promise to be the fastest on every program. The engineering objective is to remove avoidable work, approach hardware limits on the remaining work, and make improvements reusable.
 
-This is the full design draft for Ink. The compiler implements the subset described in [STATUS.md](../STATUS.md); the draft is not a claim that every feature below exists. The executable core contract below describes the current shared representation. The `ink` command is primary; `lang` remains a compatibility command for archived experiments.
+This is the full design draft for Ink. The compiler implements the subset described in [STATUS.md](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md); the draft is not a claim that every feature below exists. The executable core contract below describes the current shared representation. The `ink` command is primary; `lang` remains a compatibility command for archived experiments.
 
 ## Executable core v1
 

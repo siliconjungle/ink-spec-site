@@ -34,7 +34,7 @@ The Pages build uses `/ink-spec-site/` as its base and writes `dist-pages/`. The
 
 ## Edit
 
-- `content/spec.md` mirrors the current Ink design draft, including the implemented subset and the separate core/database/backend architecture.
+- `content/spec.md` mirrors the current Ink design draft, including the implemented subset and the separate core/database/backend architecture. Links to compiler documentation use absolute GitHub URLs so they also work in the downloadable copy.
 - `content/readable-spec.md` is the shorter page text: the same 25 topics, written directly with the syntax examples retained. The two schematic arrow diagrams are explained in prose instead. The full draft download remains unchanged.
 - `scripts/generate.mjs` renders every chapter and highlights fenced syntax at build time. It also writes the raw draft download and the supported `totals.ink` example.
 - `src/style.css` contains the design and responsive rules.

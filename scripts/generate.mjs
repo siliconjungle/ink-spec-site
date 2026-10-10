@@ -107,8 +107,9 @@ const html = `<!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: a language for data, changes and computation. A small semantic core, a growing database of checked optimisations and composable CPU/GPU backends."><title>ink — language specification</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body><a class="skip" href="#specification">Skip to the specification</a>
 <main class="site-shell"><h1 id="ink-title">ink</h1>
-<div class="intro" id="purpose"><p data-measure>Ink is a language for data, changes and computation. You describe what a program means; checked proofs can justify equivalent ways to do less work.</p>
-<p>A small core checks meaning and evidence. A separate database holds optimisation knowledge, and independent backends produce executable code. The goal is to combine CPU and GPU work in one plan, accounting for the cost of moving data between them.</p>
+<div class="intro" id="purpose"><p data-measure>Ink is a programming language built around data and changes. Its aim is to make software faster by proving when work can be combined, skipped or represented differently.</p>
+<p>The core defines what a program means and checks proofs. A separate database supplies algorithms, representations and optimisation knowledge. New knowledge should improve programs without adding another special-purpose rule to the compiler.</p>
+<p>Separate backends turn checked programs into executable code. The goal is to let one program combine CPU and GPU work, choosing a plan that includes the cost of moving data between them.</p>
 <p class="status-note">Native, Wasm and a limited WebGPU/wgpu subset run today. General mixed-target routing is being built, and some syntax below is planned. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
 ${heroCode}
 <div id="specification" class="chapters">${sections}</div>

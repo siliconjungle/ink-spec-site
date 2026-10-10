@@ -1,14 +1,14 @@
 ## 1 How it works
 
-Ink separates what a program means from how it runs. You describe data, changes and results. Checked proofs can justify a different algorithm or layout that preserves those results.
+You describe the data a program holds, the changes it accepts and the results it must return. Those meanings stay the same when the implementation changes.
 
-The core defines the language and checks evidence. A separate database stores reusable definitions, proofs and alternative implementations. Backend packages turn checked programs into executable code. Each can evolve independently.
+For example, a query might add up every row each time it runs. An alternative can store the total and adjust it when a row changes. A proof must establish that both produce the same answers, including after failed updates and restored snapshots. Measurements then establish whether maintaining the total is worthwhile.
 
-One program should be able to use several targets: Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Moving data, converting layouts and waiting for results cost time too. The goal is to optimise the whole execution plan, including those connections.
+The design has three parts: a small core that checks meaning and evidence, a database of reusable knowledge, and backends that produce executable code. The database and backends can grow without teaching the core each new algorithm or target.
 
-Proofs establish equivalence within a stated scope. Measurements help choose between valid implementations. An optimisation must remain correct when a profile changes; a network connection is not required to check downloaded knowledge.
+One program should be able to use Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Moving data, converting layouts and waiting for results cost time too. The goal is to choose the whole execution plan, including those connections.
 
-The core, database and C/Rust/GPU/Wasm-adapter packages are separated today. Native, Wasm and a limited GPU subset run. General mixed-target routing is still being built.
+The repositories are separated today. Native, Wasm and a limited GPU subset run. General mixed-target routing and moving the remaining specialised optimisation checks into database packages are ongoing work.
 
 ## 2 An inventory program
 
@@ -279,7 +279,9 @@ Migration must preserve logical state, IDs, commit position, pending events and 
 
 ## 12 The knowledge database
 
-The database stores immutable objects identified by their content. A compiler version and a knowledge snapshot can evolve independently.
+The database currently lives in the separate [ink-knowledge repository](https://github.com/siliconjungle/ink-knowledge), as versioned JSON objects and tools that produce proof packages. A future index can make discovery faster without changing what the checker accepts.
+
+Objects are immutable and identified by their content. A compiler version and a knowledge snapshot can evolve independently. Builds pin the knowledge they use and check supplied proofs locally, including offline.
 
 | Object | Essential contents |
 | --- | --- |
@@ -338,13 +340,17 @@ The compiler and checker are written in Rust. Generated programs are not limited
 
 Compilation checks source and proposed replacements before passing a checked program to a backend. The core checks meaning; backend packages handle target code and host protocols. The current compiler has its own restricted proof checker written in Rust. Lean is used for separate research proofs, not as a required compiler dependency.
 
-The current bootstrap paths emit C or Rust and use LLVM for native and WebAssembly code generation. The build plan records selected transformations and their proof dependencies.
+The current bootstrap paths emit C or Rust and use existing toolchains for native and WebAssembly code generation. Ink does not need its own assembly compiler. The build plan records selected transformations and their proof dependencies.
 
 The baseline must already produce useful loops, calls and buffers. Foreign kernels have explicit interfaces and contracts; those contracts remain assumptions until independently justified.
 
 ## 18 Native code and WebAssembly
 
 C and Rust backends use existing toolchains to produce native machine code or WebAssembly. A shared GPU backend emits WGSL and runs through WebGPU in a browser or wgpu on desktop. The current GPU subset handles u32 collection pipelines and retains compiled CPU fallback.
+
+These live in separate repositories: [C lowering](https://github.com/siliconjungle/ink-lowering-c), [Rust lowering](https://github.com/siliconjungle/ink-lowering-rust), [Wasm adapters](https://github.com/siliconjungle/ink-lowering-wasm) and [GPU lowering](https://github.com/siliconjungle/ink-lowering-gpu). The [language core](https://github.com/siliconjungle/ink-lang/tree/main/core) can build without any of them.
+
+In the intended mixed plan, a large collection operation could run on the GPU while a small finishing calculation runs on the CPU. A faster GPU kernel is useful only if its saving exceeds upload, readback and coordination costs. Keeping intermediate data on the GPU can avoid some of those costs.
 
 The intended host interface is:
 
