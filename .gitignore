@@ -4,3 +4,4 @@ dist-pages/
 .DS_Store
 *.log
 preview*.jpg
+public/build-info.json

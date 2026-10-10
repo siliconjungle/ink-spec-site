@@ -39,7 +39,7 @@ for (const button of document.querySelectorAll<HTMLButtonElement>(
 // Prepare once after the font loads; resize only does cached arithmetic.
 // CSS owns wrapping and DOM text remains selectable/searchable/accessible.
 async function measuredPanels() {
-  await document.fonts.load('12px "IBM Plex Mono"');
+  await document.fonts.load('13px "IBM Plex Mono"');
   await document.fonts.ready;
   const elements = new Map<
     Element,
@@ -50,14 +50,14 @@ async function measuredPanels() {
     if (!code) continue;
     const prepared = prepareWithSegments(
       code.textContent ?? "",
-      '12px "IBM Plex Mono"',
+      '13px "IBM Plex Mono"',
       { whiteSpace: "pre-wrap" },
     );
     const naturalWidth = measureNaturalWidth(prepared);
-    // Mobile CSS paints at 11px, so reprepare once per font, not per resize.
+    // Mobile CSS paints at 12px, so reprepare once per font, not per resize.
     const compact = prepareWithSegments(
       code.textContent ?? "",
-      '11px "IBM Plex Mono"',
+      '12px "IBM Plex Mono"',
       { whiteSpace: "pre-wrap" },
     );
     panel.dataset.naturalWidth = String(naturalWidth);

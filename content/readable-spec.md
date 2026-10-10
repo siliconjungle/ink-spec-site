@@ -1,28 +1,22 @@
 ## 1 How it works
 
-You describe the data a program holds, the changes it accepts and the results it must return. Those meanings stay the same when the implementation changes.
-
-For example, a query might add up every row each time it runs. An alternative can store the total and adjust it when a row changes. A proof must establish that both produce the same answers, including after failed updates and restored snapshots. Measurements then establish whether maintaining the total is worthwhile.
-
-The design has three parts, maintained in separate repositories:
+You describe a program's data, changes and results. Implementations may change only when the required meaning is preserved. For example, a table query can rescan every row or maintain a total after updates; the latter needs evidence covering future changes and failed transactions as well as today's answer.
 
 | Part | Responsibility |
 | --- | --- |
-| [Core](https://github.com/siliconjungle/ink-lang/tree/main/core) | Types, program meaning, reference execution and general proof checking |
-| [Knowledge database](https://github.com/siliconjungle/ink-knowledge) | Equivalent algorithms, representations, proofs, search and selection evidence |
-| [Lowering packages](https://github.com/siliconjungle/ink-lang/blob/main/docs/backend-packages.md) | Turning checked programs into executable code and connecting them to their hosts |
+| [Semantic core](https://github.com/siliconjungle/ink-lang/tree/main/core) | Types, meaning, reference execution and general proof checking |
+| [Knowledge](https://github.com/siliconjungle/ink-knowledge) | Immutable entries, authenticated snapshots, typed SQLite discovery and performance observations |
+| [Planner](https://github.com/siliconjungle/ink-planner) | Search, applicability proofs and checked-plan selection |
+| [Runtime](https://github.com/siliconjungle/ink-runtime) | Execution, host ABIs, scheduling, profiling, bundle assembly and pure fallback |
+| [Lowerings](https://github.com/siliconjungle/ink-lang/blob/main/docs/backend-packages.md) | Target emission and WebGPU/wgpu device operations |
 
-The core can build without the database or backends. The complete compiler combines pinned versions of them. Adding an algorithm should mean adding its definition and proof to the database. The core checks new entries using the same general rules.
+The core owns its complete `core/src` tree and builds independently. The distribution pins these repositories. Proof checking is implemented in Rust; Lean remains separate research tooling.
 
-Today, the core lives in its own crate inside the language repository. Knowledge and lowering packages have their own repositories. The database stores JSON definitions, candidates and proof objects; the core has its own restricted Rust proof checker. Lean is separate research tooling. It is not needed to build an Ink program.
-
-Placement is per computation, rather than one target for the entire program. A browser program can combine Wasm and WebGPU; a desktop program can combine native CPU code and wgpu. Moving data, converting layouts and waiting for results cost time too. The database planner compares complete execution plans, including those connections.
-
-Checked pure call graphs already combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. A separate typed GPU pipeline API keeps arrays resident across steps; those host pipelines are not yet proved source replacements. Existing stateful programs support transactions, events and portable snapshots, but general proofs connecting their source to interchangeable physical implementations remain unfinished. Older aggregate, bounded-cache and layout checks also still need to move into database packages.
+Pure source graphs can mix CPU and GPU stages. Typed host pipelines keep arrays resident across GPU steps, but general source proofs for resident-buffer routing remain unfinished. General stateful replacement, migration and some specialised optimisation authority also remain work.
 
 ## 2 An inventory program
 
-This example shows the intended language, including syntax that is still proposed. It stores inventory and keeps its total stock up to date. `state` holds data, `change` updates it, `query` reads it, and `keep` describes a result that depends on it. The smaller totals example above runs in the current compiler.
+This example shows the intended language, including syntax that is still proposed. It stores inventory and keeps its total stock up to date. `state` holds data, `change` updates it, `query` reads it, and `keep` describes a result that depends on it. The [totals example in the practical guide](%BASE_URL%index.html) runs in the current compiler.
 
 ```text
 module inventory;
@@ -291,30 +285,13 @@ Migration must preserve logical state, IDs, commit position, pending events and 
 
 ## 12 The knowledge database
 
-The database currently lives in the separate [ink-knowledge repository](https://github.com/siliconjungle/ink-knowledge), as versioned JSON entries and tools that produce proofs. It is a knowledge store, not a new database engine. A future index can make discovery faster without changing what the checker accepts.
+[ink-knowledge](https://github.com/siliconjungle/ink-knowledge) stores immutable, content-addressed entries. Each records its kind, semantics version, exact dependencies, typed interface and payload. Definitions, scalar/inductive theorems and executable laws use a common registry boundary; unsupported domains reject.
 
-Each entry describes a definition, theorem, alternative implementation or measurement. Entries refer to the exact entries they depend on. The intended workflow is to add knowledge to the database; the optimiser searches it, checks applicable alternatives and chooses among them.
+SQLite is a rebuildable discovery index for types, operations, effects and applicability. Queries export a bounded set of roots, their exact dependency closure and membership proofs against an authenticated snapshot. Storage location never changes mathematical authority.
 
-The prototype also calls exported groups of entries “packages” or “bundles”. Those are a way to copy a chosen alternative and its proof dependencies for an offline, reproducible build. They are not a separate source of optimisation authority or a requirement to install an algorithm by hand. Today, tools still use explicit indexes and proposal files; general automatic discovery from newly added entries remains work.
+[ink-planner](https://github.com/siliconjungle/ink-planner) discovers and composes applicable pure laws. The core checks every application against the actual program. `ink-evidence-v1` plans carry their pinned knowledge bytes and premise proofs, so they replay offline without the current database. The old executable catalogue selection wire is rejected; research fixtures remain outside production discovery.
 
-Objects are immutable and identified by their content. A compiler version and a knowledge snapshot can evolve independently. Builds pin the knowledge they use and check supplied proofs locally, including offline.
-
-Search and measurements belong outside the core. Search proposes a replacement and supplies its proof; the core checks it against the actual program. Measurements can rank valid alternatives, but they cannot make an invalid replacement valid.
-
-| Object | Essential contents |
-| --- | --- |
-| Semantic definition | Canonical typed definition, dependency identities and semantics version |
-| Theorem | Proposition, checked proof object, dependencies and allowed assumptions |
-| Rewrite | Typed match pattern, alternative, side conditions and theorem reference |
-| Implementation | Logical interface, physical representation, algorithms, abstraction relation and certificate |
-| Measurement | Candidate identity, target, workload description, toolchain, metrics and uncertainty |
-| Selection plan | Chosen implementations, discharged conditions, transformation chain and backend settings |
-
-A hash identifies an object; it does not prove equivalence. Theorems depend on the exact definitions they reference. Names resolve through a lockfile to those identities.
-
-Objects may come from local, project or shared stores. They are checked locally before use. Importing one does not authorise running its code during compilation.
-
-Search retrieves a bounded, relevant set of candidates. More proofs provide more possibilities; redundant rules can also slow search. Database growth alone does not guarantee faster programs.
+Performance observations are separate immutable objects, matched by program/plan, hardware, driver, toolchain, backend, bridge and workload. They can rank valid choices, never establish a proof. Database growth creates more candidates; bounded search does not guarantee a global optimum.
 
 ## 13 Choosing an implementation
 
@@ -328,7 +305,7 @@ Search has time, memory and candidate limits. If it runs out of budget or cannot
 
 ## 14 Changing implementations at runtime
 
-Runtime adaptation is planned. Static selection and bounded CPU/GPU measurements exist for specific subsets today. The intended adaptive mode observes a bounded sample, proposes alternatives, checks their evidence, compiles and measures them, then migrates at a transaction boundary.
+Runtime adaptation is planned. Static selection and bounded runtime CPU/GPU profiling exist for specific subsets today. The intended adaptive mode observes a bounded sample, proposes alternatives, checks their evidence, compiles and measures them, then migrates at a transaction boundary.
 
 A profile is not a proof. Specialising for a property such as “values fit in 16 bits” needs a maintained bound or a guard with a correct fallback.
 
@@ -358,7 +335,7 @@ The compiler and checker are written in Rust. Generated programs are not limited
 
 Compilation checks source and proposed replacements before passing a checked program to a backend. The core checks meaning; backend packages handle target code and host protocols. The current compiler has its own restricted proof checker written in Rust. Lean is used for separate research proofs, not as a required compiler dependency.
 
-The current paths emit C or Rust and use existing toolchains for native machine code and WebAssembly. The shared GPU package emits WGSL for WebGPU and wgpu. Target details belong in those packages; the core checks the program and its proposed replacements. The build plan records selected transformations and their proof dependencies.
+Target packages emit C, Rust and WGSL; existing toolchains produce native machine code and WebAssembly. The shared runtime assembles artifacts and owns host execution, scheduling, profiling and fallback. GPU device adapters remain in the GPU package. Build plans record selected transformations and proof dependencies.
 
 The baseline must already produce useful loops, calls and buffers. Foreign kernels have explicit interfaces and contracts; those contracts remain assumptions until independently justified.
 
@@ -366,7 +343,7 @@ The baseline must already produce useful loops, calls and buffers. Foreign kerne
 
 C and Rust backends use existing toolchains to produce native machine code or WebAssembly. A shared GPU backend emits WGSL and runs through WebGPU in a browser or wgpu on desktop. It supports u32 collection pipelines and a newer typed-array subset with signed words, floats, vectors, records and bounded loops. Both retain compiled CPU fallback. Portable GPU floats can differ from CPU results; their contract is documented separately.
 
-These live in separate repositories: [C lowering](https://github.com/siliconjungle/ink-lowering-c), [Rust lowering](https://github.com/siliconjungle/ink-lowering-rust), [Wasm adapters](https://github.com/siliconjungle/ink-lowering-wasm) and [GPU lowering](https://github.com/siliconjungle/ink-lowering-gpu). The [language core](https://github.com/siliconjungle/ink-lang/tree/main/core) can build without any of them.
+These live in separate repositories: [C lowering](https://github.com/siliconjungle/ink-lowering-c), [Rust lowering](https://github.com/siliconjungle/ink-lowering-rust), [Wasm target configuration](https://github.com/siliconjungle/ink-lowering-wasm) and [GPU lowering](https://github.com/siliconjungle/ink-lowering-gpu). The [language core](https://github.com/siliconjungle/ink-lang/tree/main/core) can build without any of them.
 
 A large collection operation can run on the GPU while a small finishing calculation runs on the CPU. A faster GPU kernel is useful only if its saving exceeds upload, readback and coordination costs. Keeping intermediate data on the GPU can avoid some of those costs.
 
@@ -382,7 +359,7 @@ drain_events(instance) -> encoded_events
 close(instance)
 ```
 
-The binary ABI must specify buffer ownership, lengths, validation and message versions. Checked deterministic v1 call graphs now run across Wasm/WebGPU or native C/wgpu, returning scalar results between stages. The external database producer can share repeated pure calls and choose between checked plans using complete-call timings. A simple tested pipeline kept its CPU baseline because transfers made the mixed plan slower.
+The binary ABI must specify buffer ownership, lengths, validation and message versions. Checked deterministic v1 call graphs now run across Wasm/WebGPU or native C/wgpu, returning scalar results between stages. The external planner can share repeated pure calls and choose between checked plans using provenance-matched complete-call observations. A simple tested pipeline kept its CPU baseline because transfers made the mixed plan slower.
 
 The newer v2 host pipeline API keeps intermediate arrays resident across GPU steps. Connecting those pipelines to source-equivalence proofs remains work: portable floating-point behaviour needs a different observation contract from exact v1 equality. See the [routing contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/source-routing.md) and [compute contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/gpu-compute.md).
 

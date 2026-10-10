@@ -10,7 +10,8 @@
     "audit:layout": "fr --audit src/layout.ts",
     "build": "npm run generate && npm run check && vite build",
     "build:pages": "npm run generate && npm run check && vite build --base=/ink-spec-site/ --outDir dist-pages",
-    "preview": "vite preview --host 127.0.0.1 --port 4318 --strictPort"
+    "preview": "vite preview --host 127.0.0.1 --port 4318 --strictPort",
+    "sync:reference": "node scripts/sync-reference.mjs"
   },
   "dependencies": {
     "@chenglou/pretext": "0.0.9",

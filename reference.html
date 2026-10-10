@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: typed programs, composable checked optimisations, and CPU/Wasm/GPU execution."><title>ink — language reference</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<body><a class="skip" href="#specification">Skip to the content</a><main class="site-shell"><h1 class="reference-title">ink <span>/ reference</span></h1>
+<div class="intro"><p data-measure>The language design, from values and transactions to proofs and execution.</p><p>This reference includes proposed syntax. For the working subset, start with the <a href="%BASE_URL%index.html">practical guide</a> and <a href="https://github.com/siliconjungle/ink-lang/blob/77a7dfdb17fb5ed115eb4e55160ef4be44d473e4/STATUS.md">implementation status</a>.</p></div>
+<nav class="reading-links" aria-label="Reference topics"><a href="#chapter-3">Types</a><a href="#chapter-5">State</a><a href="#chapter-8">Proofs</a><a href="#chapter-12">Knowledge</a><a href="#chapter-20">Grammar</a><a href="%BASE_URL%ink-specification.md" download>Full draft</a></nav>
+<div id="specification" class="chapters"><section class="chapter" id="chapter-1" aria-labelledby="title-chapter-1"><h2 id="title-chapter-1">How it works</h2><div class="prose"><p>You describe a program&#39;s data, changes and results. Implementations may change only when the required meaning is preserved. For example, a table query can rescan every row or maintain a total after updates; the latter needs evidence covering future changes and failed transactions as well as today&#39;s answer.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="https://github.com/siliconjungle/ink-lang/tree/main/core">Semantic core</a></td>
+<td>Types, meaning, reference execution and general proof checking</td>
+</tr>
+<tr>
+<td><a href="https://github.com/siliconjungle/ink-knowledge">Knowledge</a></td>
+<td>Immutable entries, authenticated snapshots, typed SQLite discovery and performance observations</td>
+</tr>
+<tr>
+<td><a href="https://github.com/siliconjungle/ink-planner">Planner</a></td>
+<td>Search, applicability proofs and checked-plan selection</td>
+</tr>
+<tr>
+<td><a href="https://github.com/siliconjungle/ink-runtime">Runtime</a></td>
+<td>Execution, host ABIs, scheduling, profiling, bundle assembly and pure fallback</td>
+</tr>
+<tr>
+<td><a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/backend-packages.md">Lowerings</a></td>
+<td>Target emission and WebGPU/wgpu device operations</td>
+</tr>
+</tbody></table>
+</div><p>The core owns its complete <code>core/src</code> tree and builds independently. The distribution pins these repositories. Proof checking is implemented in Rust; Lean remains separate research tooling.</p>
+<p>Pure source graphs can mix CPU and GPU stages. Typed host pipelines keep arrays resident across GPU steps, but general source proofs for resident-buffer routing remain unfinished. General stateful replacement, migration and some specialised optimisation authority also remain work.</p>
+</div></section>
+<section class="chapter" id="chapter-2" aria-labelledby="title-chapter-2"><h2 id="title-chapter-2">An inventory program</h2><div class="prose"><p>This example shows the intended language, including syntax that is still proposed. It stores inventory and keeps its total stock up to date. <code>state</code> holds data, <code>change</code> updates it, <code>query</code> reads it, and <code>keep</code> describes a result that depends on it. The <a href="%BASE_URL%index.html">totals example in the practical guide</a> runs in the current compiler.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-1"><span class="tok-keyword">module</span> inventory;
+
+<span class="tok-keyword">id</span> <span class="tok-type">ItemId</span>;
+
+<span class="tok-keyword">record</span> <span class="tok-type">Item</span> {
+    name: <span class="tok-type">String</span>,
+    stock: <span class="tok-type">u32</span>,
+}
+
+<span class="tok-keyword">enum</span> <span class="tok-type">Error</span> {
+    <span class="tok-type">Missing</span>,
+    <span class="tok-type">AlreadyExists</span>,
+    <span class="tok-type">Overflow</span>,
+}
+
+<span class="tok-keyword">record</span> <span class="tok-type">StockChanged</span> {
+    item: <span class="tok-type">ItemId</span>,
+    before: <span class="tok-type">u32</span>,
+    after: <span class="tok-type">u32</span>,
+}
+
+<span class="tok-keyword">state</span> <span class="tok-type">Items</span>: <span class="tok-type">Table</span><span class="tok-operator">&lt;</span><span class="tok-type">ItemId</span>, <span class="tok-type">Item</span><span class="tok-operator">&gt;</span> <span class="tok-operator">=</span> <span class="tok-type">Table</span>.<span class="tok-function">empty</span>();
+<span class="tok-keyword">event</span> stock_changed: <span class="tok-type">StockChanged</span>;
+
+<span class="tok-keyword">keep</span> total_units: <span class="tok-type">Int</span> <span class="tok-operator">=</span>
+    <span class="tok-function">sum</span>(<span class="tok-type">Items</span>.<span class="tok-function">values</span>().<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(item) <span class="tok-operator">=&gt;</span> <span class="tok-type">Int</span>(item.stock)));
+
+<span class="tok-keyword">change</span> <span class="tok-function">create</span>(<span class="tok-keyword">id</span>: <span class="tok-type">ItemId</span>, name: <span class="tok-type">String</span>, stock: <span class="tok-type">u32</span>)
+    <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">Error</span><span class="tok-operator">&gt;</span>
+    <span class="tok-keyword">writes</span>(<span class="tok-type">Items</span>)
+{
+    <span class="tok-keyword">if</span> <span class="tok-type">Items</span>.<span class="tok-function">contains</span>(<span class="tok-keyword">id</span>) {
+        <span class="tok-keyword">return</span> <span class="tok-type">Err</span>(<span class="tok-type">Error</span>.<span class="tok-type">AlreadyExists</span>);
+    }
+    <span class="tok-type">Items</span>.<span class="tok-function">insert</span>(<span class="tok-keyword">id</span>, <span class="tok-type">Item</span> { name: name, stock: stock });
+    <span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(());
+}
+
+<span class="tok-keyword">change</span> <span class="tok-function">restock</span>(<span class="tok-keyword">id</span>: <span class="tok-type">ItemId</span>, amount: <span class="tok-type">u32</span>)
+    <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">Error</span><span class="tok-operator">&gt;</span>
+    <span class="tok-keyword">writes</span>(<span class="tok-type">Items</span>)
+    <span class="tok-keyword">emits</span>(stock_changed)
+{
+    <span class="tok-keyword">let</span> item <span class="tok-operator">=</span> <span class="tok-type">Items</span>.<span class="tok-function">get</span>(<span class="tok-keyword">id</span>).<span class="tok-function">ok_or</span>(<span class="tok-type">Error</span>.<span class="tok-type">Missing</span>)<span class="tok-operator">?</span>;
+    <span class="tok-keyword">let</span> next <span class="tok-operator">=</span> <span class="tok-function">checked_add</span>(item.stock, amount)
+        .<span class="tok-function">map_err</span>(<span class="tok-keyword">fn</span>(_) <span class="tok-operator">=&gt;</span> <span class="tok-type">Error</span>.<span class="tok-type">Overflow</span>)<span class="tok-operator">?</span>;
+
+    <span class="tok-type">Items</span>.<span class="tok-function">replace</span>(<span class="tok-keyword">id</span>, <span class="tok-type">Item</span> { name: item.name, stock: next });
+    <span class="tok-keyword">emit</span> <span class="tok-function">stock_changed</span>(<span class="tok-type">StockChanged</span> {
+        item: <span class="tok-keyword">id</span>,
+        before: item.stock,
+        after: next,
+    });
+    <span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(());
+}
+
+<span class="tok-keyword">query</span> <span class="tok-function">stock_of</span>(<span class="tok-keyword">id</span>: <span class="tok-type">ItemId</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Option</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>
+    <span class="tok-keyword">reads</span>(<span class="tok-type">Items</span>)
+{
+    <span class="tok-keyword">return</span> <span class="tok-type">Items</span>.<span class="tok-function">get</span>(<span class="tok-keyword">id</span>).<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(item) <span class="tok-operator">=&gt;</span> item.stock);
+}
+
+<span class="tok-keyword">query</span> <span class="tok-function">total</span>() <span class="tok-operator">-&gt;</span> <span class="tok-type">Int</span> <span class="tok-keyword">reads</span>(total_units) {
+    <span class="tok-keyword">return</span> total_units;
+}</code></pre></div><p>A successful change commits its writes and events together. Returning <code>Err</code> discards both. Queries see a consistent state. The compiler may recalculate the total or maintain it after each update; the answer must be identical.</p>
+</div></section>
+<section class="chapter" id="chapter-3" aria-labelledby="title-chapter-3"><h2 id="title-chapter-3">Values and types</h2><div class="prose"><p>Types are checked before execution. Public declarations have explicit signatures; local bindings can use inference.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Type family</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Unit</code>, <code>Bool</code></td>
+<td>Unit value and Boolean values</td>
+</tr>
+<tr>
+<td><code>u8/u16/u32/u64</code>, <code>i8/i16/i32/i64</code></td>
+<td>Fixed-width integers</td>
+</tr>
+<tr>
+<td><code>Int</code>, <code>Nat</code></td>
+<td>Exact arbitrary-precision integers and nonnegative integers</td>
+</tr>
+<tr>
+<td><code>f32</code>, <code>f64</code></td>
+<td>Floating-point values with specified operations</td>
+</tr>
+<tr>
+<td><code>String</code>, <code>Bytes</code></td>
+<td>Immutable UTF-8 text and immutable bytes</td>
+</tr>
+<tr>
+<td><code>Option&lt;T&gt;</code>, <code>Result&lt;T,E&gt;</code></td>
+<td>Explicit absence and recoverable failure</td>
+</tr>
+<tr>
+<td><code>List&lt;T&gt;</code>, <code>Array&lt;T,N&gt;</code></td>
+<td>Ordered collections; an array has a static length</td>
+</tr>
+<tr>
+<td><code>Set&lt;T&gt;</code>, <code>Map&lt;K,V&gt;</code>, <code>Table&lt;K,V&gt;</code></td>
+<td>Finite collections with value semantics</td>
+</tr>
+<tr>
+<td>Records and enums</td>
+<td>Named product and tagged union types</td>
+</tr>
+<tr>
+<td><code>Id</code> declarations</td>
+<td>Nominal 128-bit identifiers with no address semantics</td>
+</tr>
+<tr>
+<td><code>Buffer&lt;T&gt;</code></td>
+<td>An owned mutable temporary sequence</td>
+</tr>
+<tr>
+<td><code>Prop</code>, <code>Proof&lt;P&gt;</code></td>
+<td>Logical propositions and erased proof evidence</td>
+</tr>
+</tbody></table>
+</div><p>Records describe values, not memory offsets. IDs stay stable when storage moves. A refinement adds a condition that must be proved or checked before a value is accepted.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-2">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-2"><span class="tok-keyword">record</span> <span class="tok-type">Point</span> {
+    x: <span class="tok-type">f64</span>,
+    y: <span class="tok-type">f64</span>,
+}
+
+<span class="tok-keyword">enum</span> <span class="tok-type">Shape</span> {
+    <span class="tok-type">Circle</span>(<span class="tok-type">Point</span>, <span class="tok-type">f64</span>),
+    <span class="tok-type">Rectangle</span>(<span class="tok-type">Point</span>, <span class="tok-type">Point</span>),
+}
+
+<span class="tok-keyword">type</span> <span class="tok-type">SmallCount</span> <span class="tok-operator">=</span> { n: <span class="tok-type">u32</span> <span class="tok-keyword">where</span> n <span class="tok-operator">&lt;=</span> <span class="tok-number">65535</span> };</code></pre></div><p>Fixed-width <code>+</code>, <code>-</code> and <code>*</code> wrap on overflow. Use <code>checked_add</code>, <code>checked_sub</code> or <code>checked_mul</code> to return an error instead. <code>Int</code> and <code>Nat</code> use exact arithmetic. Numeric conversions are explicit; narrowing can fail.</p>
+<p>Division and shifts use checked operations. Floating-point rewrites must preserve rounding, signed zero and infinities. Reassociation and approximate arithmetic need separate permission. They cannot be treated as exact equality.</p>
+</div></section>
+<section class="chapter" id="chapter-4" aria-labelledby="title-chapter-4"><h2 id="title-chapter-4">Functions</h2><div class="prose"><p>A <code>fn</code> is pure: it receives its inputs and cannot read global state, perform I/O, use the clock or emit events.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-3">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-3"><span class="tok-keyword">fn</span> <span class="tok-function">square</span>(x: <span class="tok-type">Int</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Int</span> {
+    <span class="tok-keyword">return</span> x <span class="tok-operator">*</span> x;
+}
+
+<span class="tok-keyword">fn</span> apply_twice<span class="tok-operator">&lt;</span><span class="tok-type">T</span><span class="tok-operator">&gt;</span>(f: <span class="tok-keyword">fn</span>(<span class="tok-type">T</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">T</span>, x: <span class="tok-type">T</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">T</span> {
+    <span class="tok-keyword">return</span> <span class="tok-function">f</span>(<span class="tok-function">f</span>(x));
+}</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-4">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-4"><span class="tok-keyword">fn</span> <span class="tok-function">sum_copy</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">Int</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Int</span> {
+    <span class="tok-keyword">var</span> result <span class="tok-operator">=</span> <span class="tok-number">0</span>;
+    <span class="tok-keyword">for</span> x <span class="tok-keyword">in</span> xs {
+        result <span class="tok-operator">=</span> result <span class="tok-operator">+</span> x;
+    }
+    <span class="tok-keyword">return</span> result;
+}</code></pre></div><p><code>let</code> binds an immutable value; <code>var</code> allows local reassignment. Calls evaluate eagerly, left to right. <code>&amp;&amp;</code> and <code>||</code> short-circuit. <code>?</code> propagates a <code>Result</code> error.</p>
+<p>Total functions must terminate. Structural recursion or a proved decreasing measure establishes that. Unrestricted recursion and <code>while</code> require <code>partial fn</code>; partial functions cannot supply proofs or run inside initial transactions and maintained queries.</p>
+<p>A uniquely owned <code>Buffer&lt;T&gt;</code> permits temporary mutation. Borrows cannot escape their owner or enter persistent state. Parallel execution requires evidence that the work is independent or its reduction law is valid.</p>
+</div></section>
+<section class="chapter" id="chapter-5" aria-labelledby="title-chapter-5"><h2 id="title-chapter-5">State and changes</h2><div class="prose"><p>A <code>state</code> is a logical root. A <code>change</code> is an atomic transaction. <code>writes</code> permits reading and updating named roots, <code>reads</code> adds read-only access, and <code>emits</code> permits named event channels. Undeclared access is rejected.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Semantics · schematic example" data-copy="code-5">copy</button><pre tabindex="0" aria-label="Semantics · schematic example"><code id="code-5"><span class="tok-keyword">change</span>(<span class="tok-type">S</span>, x) <span class="tok-operator">=</span>
+    <span class="tok-type">Commit</span>(<span class="tok-type">S_next</span>, result, ordered_events)
+    or <span class="tok-type">Abort</span>(error)</code></pre></div><p>Changes read their own tentative writes. A nested change shares its caller’s transaction; a nested error aborts the whole transaction. There are no independent nested commits or savepoints.</p>
+<p>Table keys have a canonical order. <code>get</code> returns an optional value; <code>insert</code> requires absence and <code>replace</code> requires presence. Prove those conditions or use the fallible variants. <code>remove</code> returns the removed value when present.</p>
+<p>Commits have increasing sequence numbers. A delta records changed keys and their before/after values, tied to a base version. Consecutive deltas can compose. Stale deltas conflict; merging replicas needs additional laws.</p>
+</div></section>
+<section class="chapter" id="chapter-6" aria-labelledby="title-chapter-6"><h2 id="title-chapter-6">Keeping results up to date</h2><div class="prose"><p><code>keep name: T = expression;</code> describes a result over state. It must be total and free of external effects. Dependencies cannot form cycles in the initial language.</p>
+<p>The result behaves as if recalculated whenever read, including after tentative writes inside a change. An implementation may cache it, maintain it incrementally, or recompute it.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Proof · schematic example" data-copy="code-6">copy</button><pre tabindex="0" aria-label="Proof · schematic example"><code id="code-6"><span class="tok-function">maintain</span>(<span class="tok-type">Q</span>(<span class="tok-type">S</span>), delta, auxiliary_state)
+    produces <span class="tok-type">Q</span>(<span class="tok-keyword">apply</span>(<span class="tok-type">S</span>, delta))</code></pre></div><p>Maintenance must preserve the right answer and the auxiliary invariant needed for every future update. Getting today’s answer right is insufficient.</p>
+<p>Lists preserve order and duplicates. Table values follow canonical key order. A compiler may ignore order only when it proves that the result does not depend on it. The initial operators are <code>map</code>, <code>filter</code>, <code>sum</code> and <code>count</code>; grouping and joins come later.</p>
+</div></section>
+<section class="chapter" id="chapter-7" aria-labelledby="title-chapter-7"><h2 id="title-chapter-7">Inputs and events</h2><div class="prose"><p><code>event channel: Payload;</code> declares an output. <code>emit channel(value);</code> stages it inside a change. Events become visible, in order, after a successful commit.</p>
+<p>Time, randomness and external responses enter as explicit inputs. Recording those inputs allows deterministic replay.</p>
+<p>Hosts perform I/O and may store events in a durable outbox. Delivery can be retried; exactly-once external effects require the receiver’s cooperation. Storage failures and resource exhaustion remain explicit host concerns.</p>
+</div></section>
+<section class="chapter" id="chapter-8" aria-labelledby="title-chapter-8"><h2 id="title-chapter-8">Proofs and contracts</h2><div class="prose"><p>A theorem states a property; its proof must establish it. Today, proof entries use a restricted first-order language with equality, inductive data, structural induction and checked word-arithmetic certificates. Ink checks them locally with its own Rust checker. Lean is used for separate research proofs; it is not required to compile a program.</p>
+<p>The surface syntax below is proposed. It is not yet a supported way to write proofs in an Ink source file.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-7">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-7"><span class="tok-keyword">theorem</span> <span class="tok-function">int_add_zero</span>(x: <span class="tok-type">Int</span>): x <span class="tok-operator">+</span> <span class="tok-number">0</span> <span class="tok-operator">==</span> x
+    <span class="tok-keyword">by</span> <span class="tok-keyword">normalize</span>;
+
+<span class="tok-keyword">theorem</span> <span class="tok-function">swap_int_add</span>(x: <span class="tok-type">Int</span>, y: <span class="tok-type">Int</span>): x <span class="tok-operator">+</span> y <span class="tok-operator">==</span> y <span class="tok-operator">+</span> x
+    <span class="tok-keyword">by</span> <span class="tok-keyword">arithmetic</span>;</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-8">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-8"><span class="tok-keyword">fn</span> <span class="tok-function">increment_small</span>(x: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span>
+    <span class="tok-keyword">requires</span> x <span class="tok-operator">&lt;</span> <span class="tok-number">100</span>;
+    <span class="tok-keyword">ensures</span> result <span class="tok-operator">==</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>;
+    <span class="tok-keyword">ensures</span> result <span class="tok-operator">&lt;=</span> <span class="tok-number">100</span>;
+{
+    <span class="tok-keyword">return</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>;
+}</code></pre></div><p><code>normalize</code> and <code>arithmetic</code> request proof search. They are not trusted shortcuts. Search must produce a certificate the checker accepts. A solver saying “valid” is insufficient.</p>
+<p>Callers must establish <code>requires</code>; bodies must establish <code>ensures</code>. External inputs are validated. An unknown condition cannot be assumed because it held in previous runs.</p>
+<p>A richer dependent type system remains a design proposal. Tactics and AI may propose evidence; neither can approve it. Accepted proofs cannot use <code>admit</code> or unchecked axioms. The current checker is itself trusted, rather than formally verified.</p>
+</div></section>
+<section class="chapter" id="chapter-9" aria-labelledby="title-chapter-9"><h2 id="title-chapter-9">What a proof guarantees</h2><div class="prose"><p>These are separate claims:</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Required evidence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Program properties</td>
+<td>Proofs that selected contracts and invariants hold</td>
+</tr>
+<tr>
+<td>Transformation correctness</td>
+<td>Proofs that proposed implementations preserve the required semantics</td>
+</tr>
+<tr>
+<td>Executable correctness</td>
+<td>Evidence that lowering, code generation and relevant runtime behaviour preserve those semantics</td>
+</tr>
+</tbody></table>
+</div><p>A checked rewrite does not verify LLVM, the runtime, system libraries or the host. A build must state its remaining trust boundary. The current prototype does not claim end-to-end verified machine code.</p>
+</div></section>
+<section class="chapter" id="chapter-10" aria-labelledby="title-chapter-10"><h2 id="title-chapter-10">Writing optimisation rules</h2><div class="prose"><p>A rewrite gives two equivalent expressions and the evidence connecting them. Its parameters are universally quantified.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-9">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-9"><span class="tok-keyword">rewrite</span> <span class="tok-function">add_zero</span>(x: <span class="tok-type">Int</span>) {
+    <span class="tok-keyword">from</span> x <span class="tok-operator">+</span> <span class="tok-number">0</span>;
+    <span class="tok-keyword">to</span> x;
+    <span class="tok-keyword">proof</span> <span class="tok-keyword">by</span> <span class="tok-keyword">normalize</span>;
+}
+
+<span class="tok-keyword">rewrite</span> map_fusion<span class="tok-operator">&lt;</span><span class="tok-type">A</span>, <span class="tok-type">B</span>, <span class="tok-type">C</span><span class="tok-operator">&gt;</span>(
+    xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">A</span><span class="tok-operator">&gt;</span>,
+    f: <span class="tok-keyword">fn</span>(<span class="tok-type">A</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">B</span>,
+    g: <span class="tok-keyword">fn</span>(<span class="tok-type">B</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">C</span>
+) {
+    <span class="tok-keyword">from</span> xs.<span class="tok-function">map</span>(f).<span class="tok-function">map</span>(g);
+    <span class="tok-keyword">to</span> xs.<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(x) <span class="tok-operator">=&gt;</span> <span class="tok-function">g</span>(<span class="tok-function">f</span>(x)));
+    <span class="tok-keyword">proof</span> <span class="tok-keyword">by</span> <span class="tok-keyword">induction</span> xs;
+}</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-10">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-10"><span class="tok-keyword">implementation</span> cached_sum <span class="tok-keyword">for</span> <span class="tok-type">SumMachine</span> {
+    <span class="tok-keyword">representation</span> <span class="tok-operator">=</span> <span class="tok-type">CachedSumState</span>;
+    <span class="tok-keyword">abstraction</span> <span class="tok-operator">=</span> cached_sum_relation;
+    <span class="tok-keyword">initialise</span> <span class="tok-operator">=</span> cached_sum_init;
+    <span class="tok-keyword">step</span> <span class="tok-operator">=</span> cached_sum_step;
+    <span class="tok-keyword">observe</span> <span class="tok-operator">=</span> cached_sum_observe;
+    <span class="tok-keyword">certificate</span> <span class="tok-operator">=</span> cached_sum_correct;
+}</code></pre></div><p>A <code>requires</code> condition must be established at each use. Substitution must preserve types, ownership and effects, without capturing variables.</p>
+<p>An equality proves that an alternative is valid, not that it is faster. Representation changes and incremental algorithms need implementation entries with a simulation proof. The names in this example refer to database definitions, not built-ins.</p>
+</div></section>
+<section class="chapter" id="chapter-11" aria-labelledby="title-chapter-11"><h2 id="title-chapter-11">Changing representations</h2><div class="prose"><p>A representation proof connects logical state to physical state. It must cover initialisation, query results, successful changes, errors, ordered events and all future permitted updates.</p>
+<p>Abort must leave committed state and events unchanged. Caches must stay correct when queries observe tentative writes. Required termination behaviour must also agree.</p>
+<p>Migration must preserve logical state, IDs, commit position, pending events and active readers. A fast direct migration needs the same evidence as decoding the old state and encoding the new one.</p>
+</div></section>
+<section class="chapter" id="chapter-12" aria-labelledby="title-chapter-12"><h2 id="title-chapter-12">The knowledge database</h2><div class="prose"><p><a href="https://github.com/siliconjungle/ink-knowledge">ink-knowledge</a> stores immutable, content-addressed entries. Each records its kind, semantics version, exact dependencies, typed interface and payload. Definitions, scalar/inductive theorems and executable laws use a common registry boundary; unsupported domains reject.</p>
+<p>SQLite is a rebuildable discovery index for types, operations, effects and applicability. Queries export a bounded set of roots, their exact dependency closure and membership proofs against an authenticated snapshot. Storage location never changes mathematical authority.</p>
+<p><a href="https://github.com/siliconjungle/ink-planner">ink-planner</a> discovers and composes applicable pure laws. The core checks every application against the actual program. <code>ink-evidence-v1</code> plans carry their pinned knowledge bytes and premise proofs, so they replay offline without the current database. The old executable catalogue selection wire is rejected; research fixtures remain outside production discovery.</p>
+<p>Performance observations are separate immutable objects, matched by program/plan, hardware, driver, toolchain, backend, bridge and workload. They can rank valid choices, never establish a proof. Database growth creates more candidates; bounded search does not guarantee a global optimum.</p>
+</div></section>
+<section class="chapter" id="chapter-13" aria-labelledby="title-chapter-13"><h2 id="title-chapter-13">Choosing an implementation</h2><div class="prose"><p>Keep the baseline as a candidate. Search for alternatives, check their conditions, estimate costs, then measure promising choices.</p>
+<p>The biggest gains come from skipping work, changing algorithms, maintaining results after updates, and reducing data movement or allocation. Vectorisation and instruction scheduling help with the work that remains.</p>
+<p>The objective may be latency, throughput, memory or energy. Include proof checking, compilation, migration, guards, data transfers, layout conversion and synchronisation in the cost. A correct candidate that runs slower should stay unselected.</p>
+<p>Search has time, memory and candidate limits. If it runs out of budget or cannot establish a proof, keep the best accepted implementation.</p>
+</div></section>
+<section class="chapter" id="chapter-14" aria-labelledby="title-chapter-14"><h2 id="title-chapter-14">Changing implementations at runtime</h2><div class="prose"><p>Runtime adaptation is planned. Static selection and bounded runtime CPU/GPU profiling exist for specific subsets today. The intended adaptive mode observes a bounded sample, proposes alternatives, checks their evidence, compiles and measures them, then migrates at a transaction boundary.</p>
+<p>A profile is not a proof. Specialising for a property such as “values fit in 16 bits” needs a maintained bound or a guard with a correct fallback.</p>
+<p>Trials use snapshots or synthetic inputs and cannot deliver real events. Switching back must preserve every committed user change. Cooldowns and migration budgets prevent constant switching.</p>
+</div></section>
+<section class="chapter" id="chapter-15" aria-labelledby="title-chapter-15"><h2 id="title-chapter-15">Saving and restoring state</h2><div class="prose"><p>A snapshot stores logical state, program and schema identities, commit position, pending work and event-delivery metadata. It does not store raw machine addresses or arbitrary call stacks.</p>
+<p>Checkpoints happen between transactions. Long-running durable tasks are explicit state machines whose progress lives in state.</p>
+<p>The portable format is versioned and canonical: integers have fixed encodings, strings carry lengths, and tables use canonical key order. Decoding validates sizes, schemas and integrity. Physical caches may use other layouts.</p>
+<p>A durable host commits deltas and events before acknowledging success. Recovery loads a checkpoint and replays later committed deltas. In-memory mode needs no mandatory disk I/O. Schema upgrades use explicit migration functions.</p>
+</div></section>
+<section class="chapter" id="chapter-16" aria-labelledby="title-chapter-16"><h2 id="title-chapter-16">Code as data</h2><div class="prose"><p>The design treats code, schemas, proofs and plans as typed objects with dependencies and history. Versioned program objects and content-addressed knowledge entries exist today; a unified editable store for all of them remains a goal.</p>
+<p>An edit creates new identities. Incremental compilation follows the affected dependencies; existing proofs are reusable only with compatible definitions.</p>
+<p>State and computation are connected through explicit changes and maintained results. This does not mean every data value is executable code. Initially, persistent callbacks use serialisable arguments and explicit state rather than arbitrary captured closures.</p>
+</div></section>
+<section class="chapter" id="chapter-17" aria-labelledby="title-chapter-17"><h2 id="title-chapter-17">Compilation</h2><div class="prose"><p>The compiler and checker are written in Rust. Generated programs are not limited to the performance of the compiler’s implementation language.</p>
+<p>Compilation checks source and proposed replacements before passing a checked program to a backend. The core checks meaning; backend packages handle target code and host protocols. The current compiler has its own restricted proof checker written in Rust. Lean is used for separate research proofs, not as a required compiler dependency.</p>
+<p>Target packages emit C, Rust and WGSL; existing toolchains produce native machine code and WebAssembly. The shared runtime assembles artifacts and owns host execution, scheduling, profiling and fallback. GPU device adapters remain in the GPU package. Build plans record selected transformations and proof dependencies.</p>
+<p>The baseline must already produce useful loops, calls and buffers. Foreign kernels have explicit interfaces and contracts; those contracts remain assumptions until independently justified.</p>
+</div></section>
+<section class="chapter" id="chapter-18" aria-labelledby="title-chapter-18"><h2 id="title-chapter-18">Native code and WebAssembly</h2><div class="prose"><p>C and Rust backends use existing toolchains to produce native machine code or WebAssembly. A shared GPU backend emits WGSL and runs through WebGPU in a browser or wgpu on desktop. It supports u32 collection pipelines and a newer typed-array subset with signed words, floats, vectors, records and bounded loops. Both retain compiled CPU fallback. Portable GPU floats can differ from CPU results; their contract is documented separately.</p>
+<p>These live in separate repositories: <a href="https://github.com/siliconjungle/ink-lowering-c">C lowering</a>, <a href="https://github.com/siliconjungle/ink-lowering-rust">Rust lowering</a>, <a href="https://github.com/siliconjungle/ink-lowering-wasm">Wasm target configuration</a> and <a href="https://github.com/siliconjungle/ink-lowering-gpu">GPU lowering</a>. The <a href="https://github.com/siliconjungle/ink-lang/tree/main/core">language core</a> can build without any of them.</p>
+<p>A large collection operation can run on the GPU while a small finishing calculation runs on the CPU. A faster GPU kernel is useful only if its saving exceeds upload, readback and coordination costs. Keeping intermediate data on the GPU can avoid some of those costs.</p>
+<p>The intended host interface is:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Semantics · schematic example" data-copy="code-11">copy</button><pre tabindex="0" aria-label="Semantics · schematic example"><code id="code-11"><span class="tok-function">init</span>(program_config_bytes) <span class="tok-operator">-&gt;</span> instance
+<span class="tok-keyword">apply</span>(instance, change_id, encoded_arguments) <span class="tok-operator">-&gt;</span> encoded_result
+<span class="tok-keyword">query</span>(instance, query_id, encoded_arguments) <span class="tok-operator">-&gt;</span> encoded_result
+<span class="tok-function">checkpoint</span>(instance) <span class="tok-operator">-&gt;</span> encoded_snapshot
+<span class="tok-function">restore</span>(encoded_snapshot) <span class="tok-operator">-&gt;</span> instance
+<span class="tok-function">drain_events</span>(instance) <span class="tok-operator">-&gt;</span> encoded_events
+<span class="tok-function">close</span>(instance)</code></pre></div><p>The binary ABI must specify buffer ownership, lengths, validation and message versions. Checked deterministic v1 call graphs now run across Wasm/WebGPU or native C/wgpu, returning scalar results between stages. The external planner can share repeated pure calls and choose between checked plans using provenance-matched complete-call observations. A simple tested pipeline kept its CPU baseline because transfers made the mixed plan slower.</p>
+<p>The newer v2 host pipeline API keeps intermediate arrays resident across GPU steps. Connecting those pipelines to source-equivalence proofs remains work: portable floating-point behaviour needs a different observation contract from exact v1 equality. See the <a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/source-routing.md">routing contract</a> and <a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/gpu-compute.md">compute contract</a>.</p>
+<p>Browser hosts provide storage and event adapters. Proof search can happen at build time; a browser does not need to ship an optimiser. The current implemented ABI is documented separately in the compiler repository.</p>
+</div></section>
+<section class="chapter" id="chapter-19" aria-labelledby="title-chapter-19"><h2 id="title-chapter-19">Modules and commands</h2><div class="prose"><p>Imports are explicit. The prelude supplies built-in types and basic constructors and operators. Other names must be imported.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-12">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-12"><span class="tok-keyword">module</span> app.inventory;
+<span class="tok-keyword">import</span> core.collections.{<span class="tok-type">Table</span>, <span class="tok-type">List</span>};
+<span class="tok-keyword">import</span> core.<span class="tok-keyword">arithmetic</span>.{checked_add};</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal · proposed commands example" data-copy="code-13">copy</button><pre tabindex="0" aria-label="Terminal · proposed commands example"><code id="code-13">ink check
+ink prove
+ink build --target native --mode static
+ink build --target wasm --mode static
+ink run --mode adaptive
+ink explain total_units
+ink knowledge import ./verified-package
+ink knowledge verify
+ink snapshot inspect ./checkpoint
+ink benchmark ./workloads</code></pre></div><p>The commands above are proposed interfaces. Manifests declare versions, targets, dependencies, trust policy and optimisation policy. Lockfiles pin object identities and toolchains.</p>
+<p>A failed required contract fails the build. A failed optional optimisation keeps a valid baseline. <code>explain</code> reports what changed, why it was accepted, and what remains trusted. Reproducible builds also pin their selected plan.</p>
+</div></section>
+<section class="chapter" id="chapter-20" aria-labelledby="title-chapter-20"><h2 id="title-chapter-20">Grammar</h2><div class="prose"><p>Source is UTF-8 with case-sensitive ASCII identifiers initially. Statements end in semicolons; braces delimit blocks. Comments use <code>//</code> or non-nesting <code>/* ... */</code>.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Grammar · EBNF example" data-copy="code-14">copy</button><pre tabindex="0" aria-label="Grammar · EBNF example"><code id="code-14"><span class="tok-keyword">module</span>        <span class="tok-operator">=</span> <span class="tok-string">&quot;module&quot;</span> path <span class="tok-string">&quot;;&quot;</span> { <span class="tok-keyword">import</span> | declaration } ;
+<span class="tok-keyword">import</span>        <span class="tok-operator">=</span> <span class="tok-string">&quot;import&quot;</span> path [ <span class="tok-string">&quot;.&quot;</span> <span class="tok-string">&quot;{&quot;</span> name { <span class="tok-string">&quot;,&quot;</span> name } <span class="tok-string">&quot;}&quot;</span> ] <span class="tok-string">&quot;;&quot;</span> ;
+
+declaration   <span class="tok-operator">=</span> [ <span class="tok-string">&quot;pub&quot;</span> ] (
+                  id_decl | record_decl | enum_decl | alias_decl
+                | fn_decl | state_decl | event_decl | keep_decl
+                | query_decl | change_decl | theorem_decl
+                | rewrite_decl | implementation_decl
+                ) ;
+
+id_decl       <span class="tok-operator">=</span> <span class="tok-string">&quot;id&quot;</span> name <span class="tok-string">&quot;;&quot;</span> ;
+record_decl   <span class="tok-operator">=</span> <span class="tok-string">&quot;record&quot;</span> name [ generics ] <span class="tok-string">&quot;{&quot;</span>
+                  { name <span class="tok-string">&quot;:&quot;</span> <span class="tok-keyword">type</span> <span class="tok-string">&quot;,&quot;</span> } <span class="tok-string">&quot;}&quot;</span> ;
+enum_decl     <span class="tok-operator">=</span> <span class="tok-string">&quot;enum&quot;</span> name [ generics ] <span class="tok-string">&quot;{&quot;</span>
+                  { name [ <span class="tok-string">&quot;(&quot;</span> type_list <span class="tok-string">&quot;)&quot;</span> ] <span class="tok-string">&quot;,&quot;</span> } <span class="tok-string">&quot;}&quot;</span> ;
+alias_decl    <span class="tok-operator">=</span> <span class="tok-string">&quot;type&quot;</span> name [ generics ] <span class="tok-string">&quot;=&quot;</span> <span class="tok-keyword">type</span> <span class="tok-string">&quot;;&quot;</span> ;
+
+fn_decl       <span class="tok-operator">=</span> [ <span class="tok-string">&quot;partial&quot;</span> ] <span class="tok-string">&quot;fn&quot;</span> name [ generics ]
+                  <span class="tok-string">&quot;(&quot;</span> parameters <span class="tok-string">&quot;)&quot;</span> <span class="tok-string">&quot;-&gt;&quot;</span> <span class="tok-keyword">type</span>
+                  { contract } block ;
+query_decl    <span class="tok-operator">=</span> <span class="tok-string">&quot;query&quot;</span> name <span class="tok-string">&quot;(&quot;</span> parameters <span class="tok-string">&quot;)&quot;</span> <span class="tok-string">&quot;-&gt;&quot;</span> <span class="tok-keyword">type</span>
+                  { capability } block ;
+change_decl   <span class="tok-operator">=</span> <span class="tok-string">&quot;change&quot;</span> name <span class="tok-string">&quot;(&quot;</span> parameters <span class="tok-string">&quot;)&quot;</span> <span class="tok-string">&quot;-&gt;&quot;</span> result_type
+                  { capability } { contract } block ;
+
+capability    <span class="tok-operator">=</span> (<span class="tok-string">&quot;reads&quot;</span> | <span class="tok-string">&quot;writes&quot;</span> | <span class="tok-string">&quot;emits&quot;</span>) <span class="tok-string">&quot;(&quot;</span> names <span class="tok-string">&quot;)&quot;</span> ;
+contract      <span class="tok-operator">=</span> (<span class="tok-string">&quot;requires&quot;</span> | <span class="tok-string">&quot;ensures&quot;</span>) proposition <span class="tok-string">&quot;;&quot;</span> ;
+state_decl    <span class="tok-operator">=</span> <span class="tok-string">&quot;state&quot;</span> name <span class="tok-string">&quot;:&quot;</span> <span class="tok-keyword">type</span> <span class="tok-string">&quot;=&quot;</span> expression <span class="tok-string">&quot;;&quot;</span> ;
+event_decl    <span class="tok-operator">=</span> <span class="tok-string">&quot;event&quot;</span> name <span class="tok-string">&quot;:&quot;</span> <span class="tok-keyword">type</span> <span class="tok-string">&quot;;&quot;</span> ;
+keep_decl     <span class="tok-operator">=</span> <span class="tok-string">&quot;keep&quot;</span> name <span class="tok-string">&quot;:&quot;</span> <span class="tok-keyword">type</span> <span class="tok-string">&quot;=&quot;</span> expression <span class="tok-string">&quot;;&quot;</span> ;
+
+theorem_decl  <span class="tok-operator">=</span> <span class="tok-string">&quot;theorem&quot;</span> name [ generics ] <span class="tok-string">&quot;(&quot;</span> parameters <span class="tok-string">&quot;)&quot;</span>
+                  <span class="tok-string">&quot;:&quot;</span> proposition <span class="tok-string">&quot;by&quot;</span> proof_script <span class="tok-string">&quot;;&quot;</span> ;
+rewrite_decl  <span class="tok-operator">=</span> <span class="tok-string">&quot;rewrite&quot;</span> name [ generics ] <span class="tok-string">&quot;(&quot;</span> parameters <span class="tok-string">&quot;)&quot;</span> <span class="tok-string">&quot;{&quot;</span>
+                  { <span class="tok-string">&quot;requires&quot;</span> proposition <span class="tok-string">&quot;;&quot;</span> }
+                  <span class="tok-string">&quot;from&quot;</span> expression <span class="tok-string">&quot;;&quot;</span>
+                  <span class="tok-string">&quot;to&quot;</span> expression <span class="tok-string">&quot;;&quot;</span>
+                  <span class="tok-string">&quot;proof&quot;</span> <span class="tok-string">&quot;by&quot;</span> proof_script <span class="tok-string">&quot;;&quot;</span> <span class="tok-string">&quot;}&quot;</span> ;
+implementation_decl
+              <span class="tok-operator">=</span> <span class="tok-string">&quot;implementation&quot;</span> name <span class="tok-string">&quot;for&quot;</span> path <span class="tok-string">&quot;{&quot;</span>
+                  <span class="tok-string">&quot;representation&quot;</span> <span class="tok-string">&quot;=&quot;</span> path <span class="tok-string">&quot;;&quot;</span>
+                  <span class="tok-string">&quot;abstraction&quot;</span> <span class="tok-string">&quot;=&quot;</span> path <span class="tok-string">&quot;;&quot;</span>
+                  <span class="tok-string">&quot;initialise&quot;</span> <span class="tok-string">&quot;=&quot;</span> path <span class="tok-string">&quot;;&quot;</span>
+                  <span class="tok-string">&quot;step&quot;</span> <span class="tok-string">&quot;=&quot;</span> path <span class="tok-string">&quot;;&quot;</span>
+                  <span class="tok-string">&quot;observe&quot;</span> <span class="tok-string">&quot;=&quot;</span> path <span class="tok-string">&quot;;&quot;</span>
+                  <span class="tok-string">&quot;certificate&quot;</span> <span class="tok-string">&quot;=&quot;</span> path <span class="tok-string">&quot;;&quot;</span> <span class="tok-string">&quot;}&quot;</span> ;
+
+block         <span class="tok-operator">=</span> <span class="tok-string">&quot;{&quot;</span> { statement } <span class="tok-string">&quot;}&quot;</span> ;
+statement     <span class="tok-operator">=</span> (<span class="tok-string">&quot;let&quot;</span> | <span class="tok-string">&quot;var&quot;</span>) name [ <span class="tok-string">&quot;:&quot;</span> <span class="tok-keyword">type</span> ] <span class="tok-string">&quot;=&quot;</span> expression <span class="tok-string">&quot;;&quot;</span>
+              | lvalue <span class="tok-string">&quot;=&quot;</span> expression <span class="tok-string">&quot;;&quot;</span>
+              | <span class="tok-string">&quot;return&quot;</span> expression <span class="tok-string">&quot;;&quot;</span>
+              | <span class="tok-string">&quot;emit&quot;</span> name <span class="tok-string">&quot;(&quot;</span> expression <span class="tok-string">&quot;)&quot;</span> <span class="tok-string">&quot;;&quot;</span>
+              | <span class="tok-string">&quot;if&quot;</span> expression block [ <span class="tok-string">&quot;else&quot;</span> block ]
+              | <span class="tok-string">&quot;for&quot;</span> name <span class="tok-string">&quot;in&quot;</span> expression block
+              | <span class="tok-string">&quot;while&quot;</span> expression block
+              | expression <span class="tok-string">&quot;;&quot;</span> ;
+
+<span class="tok-keyword">type</span>          <span class="tok-operator">=</span> path [ <span class="tok-string">&quot;&lt;&quot;</span> type_argument { <span class="tok-string">&quot;,&quot;</span> type_argument } <span class="tok-string">&quot;&gt;&quot;</span> ]
+              | <span class="tok-string">&quot;fn&quot;</span> <span class="tok-string">&quot;(&quot;</span> type_list <span class="tok-string">&quot;)&quot;</span> <span class="tok-string">&quot;-&gt;&quot;</span> <span class="tok-keyword">type</span>
+              | <span class="tok-string">&quot;{&quot;</span> name <span class="tok-string">&quot;:&quot;</span> <span class="tok-keyword">type</span> <span class="tok-string">&quot;where&quot;</span> proposition <span class="tok-string">&quot;}&quot;</span>
+              | <span class="tok-string">&quot;(&quot;</span> type_list <span class="tok-string">&quot;)&quot;</span> ;</code></pre></div><p>Expressions include literals, calls, fields, constructors, tuples, lists, lambdas, matching, operators and postfix <code>?</code>.</p>
+<p>Precedence runs from calls and indexing through unary operators, multiplication, addition, comparisons, equality, <code>&amp;&amp;</code>, then <code>||</code>. Arithmetic associates left; chained comparisons are rejected. Parentheses override precedence.</p>
+<p>Integer literals use an expected type or default to <code>Int</code>; floating literals default to <code>f64</code>. Out-of-range fixed-width literals are errors. The full parser grammar and proof-term encoding remain implementation work.</p>
+</div></section>
+<section class="chapter" id="chapter-21" aria-labelledby="title-chapter-21"><h2 id="title-chapter-21">Measuring performance</h2><div class="prose"><p>Compare complete implementations with matching semantics against well-optimised C, C++ and Rust. Beating a naive rescan does not establish a language-wide performance lead.</p>
+<p>Measure pure kernels, update/query mixes, changing distributions, small requests, large working sets, memory limits, native/Wasm execution and durability.</p>
+<p>Report raw samples, variance, allocations, memory, compilation, proof checking and adaptation costs. Keep cold and warm results separate. Test unfamiliar workloads and distribution shifts.</p>
+<p>“Fastest” is an ambition. A result is a measured advantage on a stated workload and machine.</p>
+<p>Current results are mixed. Some proof-selected pure programs match combined C/C++/Rust loops. Handwritten Rust still wins the broader stateful comparisons. A simple CPU/GPU experiment also kept its CPU baseline because transfers made the mixed plan slower. See the <a href="https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md">benchmark reports</a> for the workloads and measurements.</p>
+</div></section>
+<section class="chapter" id="chapter-22" aria-labelledby="title-chapter-22"><h2 id="title-chapter-22">Building the language</h2><div class="prose"><p>The next steps follow the small-core boundary. Each needs its own evidence.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Deliverable</th>
+<th>Acceptance condition</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Freeze the core</td>
+<td>Precise supported operations and observation contracts</td>
+<td>Source, reference execution and proof entries agree on their meaning</td>
+</tr>
+<tr>
+<td>Complete stateful replacements</td>
+<td>External row/column and maintained-query implementations</td>
+<td>Proofs cover actual changes, errors, aborts, event order, snapshots and future calls</td>
+</tr>
+<tr>
+<td>Finish the knowledge boundary</td>
+<td>Move remaining specialised optimisation authority into the database</td>
+<td>A new valid candidate works without changing the compiler</td>
+</tr>
+<tr>
+<td>Improve execution</td>
+<td>Ownership, fewer copies, compact storage and direct construction</td>
+<td>Complete workloads improve against matching-layout baselines</td>
+</tr>
+<tr>
+<td>Make it usable</td>
+<td>Modules, diagnostics, installation, debugging and editor support</td>
+<td>Someone outside the project can build and diagnose a substantial program</td>
+</tr>
+<tr>
+<td>Extend search and adaptation</td>
+<td>Bounded search, profiles, guarded selection and migration</td>
+<td>Exhaustion keeps a correct baseline; switching preserves state</td>
+</tr>
+<tr>
+<td>Harden deployment</td>
+<td>Independent checking, resource limits, recovery and defined concurrency</td>
+<td>Claims and failure behaviour have reproducible evidence</td>
+</tr>
+</tbody></table>
+</div><p>The first useful demonstration adds a proved alternative to the database, changes a scan into maintained computation, preserves queries and events across future changes, and transfers a checkpoint between implementations. Compare it with a handwritten maintained baseline.</p>
+<p>Tests, fuzzing and benchmarks are useful checks. They do not substitute for the proofs a verified mode promises.</p>
+</div></section>
+<section class="chapter" id="chapter-23" aria-labelledby="title-chapter-23"><h2 id="title-chapter-23">What remains to decide</h2><div class="prose"><p>The prototype has versioned core objects, checked proof entries and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, durable storage protocols and stable release interfaces.</p>
+<p>The prototype implements only part of this design. Its current status is documented in the compiler repository. The interpreter, checker and implementation packages should evolve together so semantic disagreements appear early.</p>
+</div></section>
+<section class="chapter" id="chapter-24" aria-labelledby="title-chapter-24"><h2 id="title-chapter-24">Maintaining a total</h2><div class="prose"><p>A table holds exact integer weights. Replacing one row changes its total by subtracting the old value and adding the new one:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Proof · schematic example" data-copy="code-15">copy</button><pre tabindex="0" aria-label="Proof · schematic example"><code id="code-15"><span class="tok-function">sum_values</span>(<span class="tok-function">set</span>(rows, k, v))
+    <span class="tok-operator">==</span> <span class="tok-function">sum_values</span>(rows) <span class="tok-operator">-</span> <span class="tok-function">old</span>(rows, k) <span class="tok-operator">+</span> v</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy Semantics · schematic example" data-copy="code-16">copy</button><pre tabindex="0" aria-label="Semantics · schematic example"><code id="code-16"><span class="tok-type">Logical</span> <span class="tok-keyword">state</span>:
+    rows
+
+<span class="tok-type">Physical</span> <span class="tok-keyword">state</span>:
+    rows
+    cached_total
+
+<span class="tok-type">Abstraction</span> relation:
+    physical.rows <span class="tok-operator">==</span> logical.rows
+    physical.cached_total <span class="tok-operator">==</span> <span class="tok-function">sum_values</span>(logical.rows)
+
+<span class="tok-type">Logical</span> <span class="tok-keyword">step</span> <span class="tok-function">set</span>(k, v):
+    rows :<span class="tok-operator">=</span> <span class="tok-function">set</span>(rows, k, v)
+
+<span class="tok-type">Physical</span> <span class="tok-keyword">step</span> <span class="tok-function">set</span>(k, v):
+    previous :<span class="tok-operator">=</span> <span class="tok-function">old</span>(rows, k)
+    rows :<span class="tok-operator">=</span> <span class="tok-function">set</span>(rows, k, v)
+    cached_total :<span class="tok-operator">=</span> cached_total <span class="tok-operator">-</span> previous <span class="tok-operator">+</span> v</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy Proof · schematic example" data-copy="code-17">copy</button><pre tabindex="0" aria-label="Proof · schematic example"><code id="code-17">new_cached_total
+    <span class="tok-operator">==</span> old_sum <span class="tok-operator">-</span> previous <span class="tok-operator">+</span> v
+    <span class="tok-operator">==</span> <span class="tok-function">sum_values</span>(new_rows)</code></pre></div><p>The cache relation says that the physical total equals the logical sum. The update equation preserves that relation. Initialisation, deletion, batches and abort need corresponding proofs.</p>
+<p>The theorem covers arbitrary maps and values. Measurements decide when maintaining the cache is worthwhile. Using a machine integer instead of exact arithmetic needs a separate bound or checked fallback.</p>
+</div></section>
+<section class="chapter" id="chapter-25" aria-labelledby="title-chapter-25"><h2 id="title-chapter-25">Execution and proof objects</h2><div class="prose"><p>The reference execution model makes transaction behaviour explicit:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Semantics · schematic example" data-copy="code-18">copy</button><pre tabindex="0" aria-label="Semantics · schematic example"><code id="code-18"><span class="tok-type">Begin</span>(<span class="tok-type">S</span>):
+    working :<span class="tok-operator">=</span> <span class="tok-type">S</span>
+    events :<span class="tok-operator">=</span> []
+
+<span class="tok-type">Write</span>(root, key, value):
+    update working only
+
+<span class="tok-type">Read</span>(root, key):
+    read working <span class="tok-keyword">for</span> a <span class="tok-keyword">change</span>
+    read the selected committed snapshot <span class="tok-keyword">for</span> a <span class="tok-keyword">query</span>
+
+<span class="tok-type">Emit</span>(channel, value):
+    append <span class="tok-keyword">to</span> staged events
+
+<span class="tok-type">Return</span> <span class="tok-type">Ok</span>(value):
+    commit working and events atomically
+    <span class="tok-keyword">return</span> value with the new commit position
+
+<span class="tok-type">Return</span> <span class="tok-type">Err</span>(error):
+    discard working and events
+    <span class="tok-keyword">return</span> error with the unchanged committed <span class="tok-keyword">state</span></code></pre></div><p>A nested change shares this working state and event list. Keeps read the same tentative or committed state as their reader.</p>
+<p>Pure equivalence means equal results for every allowed input. State-machine equivalence also includes commit/abort results, commit positions and ordered events for every allowed input sequence. Layout, caches and ordinary timing are not public observations.</p>
+<p>The richer proof language is proposed to use these general operations. Today&#39;s first-order checker supports a smaller set: equality, congruence, theorem application, cases, structural induction and checked word-arithmetic certificates.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Proof term</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Bound variable and theorem reference</td>
+<td>Use a local premise or an exact dependency</td>
+</tr>
+<tr>
+<td>Lambda and application</td>
+<td>Introduce or eliminate a universally quantified statement or implication</td>
+</tr>
+<tr>
+<td>Constructor and eliminator</td>
+<td>Build and reason about an inductive type</td>
+</tr>
+<tr>
+<td>Equality reflexivity and transport</td>
+<td>Establish definitional equality and replace equals</td>
+</tr>
+<tr>
+<td>Universe and dependent function</td>
+<td>Describe typed quantification</td>
+</tr>
+<tr>
+<td>Verified decision certificate</td>
+<td>Invoke a specified checker whose soundness theorem connects its accepted certificate to the proposition</td>
+</tr>
+</tbody></table>
+</div><p>Proof scripts produce those objects; their names alone establish nothing.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Grammar · EBNF example" data-copy="code-19">copy</button><pre tabindex="0" aria-label="Grammar · EBNF example"><code id="code-19">proof_script <span class="tok-operator">=</span> tactic { <span class="tok-string">&quot;,&quot;</span> tactic } ;
+tactic       <span class="tok-operator">=</span> <span class="tok-string">&quot;normalize&quot;</span>
+             | <span class="tok-string">&quot;arithmetic&quot;</span>
+             | <span class="tok-string">&quot;intro&quot;</span> names
+             | <span class="tok-string">&quot;exact&quot;</span> proof_expression
+             | <span class="tok-string">&quot;apply&quot;</span> path
+             | <span class="tok-string">&quot;rewrite&quot;</span> path
+             | <span class="tok-string">&quot;cases&quot;</span> name
+             | <span class="tok-string">&quot;induction&quot;</span> name ;</code></pre></div><p>Unsupported certificates are rejected. Optional optimisations retain the baseline. The checker itself remains a trusted implementation until its correctness is established separately.</p>
+</div></section></div>
+<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a><a href="https://github.com/siliconjungle/ink-lang/tree/77a7dfdb17fb5ed115eb4e55160ef4be44d473e4">Implementation 77a7dfd</a></footer>
+</main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>
