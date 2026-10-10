@@ -61,10 +61,18 @@ Build plans record the selected transformations and proof dependencies. `--selec
 | Target | Execution path |
 | --- | --- |
 | Native CPU | Generated C or Rust, compiled with existing toolchains |
-| Browser CPU | WebAssembly |
+| Browser CPU | JavaScript ES modules or WebAssembly |
 | GPU | WGSL through browser WebGPU or native wgpu |
 
-Supported pure graphs can combine CPU and GPU stages. GPU pipelines can keep arrays resident across steps and iterations. The runtime measures complete execution cost, including transfers and setup, and retains compiled CPU fallback.
+Pure programs can compile directly to JavaScript:
+
+```sh
+target/release/ink build totals.ink --target javascript -o totals.mjs
+```
+
+Import the module and call `functions.total([1, 2, 3])`; its `u64` result is `39n`. JavaScript preserves Ink's wrapping words, exact `u64` and `f32` rounding. This initial target handles pure numeric, Bool, vector, record and list programs. [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md).
+
+Supported pure graphs can combine CPU and GPU stages. GPU pipelines can keep arrays resident across steps and iterations. Browser bundles compare eligible JavaScript, Wasm and WebGPU execution, including conversions, transfers and setup, and retain compiled CPU fallback. No target is always fastest.
 
 GPU support is a subset: some operations stay on CPU, and GPU floats can differ from CPU results. Rendering is the host application's job. Read the [GPU compute contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/gpu-compute.md) before choosing a target.
 
@@ -89,6 +97,6 @@ Entries have content identities, explicit kinds, semantics versions, typed inter
 
 ## Current scope
 
-Ink is a working prototype. Pure rewrites compose today; specialised stateful proofs and implementations also exist. General stateful replacement, automatic migration, richer modules and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
+Ink is a working prototype. Pure rewrites compose today; specialised stateful proofs and implementations also exist. Stateful JavaScript execution, live browser source editing, general stateful replacement, automatic migration, richer modules and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
 
 For the complete design, read the [language reference](%BASE_URL%reference.html) or download the [full draft](%BASE_URL%ink-specification.md). For implementation details, see [status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md), [architecture](https://github.com/siliconjungle/ink-lang/blob/main/docs/repository-architecture.md) and [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md).

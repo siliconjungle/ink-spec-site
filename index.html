@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: typed programs, composable checked optimisations, and CPU/Wasm/GPU execution."><title>ink — programming language</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: typed programs, composable checked optimisations, and native/JavaScript/Wasm/GPU execution."><title>ink — programming language</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body><a class="skip" href="#guide">Skip to the content</a><main class="site-shell"><h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p data-measure>A programming language with a small semantic core and a growing store of checked optimisations.</p>
 <p>Write typed programs for computation and state. Reusable proofs let the planner combine, replace or skip work; the core checks that each change preserves the program's meaning.</p>
-<p class="status-note">Working prototype. Native, Wasm and GPU subsets run today; the full language is still a draft.</p></div>
+<p class="status-note">Working prototype. Native, JavaScript, Wasm and GPU subsets run today; the full language is still a draft.</p></div>
 <nav class="reading-links" aria-label="Documentation"><a href="#get-started">Get started</a><a href="%BASE_URL%reference.html">Language reference</a><a href="https://github.com/siliconjungle/ink-lang">GitHub</a></nav>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy totals.ink · supported today example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="totals.ink · supported today example"><code id="code-1"><span class="tok-keyword">module</span> totals;
 
@@ -50,14 +50,16 @@ target/release/ink run totals.ink total arguments.json</code></pre></div><p>The 
 </tr>
 <tr>
 <td>Browser CPU</td>
-<td>WebAssembly</td>
+<td>JavaScript ES modules or WebAssembly</td>
 </tr>
 <tr>
 <td>GPU</td>
 <td>WGSL through browser WebGPU or native wgpu</td>
 </tr>
 </tbody></table>
-</div><p>Supported pure graphs can combine CPU and GPU stages. GPU pipelines can keep arrays resident across steps and iterations. The runtime measures complete execution cost, including transfers and setup, and retains compiled CPU fallback.</p>
+</div><p>Pure programs can compile directly to JavaScript:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-7">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-7">target/release/ink build totals.ink --target javascript -o totals.mjs</code></pre></div><p>Import the module and call <code>functions.total([1, 2, 3])</code>; its <code>u64</code> result is <code>39n</code>. JavaScript preserves Ink&#39;s wrapping words, exact <code>u64</code> and <code>f32</code> rounding. This initial target handles pure numeric, Bool, vector, record and list programs. <a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md">JavaScript target</a>.</p>
+<p>Supported pure graphs can combine CPU and GPU stages. GPU pipelines can keep arrays resident across steps and iterations. Browser bundles compare eligible JavaScript, Wasm and WebGPU execution, including conversions, transfers and setup, and retain compiled CPU fallback. No target is always fastest.</p>
 <p>GPU support is a subset: some operations stay on CPU, and GPU floats can differ from CPU results. Rendering is the host application&#39;s job. Read the <a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/gpu-compute.md">GPU compute contract</a> before choosing a target.</p>
 </div></section>
 <section class="chapter" id="state-and-snapshots" aria-labelledby="title-state-and-snapshots"><h2 id="title-state-and-snapshots">State and snapshots</h2><div class="prose"><p>A successful change commits its writes and ordered events together. A failed change rolls them back. Queries and maintained results must agree with the state they observe, including tentative writes inside a transaction.</p>
@@ -90,8 +92,8 @@ target/release/ink run totals.ink total arguments.json</code></pre></div><p>The 
 </tbody></table>
 </div><p>Entries have content identities, explicit kinds, semantics versions, typed interfaces and exact dependencies. SQLite is a rebuildable index; exported views authenticate selected entries against a pinned snapshot. Performance observations live separately and name their workload, hardware and toolchain. Storage and measurements never grant proof authority.</p>
 </div></section>
-<section class="chapter" id="current-scope" aria-labelledby="title-current-scope"><h2 id="title-current-scope">Current scope</h2><div class="prose"><p>Ink is a working prototype. Pure rewrites compose today; specialised stateful proofs and implementations also exist. General stateful replacement, automatic migration, richer modules and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.</p>
+<section class="chapter" id="current-scope" aria-labelledby="title-current-scope"><h2 id="title-current-scope">Current scope</h2><div class="prose"><p>Ink is a working prototype. Pure rewrites compose today; specialised stateful proofs and implementations also exist. Stateful JavaScript execution, live browser source editing, general stateful replacement, automatic migration, richer modules and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.</p>
 <p>For the complete design, read the <a href="%BASE_URL%reference.html">language reference</a> or download the <a href="%BASE_URL%ink-specification.md">full draft</a>. For implementation details, see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">status</a>, <a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/repository-architecture.md">architecture</a> and <a href="https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md">benchmark evidence</a>.</p>
 </div></section></div>
-<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a><a href="https://github.com/siliconjungle/ink-lang/tree/77a7dfdb17fb5ed115eb4e55160ef4be44d473e4">Implementation 77a7dfd</a></footer>
+<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a><a href="https://github.com/siliconjungle/ink-lang/tree/2a1873359e89f78ffa92859fe18b6d08cb8b6036">Implementation 2a18733</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

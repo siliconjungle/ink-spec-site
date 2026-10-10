@@ -94,7 +94,7 @@ fn total(xs: List<u64>) -> u64 {
 }`;
 function page(title, body, skip = "guide") {
   return `<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: typed programs, composable checked optimisations, and CPU/Wasm/GPU execution."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: typed programs, composable checked optimisations, and native/JavaScript/Wasm/GPU execution."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
 <footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a><a href="${implementation.repository}/tree/${implementation.revision}">Implementation ${implementation.revision.slice(0, 7)}</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
@@ -102,7 +102,7 @@ function page(title, body, skip = "guide") {
 const guideBody = `<h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p data-measure>A programming language with a small semantic core and a growing store of checked optimisations.</p>
 <p>Write typed programs for computation and state. Reusable proofs let the planner combine, replace or skip work; the core checks that each change preserves the program's meaning.</p>
-<p class="status-note">Working prototype. Native, Wasm and GPU subsets run today; the full language is still a draft.</p></div>
+<p class="status-note">Working prototype. Native, JavaScript, Wasm and GPU subsets run today; the full language is still a draft.</p></div>
 <nav class="reading-links" aria-label="Documentation"><a href="#get-started">Get started</a><a href="%BASE_URL%reference.html">Language reference</a><a href="https://github.com/siliconjungle/ink-lang">GitHub</a></nav>
 ${codePanel(hello, "totals.ink · supported today")}
 <div id="guide" class="chapters">${sections(guide)}</div>`;

@@ -335,11 +335,11 @@ The compiler and checker are written in Rust. Generated programs are not limited
 
 Compilation checks source and proposed replacements before passing a checked program to a backend. The core checks meaning; backend packages handle target code and host protocols. The current compiler has its own restricted proof checker written in Rust. Lean is used for separate research proofs, not as a required compiler dependency.
 
-Target packages emit C, Rust and WGSL; existing toolchains produce native machine code and WebAssembly. The shared runtime assembles artifacts and owns host execution, scheduling, profiling and fallback. GPU device adapters remain in the GPU package. Build plans record selected transformations and proof dependencies.
+Target packages emit C, Rust, JavaScript and WGSL; existing toolchains produce native machine code and WebAssembly. The shared runtime assembles artifacts and owns host execution, scheduling, profiling and fallback. GPU device adapters remain in the GPU package. Build plans record selected transformations and proof dependencies.
 
 The baseline must already produce useful loops, calls and buffers. Foreign kernels have explicit interfaces and contracts; those contracts remain assumptions until independently justified.
 
-## 18 Native code and WebAssembly
+## 18 Execution targets
 
 C and Rust backends use existing toolchains to produce native machine code or WebAssembly. A shared GPU backend emits WGSL and runs through WebGPU in a browser or wgpu on desktop. It supports u32 collection pipelines and a newer typed-array subset with signed words, floats, vectors, records and bounded loops. Both retain compiled CPU fallback. Portable GPU floats can differ from CPU results; their contract is documented separately.
 
@@ -364,6 +364,14 @@ The binary ABI must specify buffer ownership, lengths, validation and message ve
 The newer v2 host pipeline API keeps intermediate arrays resident across GPU steps. Connecting those pipelines to source-equivalence proofs remains work: portable floating-point behaviour needs a different observation contract from exact v1 equality. See the [routing contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/source-routing.md) and [compute contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/gpu-compute.md).
 
 Browser hosts provide storage and event adapters. Proof search can happen at build time; a browser does not need to ship an optimiser. The current implemented ABI is documented separately in the compiler repository.
+
+### JavaScript target
+
+`ink build SOURCE --target javascript -o program.mjs` emits an importable ES module. `functions.name(...arguments)` runs generated JavaScript; `call(name, arguments)` provides dynamic invocation. The module runs in browsers and Node without Wasm or a GPU.
+
+JavaScript implements Ink's types: explicit 32-bit wrapping and multiplication, BigInt-backed wrapping `u64`, and separate binary32 rounding after each float operation. Bool, vectors, records and nested lists retain their checked types. Inputs are captured, validated and preserved. Lazy branches and fallbacks remain lazy. Results of `u64` functions are BigInt; JSON hosts must encode them explicitly.
+
+The initial target supports pure compute functions and rejects state/actions and opaque stateful types. Browser runtime bundles compare eligible JavaScript, Wasm and WebGPU whole-computation costs. Measurements select execution; they never establish proof conditions. Per-stage adaptive placement and editable browser source compilation remain unfinished. See the [JavaScript contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md) and [lowerer repository](https://github.com/siliconjungle/ink-lowering-js).
 
 ## 19 Modules and commands
 
