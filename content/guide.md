@@ -48,7 +48,7 @@ Relative file imports use `import "stock.ink" as stock;`. The compiler ships sma
 
 ## How optimisation works
 
-The planner finds applicable laws in the knowledge store and composes them through larger expressions. The semantic core checks each replacement and its conditions against the actual program.
+The planner finds applicable laws in the knowledge store and composes them through larger expressions, including eligible pure expressions inside queries, changes and maintained results. The semantic core checks each replacement and its conditions against the actual program; reads, writes, calls and error handling remain outside this rewrite path.
 
 ```ink
 fn advance(x: u32, step: u32) -> u32 {
@@ -94,7 +94,9 @@ The [target parity contract](https://github.com/siliconjungle/ink-lang/blob/main
 
 A successful change commits its writes and ordered events together. A failed change rolls them back. Queries and maintained results must agree with the state they observe, including tentative writes inside a transaction.
 
-C, Rust, JavaScript and Wasm share the same portable snapshot format for a checked program. Runtime adapters persist native C/Rust and compiled JavaScript or C/Rust Wasm state through synced files or IndexedDB in the browser. Native executables accept `--durable FILE`. They recover state and pending events before retrying calls; delivery is at least once, with receiver deduplication. [Durable host contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/durable-host.md). General live migration and arbitrary program rewind remain future work. [State and host ABI](https://github.com/siliconjungle/ink-lang/blob/main/docs/wasm-abi.md).
+C, Rust, JavaScript and Wasm share the same portable snapshot format for a checked program. Checked optimisation plans preserve the original program’s checkpoint identity, so state and durable files can move between its baseline and optimised builds. This requires the checked selection witness; independently emitted modified programs keep their own identities. [Selected checkpoint contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/selected-checkpoints.md).
+
+Runtime adapters persist native C/Rust and compiled JavaScript or C/Rust Wasm state through synced files or IndexedDB in the browser. Native executables accept `--durable FILE`. They recover state and pending events before retrying calls; delivery is at least once, with receiver deduplication. [Durable host contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/durable-host.md). General live migration and arbitrary program rewind remain future work. [State and host ABI](https://github.com/siliconjungle/ink-lang/blob/main/docs/wasm-abi.md).
 
 ## Knowledge and execution
 
@@ -111,6 +113,6 @@ Entries have content identities, explicit kinds, semantics versions, typed inter
 
 ## Current scope
 
-Ink is a working prototype. Pure rewrites compose today; specialised stateful proofs and implementations also exist. Live browser source editing, general stateful replacement, automatic migration, richer libraries and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
+Ink is a working prototype. Expression rewrites compose in pure functions and eligible action regions today; specialised stateful proofs and implementations also exist. Live browser source editing, general stateful replacement, automatic migration, richer libraries and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
 
 For the complete design, read the [language reference](%BASE_URL%reference.html) or download the [full draft](%BASE_URL%ink-specification.md). For implementation details, see [status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md), [architecture](https://github.com/siliconjungle/ink-lang/blob/main/docs/repository-architecture.md) and [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md).

@@ -291,7 +291,7 @@ Migration must preserve logical state, IDs, commit position, pending events and 
 
 SQLite is a rebuildable discovery index for types, operations, effects and applicability. Queries export a bounded set of roots, their exact dependency closure and membership proofs against an authenticated snapshot. Storage location never changes mathematical authority.
 
-[ink-planner](https://github.com/siliconjungle/ink-planner) discovers and composes applicable pure laws. The core checks every application against the actual program. `ink-evidence-v1` plans carry their pinned knowledge bytes and premise proofs, so they replay offline without the current database. The old executable catalogue selection wire is rejected; research fixtures remain outside production discovery.
+[ink-planner](https://github.com/siliconjungle/ink-planner) discovers and composes applicable expression laws in pure functions and eligible pure regions of queries, changes and maintained results. The core checks every application against the actual program, including lexical branch conditions. Stateful operations, calls and error handling remain outside these regions. Parametric logical laws support checked instantiation; this does not yet prove a complete action interpreter or physical implementation. `ink-evidence-v1` plans carry their pinned knowledge bytes and premise proofs, so they replay offline without the current database. The old executable catalogue selection wire is rejected; research fixtures remain outside production discovery.
 
 Performance observations are separate immutable objects, matched by program/plan, hardware, driver, toolchain, backend, bridge and workload. They can rank valid choices, never establish a proof. Database growth creates more candidates; bounded search does not guarantee a global optimum.
 
@@ -317,7 +317,7 @@ Trials use snapshots or synthetic inputs and cannot deliver real events. Switchi
 
 A snapshot stores logical state, program and schema identities, commit position, pending work and event-delivery metadata. It does not store raw machine addresses or arbitrary call stacks.
 
-Checkpoints happen between transactions. Long-running durable tasks are explicit state machines whose progress lives in state.
+Checkpoints happen between transactions. Checked optimisation selections retain the original program’s checkpoint identity when the schema, state roots and events agree. Baseline and selected C, Rust, JavaScript and Wasm builds can restore each other’s checkpoints; independent emission of a modified program does not grant that authority. [Selected checkpoint contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/selected-checkpoints.md). Long-running durable tasks are explicit state machines whose progress lives in state.
 
 The portable format is versioned and canonical: integers have fixed encodings, strings carry lengths, and tables use canonical key order. Decoding validates sizes, schemas and integrity. Physical caches may use other layouts.
 
