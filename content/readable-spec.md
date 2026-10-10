@@ -1,10 +1,14 @@
 ## 1 How it works
 
-Ink separates what a program means from how it runs. You describe data, changes and results. The compiler can choose a different algorithm or layout if checked evidence shows that the results stay the same.
+Ink separates what a program means from how it runs. You describe data, changes and results. Checked proofs can justify a different algorithm or layout that preserves those results.
 
-The core defines the language, checks evidence and produces a baseline implementation. Optimisation laws and alternative implementations belong in the database. Adding knowledge should not require rebuilding the compiler.
+The core defines the language and checks evidence. A separate database stores reusable definitions, proofs and alternative implementations. Backend packages turn checked programs into executable code. Each can evolve independently.
 
-Proofs establish correctness. Measurements establish speed. Programs must also work offline with an empty database.
+One program should be able to use several targets: Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Moving data, converting layouts and waiting for results cost time too. The goal is to optimise the whole execution plan, including those connections.
+
+Proofs establish equivalence within a stated scope. Measurements help choose between valid implementations. An optimisation must remain correct when a profile changes; a network connection is not required to check downloaded knowledge.
+
+The core, database and C/Rust/GPU/Wasm-adapter packages are separated today. Native, Wasm and a limited GPU subset run. General mixed-target routing is still being built.
 
 ## 2 An inventory program
 
@@ -298,7 +302,7 @@ Keep the baseline as a candidate. Search for alternatives, check their condition
 
 The biggest gains come from skipping work, changing algorithms, maintaining results after updates, and reducing data movement or allocation. Vectorisation and instruction scheduling help with the work that remains.
 
-The objective may be latency, throughput, memory or energy. Include proof checking, compilation, migration and guards in the cost. A correct candidate that runs slower should stay unselected.
+The objective may be latency, throughput, memory or energy. Include proof checking, compilation, migration, guards, data transfers, layout conversion and synchronisation in the cost. A correct candidate that runs slower should stay unselected.
 
 Search has time, memory and candidate limits. If it runs out of budget or cannot establish a proof, keep the best accepted implementation.
 
@@ -332,7 +336,7 @@ State and computation are connected through explicit changes and maintained resu
 
 The compiler and checker are written in Rust. Generated programs are not limited to the performance of the compiler’s implementation language.
 
-Compilation parses and checks the source, builds its semantic graph, applies checked database knowledge, then lowers the selected algorithms and representations to executable code.
+Compilation checks source and proposed replacements before passing a checked program to a backend. The core checks meaning; backend packages handle target code and host protocols. The current compiler has its own restricted proof checker written in Rust. Lean is used for separate research proofs, not as a required compiler dependency.
 
 The current bootstrap paths emit C or Rust and use LLVM for native and WebAssembly code generation. The build plan records selected transformations and their proof dependencies.
 
@@ -340,7 +344,7 @@ The baseline must already produce useful loops, calls and buffers. Foreign kerne
 
 ## 18 Native code and WebAssembly
 
-Native targets initially include ARM64 and x86-64. Processor features are explicit or guarded. WebAssembly provides the browser CPU target; GPU execution needs a separate backend.
+C and Rust backends use existing toolchains to produce native machine code or WebAssembly. A shared GPU backend emits WGSL and runs through WebGPU in a browser or wgpu on desktop. The current GPU subset handles u32 collection pipelines and retains compiled CPU fallback.
 
 The intended host interface is:
 
@@ -354,7 +358,7 @@ drain_events(instance) -> encoded_events
 close(instance)
 ```
 
-The binary ABI must specify buffer ownership, lengths, validation and message versions. Native and Wasm share logical results but need separate performance tuning.
+The binary ABI must specify buffer ownership, lengths, validation and message versions. The current GPU runtime measures upload, allocation, dispatch and readback before choosing CPU or GPU per eligible function. Routing individual parts across targets, with checked physical bridges, remains implementation work.
 
 Browser hosts provide storage and event adapters. Proof search can happen at build time; a browser does not need to ship an optimiser. The current implemented ABI is documented separately in the compiler repository.
 

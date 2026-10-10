@@ -1,18 +1,20 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: a language for data, changes and computation. Read the full draft specification for a small compiler and an extensible database of checked optimisations."><title>ink — language specification</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: a language for data, changes and computation. A small semantic core, a growing database of checked optimisations and composable CPU/GPU backends."><title>ink — language specification</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body><a class="skip" href="#specification">Skip to the specification</a>
 <main class="site-shell"><h1 id="ink-title">ink</h1>
-<div class="intro" id="purpose"><p data-measure>Ink connects data, changes and computation. You describe the result you need, and proofs let the compiler find equivalent ways to do less work.</p>
-<p>The compiler stays small. Its optimisation knowledge lives in a database of code and proofs that can grow independently. The compiler checks them, and benchmarks decide which implementations are worth using.</p>
-<p class="status-note">Ink is still being built; some syntax below is planned. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
+<div class="intro" id="purpose"><p data-measure>Ink is a language for data, changes and computation. You describe what a program means; checked proofs can justify equivalent ways to do less work.</p>
+<p>A small core checks meaning and evidence. A separate database holds optimisation knowledge, and independent backends produce executable code. The goal is to combine CPU and GPU work in one plan, accounting for the cost of moving data between them.</p>
+<p class="status-note">Native, Wasm and a limited WebGPU/wgpu subset run today. General mixed-target routing is being built, and some syntax below is planned. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy totals.ink · supported today example" data-copy="code-20">copy</button><pre tabindex="0" aria-label="totals.ink · supported today example"><code id="code-20"><span class="tok-keyword">module</span> totals;
 
 <span class="tok-keyword">fn</span> <span class="tok-function">total</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u64</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u64</span> {
     <span class="tok-keyword">return</span> <span class="tok-function">sum</span>(xs.<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(x) <span class="tok-operator">=&gt;</span> x <span class="tok-operator">*</span> <span class="tok-number">3</span> <span class="tok-operator">+</span> <span class="tok-number">7</span>));
 }</code></pre></div>
-<div id="specification" class="chapters"><section class="chapter" id="chapter-1" aria-labelledby="title-1"><h2 id="title-1">How it works</h2><div class="prose"><p>Ink separates what a program means from how it runs. You describe data, changes and results. The compiler can choose a different algorithm or layout if checked evidence shows that the results stay the same.</p>
-<p>The core defines the language, checks evidence and produces a baseline implementation. Optimisation laws and alternative implementations belong in the database. Adding knowledge should not require rebuilding the compiler.</p>
-<p>Proofs establish correctness. Measurements establish speed. Programs must also work offline with an empty database.</p>
+<div id="specification" class="chapters"><section class="chapter" id="chapter-1" aria-labelledby="title-1"><h2 id="title-1">How it works</h2><div class="prose"><p>Ink separates what a program means from how it runs. You describe data, changes and results. Checked proofs can justify a different algorithm or layout that preserves those results.</p>
+<p>The core defines the language and checks evidence. A separate database stores reusable definitions, proofs and alternative implementations. Backend packages turn checked programs into executable code. Each can evolve independently.</p>
+<p>One program should be able to use several targets: Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Moving data, converting layouts and waiting for results cost time too. The goal is to optimise the whole execution plan, including those connections.</p>
+<p>Proofs establish equivalence within a stated scope. Measurements help choose between valid implementations. An optimisation must remain correct when a profile changes; a network connection is not required to check downloaded knowledge.</p>
+<p>The core, database and C/Rust/GPU/Wasm-adapter packages are separated today. Native, Wasm and a limited GPU subset run. General mixed-target routing is still being built.</p>
 </div></section>
 <section class="chapter" id="chapter-2" aria-labelledby="title-2"><h2 id="title-2">An inventory program</h2><div class="prose"><p>This program stores inventory and keeps its total stock up to date. <code>state</code> holds data, <code>change</code> updates it, <code>query</code> reads it, and <code>keep</code> describes a result that depends on it.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-1"><span class="tok-keyword">module</span> inventory;
@@ -292,7 +294,7 @@
 </div></section>
 <section class="chapter" id="chapter-13" aria-labelledby="title-13"><h2 id="title-13">Choosing an implementation</h2><div class="prose"><p>Keep the baseline as a candidate. Search for alternatives, check their conditions, estimate costs, then measure promising choices.</p>
 <p>The biggest gains come from skipping work, changing algorithms, maintaining results after updates, and reducing data movement or allocation. Vectorisation and instruction scheduling help with the work that remains.</p>
-<p>The objective may be latency, throughput, memory or energy. Include proof checking, compilation, migration and guards in the cost. A correct candidate that runs slower should stay unselected.</p>
+<p>The objective may be latency, throughput, memory or energy. Include proof checking, compilation, migration, guards, data transfers, layout conversion and synchronisation in the cost. A correct candidate that runs slower should stay unselected.</p>
 <p>Search has time, memory and candidate limits. If it runs out of budget or cannot establish a proof, keep the best accepted implementation.</p>
 </div></section>
 <section class="chapter" id="chapter-14" aria-labelledby="title-14"><h2 id="title-14">Changing implementations at runtime</h2><div class="prose"><p>Static mode chooses implementations before execution. Adaptive mode observes a bounded sample, proposes alternatives, checks their evidence, compiles and measures them, then migrates at a transaction boundary.</p>
@@ -309,11 +311,11 @@
 <p>State and computation are connected through explicit changes and maintained results. This does not mean every data value is executable code. Initially, persistent callbacks use serialisable arguments and explicit state rather than arbitrary captured closures.</p>
 </div></section>
 <section class="chapter" id="chapter-17" aria-labelledby="title-17"><h2 id="title-17">Compilation</h2><div class="prose"><p>The compiler and checker are written in Rust. Generated programs are not limited to the performance of the compiler’s implementation language.</p>
-<p>Compilation parses and checks the source, builds its semantic graph, applies checked database knowledge, then lowers the selected algorithms and representations to executable code.</p>
+<p>Compilation checks source and proposed replacements before passing a checked program to a backend. The core checks meaning; backend packages handle target code and host protocols. The current compiler has its own restricted proof checker written in Rust. Lean is used for separate research proofs, not as a required compiler dependency.</p>
 <p>The current bootstrap paths emit C or Rust and use LLVM for native and WebAssembly code generation. The build plan records selected transformations and their proof dependencies.</p>
 <p>The baseline must already produce useful loops, calls and buffers. Foreign kernels have explicit interfaces and contracts; those contracts remain assumptions until independently justified.</p>
 </div></section>
-<section class="chapter" id="chapter-18" aria-labelledby="title-18"><h2 id="title-18">Native code and WebAssembly</h2><div class="prose"><p>Native targets initially include ARM64 and x86-64. Processor features are explicit or guarded. WebAssembly provides the browser CPU target; GPU execution needs a separate backend.</p>
+<section class="chapter" id="chapter-18" aria-labelledby="title-18"><h2 id="title-18">Native code and WebAssembly</h2><div class="prose"><p>C and Rust backends use existing toolchains to produce native machine code or WebAssembly. A shared GPU backend emits WGSL and runs through WebGPU in a browser or wgpu on desktop. The current GPU subset handles u32 collection pipelines and retains compiled CPU fallback.</p>
 <p>The intended host interface is:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Semantics · schematic example" data-copy="code-11">copy</button><pre tabindex="0" aria-label="Semantics · schematic example"><code id="code-11"><span class="tok-function">init</span>(program_config_bytes) <span class="tok-operator">-&gt;</span> instance
 <span class="tok-keyword">apply</span>(instance, change_id, encoded_arguments) <span class="tok-operator">-&gt;</span> encoded_result
@@ -321,7 +323,7 @@
 <span class="tok-function">checkpoint</span>(instance) <span class="tok-operator">-&gt;</span> encoded_snapshot
 <span class="tok-function">restore</span>(encoded_snapshot) <span class="tok-operator">-&gt;</span> instance
 <span class="tok-function">drain_events</span>(instance) <span class="tok-operator">-&gt;</span> encoded_events
-<span class="tok-function">close</span>(instance)</code></pre></div><p>The binary ABI must specify buffer ownership, lengths, validation and message versions. Native and Wasm share logical results but need separate performance tuning.</p>
+<span class="tok-function">close</span>(instance)</code></pre></div><p>The binary ABI must specify buffer ownership, lengths, validation and message versions. The current GPU runtime measures upload, allocation, dispatch and readback before choosing CPU or GPU per eligible function. Routing individual parts across targets, with checked physical bridges, remains implementation work.</p>
 <p>Browser hosts provide storage and event adapters. Proof search can happen at build time; a browser does not need to ship an optimiser. The current implemented ABI is documented separately in the compiler repository.</p>
 </div></section>
 <section class="chapter" id="chapter-19" aria-labelledby="title-19"><h2 id="title-19">Modules and commands</h2><div class="prose"><p>Imports are explicit. The prelude supplies built-in types and basic constructors and operators. Other names must be imported.</p>
