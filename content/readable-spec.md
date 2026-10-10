@@ -4,11 +4,19 @@ You describe the data a program holds, the changes it accepts and the results it
 
 For example, a query might add up every row each time it runs. An alternative can store the total and adjust it when a row changes. A proof must establish that both produce the same answers, including after failed updates and restored snapshots. Measurements then establish whether maintaining the total is worthwhile.
 
-The design has three parts: a small core that checks meaning and evidence, a database of reusable knowledge, and backends that produce executable code. The database and backends can grow without teaching the core each new algorithm or target.
+The design has three parts, maintained in separate repositories:
 
-One program should be able to use Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Moving data, converting layouts and waiting for results cost time too. The goal is to choose the whole execution plan, including those connections.
+| Part | Responsibility |
+| --- | --- |
+| [Core](https://github.com/siliconjungle/ink-lang/tree/main/core) | Types, program meaning, reference execution and general proof checking |
+| [Knowledge database](https://github.com/siliconjungle/ink-knowledge) | Equivalent algorithms, representations, proofs, search and selection evidence |
+| [Lowering packages](https://github.com/siliconjungle/ink-lang/blob/main/docs/backend-packages.md) | Turning checked programs into executable code and connecting them to their hosts |
 
-The repositories are separated today. Native, Wasm and GPU subsets run. Checked pure call graphs can combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. Typed GPU pipelines also keep arrays resident across steps. Broader proof-backed routing and moving the remaining specialised optimisation checks into database packages are ongoing work.
+The core can build without the database or backends. The complete compiler combines pinned versions of them. Adding an algorithm should mean adding a checked package, rather than teaching the core an optimisation rule.
+
+Placement is per computation, rather than one target for the entire program. A browser program can combine Wasm and WebGPU; a desktop program can combine native CPU code and wgpu. Moving data, converting layouts and waiting for results cost time too. The database planner compares complete execution plans, including those connections.
+
+Checked pure call graphs already combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. A separate typed GPU pipeline API keeps arrays resident across steps; those host pipelines are not yet proved source replacements. Full stateful representation replacement and moving the remaining specialised optimisation checks into database packages are ongoing work.
 
 ## 2 An inventory program
 
@@ -194,7 +202,9 @@ Hosts perform I/O and may store events in a durable outbox. Delivery can be retr
 
 ## 8 Proofs and contracts
 
-Proofs use the language’s values, types and names. A theorem states a property; its proof must establish it. Proofs are erased when they do not determine runtime data.
+A theorem states a property; its proof must establish it. Today, proof packages use a restricted first-order language with equality, inductive data, structural induction and checked word-arithmetic certificates. Ink checks them locally with its own Rust checker. Lean is used for separate research proofs; it is not required to compile a program.
+
+The surface syntax below is proposed. It is not yet a supported way to write proofs in an Ink source file.
 
 ```text
 theorem int_add_zero(x: Int): x + 0 == x
@@ -218,7 +228,7 @@ fn increment_small(x: u32) -> u32
 
 Callers must establish `requires`; bodies must establish `ensures`. External inputs are validated. An unknown condition cannot be assumed because it held in previous runs.
 
-The intended proof core uses dependent types, equality and inductive definitions. Its exact calculus remains to be specified. Tactics and AI may propose evidence; neither can approve it. Release proof packages cannot use `admit` or unchecked axioms.
+A richer dependent type system remains a design proposal. Tactics and AI may propose evidence; neither can approve it. Release proof packages cannot use `admit` or unchecked axioms. The current checker is itself trusted, rather than formally verified.
 
 ## 9 What a proof guarantees
 
@@ -279,9 +289,11 @@ Migration must preserve logical state, IDs, commit position, pending events and 
 
 ## 12 The knowledge database
 
-The database currently lives in the separate [ink-knowledge repository](https://github.com/siliconjungle/ink-knowledge), as versioned JSON objects and tools that produce proof packages. A future index can make discovery faster without changing what the checker accepts.
+The database currently lives in the separate [ink-knowledge repository](https://github.com/siliconjungle/ink-knowledge), as versioned JSON objects and tools that produce proof packages. It is a knowledge store, not a new database engine. A future index can make discovery faster without changing what the checker accepts.
 
 Objects are immutable and identified by their content. A compiler version and a knowledge snapshot can evolve independently. Builds pin the knowledge they use and check supplied proofs locally, including offline.
+
+Search and measurements belong outside the core. Search proposes a replacement and supplies its proof; the core checks it against the actual program. Measurements can rank valid alternatives, but they cannot make an invalid replacement valid.
 
 | Object | Essential contents |
 | --- | --- |
@@ -340,7 +352,7 @@ The compiler and checker are written in Rust. Generated programs are not limited
 
 Compilation checks source and proposed replacements before passing a checked program to a backend. The core checks meaning; backend packages handle target code and host protocols. The current compiler has its own restricted proof checker written in Rust. Lean is used for separate research proofs, not as a required compiler dependency.
 
-The current bootstrap paths emit C or Rust and use existing toolchains for native and WebAssembly code generation. Ink does not need its own assembly compiler. The build plan records selected transformations and their proof dependencies.
+The current paths emit C or Rust and use existing toolchains for native machine code and WebAssembly. The shared GPU package emits WGSL for WebGPU and wgpu. Target details belong in those packages; the core checks the program and its proposed replacements. The build plan records selected transformations and their proof dependencies.
 
 The baseline must already produce useful loops, calls and buffers. Foreign kernels have explicit interfaces and contracts; those contracts remain assumptions until independently justified.
 
@@ -350,7 +362,7 @@ C and Rust backends use existing toolchains to produce native machine code or We
 
 These live in separate repositories: [C lowering](https://github.com/siliconjungle/ink-lowering-c), [Rust lowering](https://github.com/siliconjungle/ink-lowering-rust), [Wasm adapters](https://github.com/siliconjungle/ink-lowering-wasm) and [GPU lowering](https://github.com/siliconjungle/ink-lowering-gpu). The [language core](https://github.com/siliconjungle/ink-lang/tree/main/core) can build without any of them.
 
-In the intended mixed plan, a large collection operation could run on the GPU while a small finishing calculation runs on the CPU. A faster GPU kernel is useful only if its saving exceeds upload, readback and coordination costs. Keeping intermediate data on the GPU can avoid some of those costs.
+A large collection operation can run on the GPU while a small finishing calculation runs on the CPU. A faster GPU kernel is useful only if its saving exceeds upload, readback and coordination costs. Keeping intermediate data on the GPU can avoid some of those costs.
 
 The intended host interface is:
 
@@ -481,21 +493,21 @@ Report raw samples, variance, allocations, memory, compilation, proof checking a
 
 “Fastest” is an ambition. A result is a measured advantage on a stated workload and machine.
 
+Current results are mixed. Some proof-selected pure programs match combined C/C++/Rust loops. Handwritten Rust still wins the broader stateful comparisons. A simple CPU/GPU experiment also kept its CPU baseline because transfers made the mixed plan slower. See the [benchmark reports](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md) for the workloads and measurements.
+
 ## 22 Building the language
 
-The work is staged. Each stage needs its own evidence.
+The next steps follow the small-core boundary. Each needs its own evidence.
 
 | Stage | Deliverable | Acceptance condition |
 | --- | --- | --- |
-| Semantic baseline | Parser, type/effect checker, interpreter, tables and transactions | Executable examples have unambiguous results and abort/event behaviour |
-| Proof core | Fixed logic, small kernel, theorem objects, contract checking | Invalid certificates and illicit assumptions are rejected |
-| Static native compiler | Rust implementation, LLVM output, efficient baseline | Compiled and interpreted semantics agree on systematic validation suites |
-| Initial knowledge store | Immutable rules, local import, pinned dependencies | Imported rules are checked and demonstrably change eligible compilation plans |
-| Incremental execution | Proved sum/count maintenance and basic fusion | Certificates cover all supported update and error paths |
-| Persistence and Wasm | Logical snapshots, recovery, host ABI, browser example | Native-to-Wasm state round trips preserve logical observations |
-| Adaptive runtime | Profiling, bounded search, safe migration, rollback of implementation choice | Distribution shifts preserve behaviour and adaptation costs are measured |
-| Expanded search | Representation synthesis, richer operators, shared registry | New knowledge improves selected workloads without widening the trust policy |
-| Deeper verification | Lowering/runtime models and checked executable paths | Stronger claims are supported by an explicit end-to-end argument |
+| Freeze the core | Precise supported operations and observation contracts | Source, reference execution and proof packages agree on their meaning |
+| Complete stateful replacements | External row/column and maintained-query implementations | Proofs cover actual changes, errors, aborts, event order, snapshots and future calls |
+| Finish the package boundary | Move remaining specialised optimisation authority into knowledge | A new valid candidate works without changing the compiler |
+| Improve execution | Ownership, fewer copies, compact storage and direct construction | Complete workloads improve against matching-layout baselines |
+| Make it usable | Modules, diagnostics, installation, debugging and editor support | Someone outside the project can build and diagnose a substantial program |
+| Extend search and adaptation | Bounded search, profiles, guarded selection and migration | Exhaustion keeps a correct baseline; switching preserves state |
+| Harden deployment | Independent checking, resource limits, recovery and defined concurrency | Claims and failure behaviour have reproducible evidence |
 
 The first useful demonstration imports a checked package, changes a scan into maintained computation, preserves queries and events across future changes, and transfers a checkpoint between implementations. Compare it with a handwritten maintained baseline.
 
@@ -503,7 +515,7 @@ Tests, fuzzing and benchmarks are useful checks. They do not substitute for the 
 
 ## 23 What remains to decide
 
-The draft still needs a precise proof calculus, complete grammar, canonical object encodings, general transaction simulation, durable storage protocols and stable host ABIs.
+The prototype has versioned core objects, checked proof packages and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, durable storage protocols and stable release interfaces.
 
 The prototype implements only part of this design. Its current status is documented in the compiler repository. The interpreter, checker and implementation packages should evolve together so semantic disagreements appear early.
 

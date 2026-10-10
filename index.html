@@ -2,10 +2,10 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: a language for data, changes and computation. A small semantic core, a growing database of checked optimisations and composable CPU/GPU backends."><title>ink — language specification</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body><a class="skip" href="#specification">Skip to the specification</a>
 <main class="site-shell"><h1 id="ink-title">ink</h1>
-<div class="intro" id="purpose"><p data-measure>Ink is a programming language built around data and changes. Its aim is to make software faster by proving when work can be combined, skipped or represented differently.</p>
-<p>The core defines what a program means and checks proofs. A separate database supplies algorithms, representations and optimisation knowledge. New knowledge should improve programs without adding another special-purpose rule to the compiler.</p>
-<p>Separate backends turn checked programs into executable code. The goal is to let one program combine CPU and GPU work, choosing a plan that includes the cost of moving data between them.</p>
-<p class="status-note">Native and Wasm run today. Checked pure call graphs can combine CPU and GPU stages; typed GPU pipelines can keep arrays resident. Broader proof-backed routing is still being built, and some syntax below is planned. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
+<div class="intro" id="purpose"><p data-measure>Ink is a programming language for data, changes and the results they produce. It is being built to make software faster by proving which work can be combined, skipped or done differently.</p>
+<p>The design keeps the core small. It defines what a program means and checks evidence. A separate, growing database supplies equivalent algorithms and representations. The aim is to extend optimisation by adding knowledge, rather than adding special cases to the compiler.</p>
+<p>A program can use several backends together: Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Existing C and Rust toolchains produce the machine code. Choosing where work runs includes the cost of moving data and waiting for results.</p>
+<p class="status-note">Ink is an experimental implementation. Native, Wasm and GPU subsets run today, including checked pure CPU/GPU call graphs. Full stateful replacement proofs and parts of the syntax below are still being built. Read the <a href="%BASE_URL%ink-specification.md" download>full draft</a> or see <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">what works today</a>.</p></div>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy totals.ink · supported today example" data-copy="code-20">copy</button><pre tabindex="0" aria-label="totals.ink · supported today example"><code id="code-20"><span class="tok-keyword">module</span> totals;
 
 <span class="tok-keyword">fn</span> <span class="tok-function">total</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u64</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u64</span> {
@@ -13,9 +13,30 @@
 }</code></pre></div>
 <div id="specification" class="chapters"><section class="chapter" id="chapter-1" aria-labelledby="title-1"><h2 id="title-1">How it works</h2><div class="prose"><p>You describe the data a program holds, the changes it accepts and the results it must return. Those meanings stay the same when the implementation changes.</p>
 <p>For example, a query might add up every row each time it runs. An alternative can store the total and adjust it when a row changes. A proof must establish that both produce the same answers, including after failed updates and restored snapshots. Measurements then establish whether maintaining the total is worthwhile.</p>
-<p>The design has three parts: a small core that checks meaning and evidence, a database of reusable knowledge, and backends that produce executable code. The database and backends can grow without teaching the core each new algorithm or target.</p>
-<p>One program should be able to use Wasm and WebGPU in a browser, or native CPU code and wgpu on desktop. Moving data, converting layouts and waiting for results cost time too. The goal is to choose the whole execution plan, including those connections.</p>
-<p>The repositories are separated today. Native, Wasm and GPU subsets run. Checked pure call graphs can combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. Typed GPU pipelines also keep arrays resident across steps. Broader proof-backed routing and moving the remaining specialised optimisation checks into database packages are ongoing work.</p>
+<p>The design has three parts, maintained in separate repositories:</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Specification table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="https://github.com/siliconjungle/ink-lang/tree/main/core">Core</a></td>
+<td>Types, program meaning, reference execution and general proof checking</td>
+</tr>
+<tr>
+<td><a href="https://github.com/siliconjungle/ink-knowledge">Knowledge database</a></td>
+<td>Equivalent algorithms, representations, proofs, search and selection evidence</td>
+</tr>
+<tr>
+<td><a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/backend-packages.md">Lowering packages</a></td>
+<td>Turning checked programs into executable code and connecting them to their hosts</td>
+</tr>
+</tbody></table>
+</div><p>The core can build without the database or backends. The complete compiler combines pinned versions of them. Adding an algorithm should mean adding a checked package, rather than teaching the core an optimisation rule.</p>
+<p>Placement is per computation, rather than one target for the entire program. A browser program can combine Wasm and WebGPU; a desktop program can combine native CPU code and wgpu. Moving data, converting layouts and waiting for results cost time too. The database planner compares complete execution plans, including those connections.</p>
+<p>Checked pure call graphs already combine a GPU aggregate with a CPU finishing call and reuse an identical pure result. A separate typed GPU pipeline API keeps arrays resident across steps; those host pipelines are not yet proved source replacements. Full stateful representation replacement and moving the remaining specialised optimisation checks into database packages are ongoing work.</p>
 </div></section>
 <section class="chapter" id="chapter-2" aria-labelledby="title-2"><h2 id="title-2">An inventory program</h2><div class="prose"><p>This program stores inventory and keeps its total stock up to date. <code>state</code> holds data, <code>change</code> updates it, <code>query</code> reads it, and <code>keep</code> describes a result that depends on it.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-1"><span class="tok-keyword">module</span> inventory;
@@ -189,7 +210,8 @@
 <p>Time, randomness and external responses enter as explicit inputs. Recording those inputs allows deterministic replay.</p>
 <p>Hosts perform I/O and may store events in a durable outbox. Delivery can be retried; exactly-once external effects require the receiver’s cooperation. Storage failures and resource exhaustion remain explicit host concerns.</p>
 </div></section>
-<section class="chapter" id="chapter-8" aria-labelledby="title-8"><h2 id="title-8">Proofs and contracts</h2><div class="prose"><p>Proofs use the language’s values, types and names. A theorem states a property; its proof must establish it. Proofs are erased when they do not determine runtime data.</p>
+<section class="chapter" id="chapter-8" aria-labelledby="title-8"><h2 id="title-8">Proofs and contracts</h2><div class="prose"><p>A theorem states a property; its proof must establish it. Today, proof packages use a restricted first-order language with equality, inductive data, structural induction and checked word-arithmetic certificates. Ink checks them locally with its own Rust checker. Lean is used for separate research proofs; it is not required to compile a program.</p>
+<p>The surface syntax below is proposed. It is not yet a supported way to write proofs in an Ink source file.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-7">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-7"><span class="tok-keyword">theorem</span> <span class="tok-function">int_add_zero</span>(x: <span class="tok-type">Int</span>): x <span class="tok-operator">+</span> <span class="tok-number">0</span> <span class="tok-operator">==</span> x
     <span class="tok-keyword">by</span> <span class="tok-keyword">normalize</span>;
 
@@ -202,7 +224,7 @@
     <span class="tok-keyword">return</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>;
 }</code></pre></div><p><code>normalize</code> and <code>arithmetic</code> request proof search. They are not trusted shortcuts. Search must produce a certificate the checker accepts. A solver saying “valid” is insufficient.</p>
 <p>Callers must establish <code>requires</code>; bodies must establish <code>ensures</code>. External inputs are validated. An unknown condition cannot be assumed because it held in previous runs.</p>
-<p>The intended proof core uses dependent types, equality and inductive definitions. Its exact calculus remains to be specified. Tactics and AI may propose evidence; neither can approve it. Release proof packages cannot use <code>admit</code> or unchecked axioms.</p>
+<p>A richer dependent type system remains a design proposal. Tactics and AI may propose evidence; neither can approve it. Release proof packages cannot use <code>admit</code> or unchecked axioms. The current checker is itself trusted, rather than formally verified.</p>
 </div></section>
 <section class="chapter" id="chapter-9" aria-labelledby="title-9"><h2 id="title-9">What a proof guarantees</h2><div class="prose"><p>These are separate claims:</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Specification table"><table>
@@ -256,8 +278,9 @@
 <p>Abort must leave committed state and events unchanged. Caches must stay correct when queries observe tentative writes. Required termination behaviour must also agree.</p>
 <p>Migration must preserve logical state, IDs, commit position, pending events and active readers. A fast direct migration needs the same evidence as decoding the old state and encoding the new one.</p>
 </div></section>
-<section class="chapter" id="chapter-12" aria-labelledby="title-12"><h2 id="title-12">The knowledge database</h2><div class="prose"><p>The database currently lives in the separate <a href="https://github.com/siliconjungle/ink-knowledge">ink-knowledge repository</a>, as versioned JSON objects and tools that produce proof packages. A future index can make discovery faster without changing what the checker accepts.</p>
+<section class="chapter" id="chapter-12" aria-labelledby="title-12"><h2 id="title-12">The knowledge database</h2><div class="prose"><p>The database currently lives in the separate <a href="https://github.com/siliconjungle/ink-knowledge">ink-knowledge repository</a>, as versioned JSON objects and tools that produce proof packages. It is a knowledge store, not a new database engine. A future index can make discovery faster without changing what the checker accepts.</p>
 <p>Objects are immutable and identified by their content. A compiler version and a knowledge snapshot can evolve independently. Builds pin the knowledge they use and check supplied proofs locally, including offline.</p>
+<p>Search and measurements belong outside the core. Search proposes a replacement and supplies its proof; the core checks it against the actual program. Measurements can rank valid alternatives, but they cannot make an invalid replacement valid.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Specification table"><table>
 <thead>
 <tr>
@@ -314,12 +337,12 @@
 </div></section>
 <section class="chapter" id="chapter-17" aria-labelledby="title-17"><h2 id="title-17">Compilation</h2><div class="prose"><p>The compiler and checker are written in Rust. Generated programs are not limited to the performance of the compiler’s implementation language.</p>
 <p>Compilation checks source and proposed replacements before passing a checked program to a backend. The core checks meaning; backend packages handle target code and host protocols. The current compiler has its own restricted proof checker written in Rust. Lean is used for separate research proofs, not as a required compiler dependency.</p>
-<p>The current bootstrap paths emit C or Rust and use existing toolchains for native and WebAssembly code generation. Ink does not need its own assembly compiler. The build plan records selected transformations and their proof dependencies.</p>
+<p>The current paths emit C or Rust and use existing toolchains for native machine code and WebAssembly. The shared GPU package emits WGSL for WebGPU and wgpu. Target details belong in those packages; the core checks the program and its proposed replacements. The build plan records selected transformations and their proof dependencies.</p>
 <p>The baseline must already produce useful loops, calls and buffers. Foreign kernels have explicit interfaces and contracts; those contracts remain assumptions until independently justified.</p>
 </div></section>
 <section class="chapter" id="chapter-18" aria-labelledby="title-18"><h2 id="title-18">Native code and WebAssembly</h2><div class="prose"><p>C and Rust backends use existing toolchains to produce native machine code or WebAssembly. A shared GPU backend emits WGSL and runs through WebGPU in a browser or wgpu on desktop. It supports u32 collection pipelines and a newer typed-array subset with signed words, floats, vectors, records and bounded loops. Both retain compiled CPU fallback. Portable GPU floats can differ from CPU results; their contract is documented separately.</p>
 <p>These live in separate repositories: <a href="https://github.com/siliconjungle/ink-lowering-c">C lowering</a>, <a href="https://github.com/siliconjungle/ink-lowering-rust">Rust lowering</a>, <a href="https://github.com/siliconjungle/ink-lowering-wasm">Wasm adapters</a> and <a href="https://github.com/siliconjungle/ink-lowering-gpu">GPU lowering</a>. The <a href="https://github.com/siliconjungle/ink-lang/tree/main/core">language core</a> can build without any of them.</p>
-<p>In the intended mixed plan, a large collection operation could run on the GPU while a small finishing calculation runs on the CPU. A faster GPU kernel is useful only if its saving exceeds upload, readback and coordination costs. Keeping intermediate data on the GPU can avoid some of those costs.</p>
+<p>A large collection operation can run on the GPU while a small finishing calculation runs on the CPU. A faster GPU kernel is useful only if its saving exceeds upload, readback and coordination costs. Keeping intermediate data on the GPU can avoid some of those costs.</p>
 <p>The intended host interface is:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Semantics · schematic example" data-copy="code-11">copy</button><pre tabindex="0" aria-label="Semantics · schematic example"><code id="code-11"><span class="tok-function">init</span>(program_config_bytes) <span class="tok-operator">-&gt;</span> instance
 <span class="tok-keyword">apply</span>(instance, change_id, encoded_arguments) <span class="tok-operator">-&gt;</span> encoded_result
@@ -415,8 +438,9 @@ statement     <span class="tok-operator">=</span> (<span class="tok-string">&quo
 <p>Measure pure kernels, update/query mixes, changing distributions, small requests, large working sets, memory limits, native/Wasm execution and durability.</p>
 <p>Report raw samples, variance, allocations, memory, compilation, proof checking and adaptation costs. Keep cold and warm results separate. Test unfamiliar workloads and distribution shifts.</p>
 <p>“Fastest” is an ambition. A result is a measured advantage on a stated workload and machine.</p>
+<p>Current results are mixed. Some proof-selected pure programs match combined C/C++/Rust loops. Handwritten Rust still wins the broader stateful comparisons. A simple CPU/GPU experiment also kept its CPU baseline because transfers made the mixed plan slower. See the <a href="https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md">benchmark reports</a> for the workloads and measurements.</p>
 </div></section>
-<section class="chapter" id="chapter-22" aria-labelledby="title-22"><h2 id="title-22">Building the language</h2><div class="prose"><p>The work is staged. Each stage needs its own evidence.</p>
+<section class="chapter" id="chapter-22" aria-labelledby="title-22"><h2 id="title-22">Building the language</h2><div class="prose"><p>The next steps follow the small-core boundary. Each needs its own evidence.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Specification table"><table>
 <thead>
 <tr>
@@ -426,55 +450,45 @@ statement     <span class="tok-operator">=</span> (<span class="tok-string">&quo
 </tr>
 </thead>
 <tbody><tr>
-<td>Semantic baseline</td>
-<td>Parser, type/effect checker, interpreter, tables and transactions</td>
-<td>Executable examples have unambiguous results and abort/event behaviour</td>
+<td>Freeze the core</td>
+<td>Precise supported operations and observation contracts</td>
+<td>Source, reference execution and proof packages agree on their meaning</td>
 </tr>
 <tr>
-<td>Proof core</td>
-<td>Fixed logic, small kernel, theorem objects, contract checking</td>
-<td>Invalid certificates and illicit assumptions are rejected</td>
+<td>Complete stateful replacements</td>
+<td>External row/column and maintained-query implementations</td>
+<td>Proofs cover actual changes, errors, aborts, event order, snapshots and future calls</td>
 </tr>
 <tr>
-<td>Static native compiler</td>
-<td>Rust implementation, LLVM output, efficient baseline</td>
-<td>Compiled and interpreted semantics agree on systematic validation suites</td>
+<td>Finish the package boundary</td>
+<td>Move remaining specialised optimisation authority into knowledge</td>
+<td>A new valid candidate works without changing the compiler</td>
 </tr>
 <tr>
-<td>Initial knowledge store</td>
-<td>Immutable rules, local import, pinned dependencies</td>
-<td>Imported rules are checked and demonstrably change eligible compilation plans</td>
+<td>Improve execution</td>
+<td>Ownership, fewer copies, compact storage and direct construction</td>
+<td>Complete workloads improve against matching-layout baselines</td>
 </tr>
 <tr>
-<td>Incremental execution</td>
-<td>Proved sum/count maintenance and basic fusion</td>
-<td>Certificates cover all supported update and error paths</td>
+<td>Make it usable</td>
+<td>Modules, diagnostics, installation, debugging and editor support</td>
+<td>Someone outside the project can build and diagnose a substantial program</td>
 </tr>
 <tr>
-<td>Persistence and Wasm</td>
-<td>Logical snapshots, recovery, host ABI, browser example</td>
-<td>Native-to-Wasm state round trips preserve logical observations</td>
+<td>Extend search and adaptation</td>
+<td>Bounded search, profiles, guarded selection and migration</td>
+<td>Exhaustion keeps a correct baseline; switching preserves state</td>
 </tr>
 <tr>
-<td>Adaptive runtime</td>
-<td>Profiling, bounded search, safe migration, rollback of implementation choice</td>
-<td>Distribution shifts preserve behaviour and adaptation costs are measured</td>
-</tr>
-<tr>
-<td>Expanded search</td>
-<td>Representation synthesis, richer operators, shared registry</td>
-<td>New knowledge improves selected workloads without widening the trust policy</td>
-</tr>
-<tr>
-<td>Deeper verification</td>
-<td>Lowering/runtime models and checked executable paths</td>
-<td>Stronger claims are supported by an explicit end-to-end argument</td>
+<td>Harden deployment</td>
+<td>Independent checking, resource limits, recovery and defined concurrency</td>
+<td>Claims and failure behaviour have reproducible evidence</td>
 </tr>
 </tbody></table>
 </div><p>The first useful demonstration imports a checked package, changes a scan into maintained computation, preserves queries and events across future changes, and transfers a checkpoint between implementations. Compare it with a handwritten maintained baseline.</p>
 <p>Tests, fuzzing and benchmarks are useful checks. They do not substitute for the proofs a verified mode promises.</p>
 </div></section>
-<section class="chapter" id="chapter-23" aria-labelledby="title-23"><h2 id="title-23">What remains to decide</h2><div class="prose"><p>The draft still needs a precise proof calculus, complete grammar, canonical object encodings, general transaction simulation, durable storage protocols and stable host ABIs.</p>
+<section class="chapter" id="chapter-23" aria-labelledby="title-23"><h2 id="title-23">What remains to decide</h2><div class="prose"><p>The prototype has versioned core objects, checked proof packages and working host interfaces for declared subsets. The full language still needs a richer proof calculus, complete grammar, general transaction refinement, durable storage protocols and stable release interfaces.</p>
 <p>The prototype implements only part of this design. Its current status is documented in the compiler repository. The interpreter, checker and implementation packages should evolve together so semantic disagreements appear early.</p>
 </div></section>
 <section class="chapter" id="chapter-24" aria-labelledby="title-24"><h2 id="title-24">Maintaining a total</h2><div class="prose"><p>A table holds exact integer weights. Replacing one row changes its total by subtracting the old value and adding the new one:</p>
