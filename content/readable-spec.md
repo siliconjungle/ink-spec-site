@@ -238,6 +238,8 @@ These are separate claims:
 
 A checked rewrite does not verify LLVM, the runtime, system libraries or the host. A build must state its remaining trust boundary. The current prototype does not claim end-to-end verified machine code.
 
+Current source/value witnesses bind a complete checked program and its supported action values to exact database carrier definitions. This checks code and value data; it does not yet establish logical interpreter meaning, primitive arithmetic correspondence or general stateful replacement. [Source/value binding contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/action-values.md).
+
 ## 10 Writing optimisation rules
 
 A rewrite gives two equivalent expressions and the evidence connecting them. Its parameters are universally quantified.
@@ -371,7 +373,7 @@ Browser hosts provide storage and event adapters. Proof search can happen at bui
 
 JavaScript implements Ink's types: explicit 32-bit wrapping and multiplication, BigInt-backed wrapping `u64`, and separate binary32 rounding after each float operation. Bool, vectors, records and nested lists retain their checked types. Inputs are captured, validated and preserved. Lazy branches and fallbacks remain lazy. Results of `u64` functions are BigInt; JSON hosts must encode them explicitly.
 
-The initial target supports pure compute functions and rejects state/actions and opaque stateful types. Browser runtime bundles compare eligible JavaScript, Wasm and WebGPU whole-computation costs. Measurements select execution; they never establish proof conditions. Per-stage adaptive placement and editable browser source compilation remain unfinished. See the [JavaScript contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md) and [lowerer repository](https://github.com/siliconjungle/ink-lowering-js).
+The current target supports pure compute and the checked stateful subset, including exact integers, strings, nominal IDs, enums, Option/Result, tables, transactions, events and portable snapshots. Stateful modules export `createState()`. Existing numerical restrictions at state/action boundaries still apply. Browser runtime bundles compare eligible pure JavaScript, Wasm and WebGPU whole-computation costs; stateful actions do not enter speculative target selection. Measurements select execution; they never establish proof conditions. Per-stage adaptive placement and editable browser source compilation remain unfinished. See the [JavaScript contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md) and [lowerer repository](https://github.com/siliconjungle/ink-lowering-js).
 
 ## 19 Modules and commands
 
