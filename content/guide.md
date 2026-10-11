@@ -2,7 +2,7 @@
 
 Keep the contract clear. Make better implementations reusable. A better algorithm, a smarter layout, a way to avoid unnecessary work: each discovery should become knowledge that other programs can use.
 
-Ink stores implementations and proved transformations independently of its compiler. New knowledge can improve existing programs without changing their source or adding a dedicated compiler pass.
+Ink’s optimisation knowledge evolves independently of its compiler. New proved transformations can improve existing programs when rebuilt, without changing their source or adding dedicated compiler passes.
 
 ## Same meaning. Less work.
 
