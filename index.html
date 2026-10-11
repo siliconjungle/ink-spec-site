@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="State is a program. Compile it. Ink brings typed data, derived results and atomic changes together, with reusable optimisation knowledge checked against your code."><title>ink — state is a program</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink compiles state and computation together. Eligible pipelines span JavaScript, Wasm and WebGPU, with measured profiles guiding placement."><title>ink — state is a program</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body class="landing"><a class="skip" href="#purpose">Skip to the content</a><main class="site-shell"><h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
-<p>Define your data, the results derived from it, and the changes it allows. Ink compiles those pieces together.</p>
+<p>Define data, derived results and permitted changes. Ink compiles them together, with pure pipelines that can span JavaScript, WebAssembly and WebGPU.</p>
 </div>
 <nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
 <div id="guide" class="chapters"><section class="chapter" id="a-small-example" aria-labelledby="title-a-small-example"><h2 id="title-a-small-example">A small example</h2><div class="prose"><p>A table, a derived total and an atomic update:</p>
@@ -38,6 +38,9 @@ console.log(prices.invoke('total', []).result); // 100n
 
 prices.invoke('set_price', [1n, 45n]);
 console.log(prices.invoke('total', []).result); // 105n</code></pre></div><p>Your app supplies inputs and reads results. Ink owns the typed state and the computation over it. Here, <code>u64</code> values cross the JavaScript boundary as BigInt.</p>
+</div></section>
+<section class="chapter" id="split-the-work-across-targets" aria-labelledby="title-split-the-work-across-targets"><h2 id="title-split-the-work-across-targets">Split the work across targets</h2><div class="prose"><p>Ink can split a compiled pure pipeline across <strong>JavaScript, WebAssembly and WebGPU</strong>. Saved performance profiles guide which stages run where, using input size and accounting for startup, data transfers and repeated use. Consecutive GPU stages can keep their intermediate data on the device.</p>
+<p>This works for eligible browser pipelines. Stateful changes stay on the host. <a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/adaptive-execution.md">See how placement works</a>.</p>
 </div></section>
 <section class="chapter" id="teach-ink-a-better-way" aria-labelledby="title-teach-ink-a-better-way"><h2 id="title-teach-ink-a-better-way">Teach Ink a better way</h2><div class="prose"><p>Algorithms, storage layouts and transformation laws live in a separate knowledge database. Proposed optimisations carry proofs that Ink checks against the program. Measurements help choose among the valid alternatives.</p>
 <p>That knowledge can remove intermediate collections, maintain derived results, introduce indexes or reuse unchanged immutable values. The compiler supplies the general execution machinery; the database supplies reusable ways to use it.</p>

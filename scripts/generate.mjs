@@ -95,14 +95,14 @@ fn total(xs: List<u64>) -> u64 {
 }`;
 function page(title, body, skip = "guide", landing = false) {
   return `<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="State is a program. Compile it. Ink brings typed data, derived results and atomic changes together, with reusable optimisation knowledge checked against your code."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink compiles state and computation together. Eligible pipelines span JavaScript, Wasm and WebGPU, with measured profiles guiding placement."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body${landing ? ' class="landing"' : ''}><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
 ${landing ? '' : `<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="${implementation.repository}/tree/${implementation.revision}">Implementation ${implementation.revision.slice(0, 7)}</a></footer>`}
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
 const guideBody = `<h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
-<p>Define your data, the results derived from it, and the changes it allows. Ink compiles those pieces together.</p>
+<p>Define data, derived results and permitted changes. Ink compiles them together, with pure pipelines that can span JavaScript, WebAssembly and WebGPU.</p>
 </div>
 <nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;

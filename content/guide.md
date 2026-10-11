@@ -52,6 +52,12 @@ console.log(prices.invoke('total', []).result); // 105n
 
 Your app supplies inputs and reads results. Ink owns the typed state and the computation over it. Here, `u64` values cross the JavaScript boundary as BigInt.
 
+## Split the work across targets
+
+Ink can split a compiled pure pipeline across **JavaScript, WebAssembly and WebGPU**. Saved performance profiles guide which stages run where, using input size and accounting for startup, data transfers and repeated use. Consecutive GPU stages can keep their intermediate data on the device.
+
+This works for eligible browser pipelines. Stateful changes stay on the host. [See how placement works](https://github.com/siliconjungle/ink-lang/blob/main/docs/adaptive-execution.md).
+
 ## Teach Ink a better way
 
 Algorithms, storage layouts and transformation laws live in a separate knowledge database. Proposed optimisations carry proofs that Ink checks against the program. Measurements help choose among the valid alternatives.
