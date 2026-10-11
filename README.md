@@ -2,7 +2,7 @@
 
 [Live site](https://siliconjungle.github.io/ink-spec-site/) · [Language reference](https://siliconjungle.github.io/ink-spec-site/reference.html)
 
-A concise introduction to compiling state and computation together, with a runnable price-table example and an explanation of reusable optimisation knowledge. The full 25-topic design reference, implementation status and benchmark evidence stay linked from the front page.
+A concise introduction to compiling state and computation together, with a runnable price-table example and an explanation of reusable optimisation knowledge. The 25-topic implementation reference, implementation status and benchmark evidence stay linked from the front page. Wider proposals and historical overviews are kept in a separate design-draft download.
 
 The site keeps a simple dark reading layout, local syntax highlighting, copy controls and bundled fonts. It makes no third-party runtime requests.
 
@@ -25,9 +25,9 @@ npm run preview
 ## Edit and sync
 
 - `content/guide.md`: code example, optimisation knowledge and getting started on the front page; the opening copy lives in `scripts/generate.mjs`.
-- `content/readable-spec.md`: full design reference, including proposed syntax.
+- `content/readable-spec.md`: supported-language reference, reviewed against the published compiler revision; unsupported proposals are identified explicitly.
 - `content/spec.md`: committed compiler draft, with absolute links for the download.
-- `content/implementation.json`: exact compiler revision described by the draft.
+- `content/implementation.json`: exact published compiler revision used for the reference review and synced draft.
 - `scripts/generate.mjs`: semantic HTML, syntax highlighting, downloads and build information.
 - `src/style.css`: reading layout; `src/main.ts`: copying and cached text measurement.
 
@@ -36,11 +36,11 @@ After editing Markdown, rerun `npm run generate`; production previews need a reb
 To update the draft from an Ink checkout:
 
 ```sh
-npm run sync:reference -- /path/to/ink-lang
+npm run sync:reference -- /path/to/ink-lang origin/main
 npm run build
 ```
 
-The sync command reads committed Git bytes and records their revision. Review the guide and reference when capabilities change; syncing the draft alone does not rewrite those explanations. `build-info.json` on the deployed site records both its own commit and the compiler revision, so freshness can be checked directly.
+Fetch the published compiler branch first. The sync command reads committed Git bytes and records their revision; an optional revision argument selects those bytes. Review the guide and reference against that revision when capabilities change; syncing the draft alone does not rewrite those explanations. Check every supported Ink example and host example before publishing. `public/ink-specification.md` downloads the implementation reference; `public/ink-design-draft.md` downloads the separate source design draft. `build-info.json` records the site commit and linked compiler revision.
 
 Pretext measures text after the bundled IBM Plex Mono font loads. FreeRange checks the four numeric layout helpers in `src/layout.ts`; it does not verify browser layout or Ink's compiler. Measurement failure leaves ordinary HTML/CSS readable.
 

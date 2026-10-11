@@ -53,11 +53,12 @@ function highlight(text) {
 let codeIndex = 0;
 function codePanel(text, label = "Ink · draft syntax") {
   const id = `code-${++codeIndex}`;
-  return `<div class="code-panel"><button type="button" class="copy" aria-label="Copy ${esc(label)} example" data-copy="${id}">copy</button><pre tabindex="0" aria-label="${esc(label)} example"><code id="${id}">${label.startsWith("Terminal") ? esc(text) : highlight(text)}</code></pre></div>`;
+  return `<div class="code-panel"><button type="button" class="copy" aria-label="Copy ${esc(label)} example" data-copy="${id}">copy</button><pre tabindex="0" aria-label="${esc(label)} example"><code id="${id}">${label.startsWith("Terminal") || label === "JavaScript" || label === "Schematic" ? esc(text) : highlight(text)}</code></pre></div>`;
 }
 const renderer = new Renderer();
 renderer.code = ({ text, lang }) => codePanel(text,
   lang === "sh" ? "Terminal" : lang === "ink" ? "Ink · supported syntax" :
+  lang === "js" ? "JavaScript" : lang === "text" ? "Schematic" :
   /^(module\s*=|proof_script\s*=)/.test(text) ? "Grammar · EBNF" :
   /^ink check/.test(text) ? "Terminal · proposed commands" :
   /^(maintain\(|sum_values\(|new_cached_total)/.test(text) ? "Proof · schematic" :
@@ -109,14 +110,15 @@ const guideBody = `<h1 id="ink-title">ink</h1>
 await writeFile(new URL("../index.html", import.meta.url), page("ink — state and computation, compiled", guideBody, "purpose", true));
 codeIndex = 0;
 const referenceBody = `<h1 class="reference-title">ink <span>/ reference</span></h1>
-<div class="intro"><p data-measure>The language design, from values and transactions to proofs and execution.</p><p>This reference includes proposed syntax. Explore <a href="%BASE_URL%index.html">the idea behind Ink</a> and <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a>.</p></div>
-<nav class="reading-links" aria-label="Reference topics"><a href="#chapter-3">Types</a><a href="#chapter-5">State</a><a href="#chapter-8">Proofs</a><a href="#chapter-12">Knowledge</a><a href="#chapter-20">Grammar</a><a href="%BASE_URL%ink-specification.md" download>Full draft</a></nav>
+<div class="intro"><p data-measure>The supported language: values, state, changes and compilation.</p><p>Reviewed against <a href="${implementation.repository}/tree/${implementation.revision}">published implementation ${implementation.revision.slice(0, 7)}</a>. The Ink examples on this page have been checked with the compiler. See <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a> for coverage, or the separate <a href="%BASE_URL%ink-design-draft.md" download>design draft</a> for wider proposals and historical overviews.</p></div>
+<nav class="reading-links" aria-label="Reference topics"><a href="#chapter-3">Types</a><a href="#chapter-5">State</a><a href="#chapter-8">Proofs</a><a href="#chapter-12">Knowledge</a><a href="#chapter-20">Syntax</a><a href="%BASE_URL%ink-specification.md" download>Download reference</a></nav>
 <div id="specification" class="chapters">${sections(reference, true)}</div>`;
 await writeFile(new URL("../reference.html", import.meta.url), page("ink — language reference", referenceBody, "specification"));
 await mkdir(new URL("../public", import.meta.url), { recursive: true });
-await writeFile(new URL("../public/ink-specification.md", import.meta.url), spec);
+await writeFile(new URL("../public/ink-specification.md", import.meta.url), `# Ink implementation reference\n\nReviewed against [published implementation ${implementation.revision.slice(0, 7)}](${implementation.repository}/tree/${implementation.revision}). This describes supported behaviour; wider proposals and historical overviews are in the [separate design draft](https://siliconjungle.github.io/ink-spec-site/ink-design-draft.md).\n\n${reference}`);
+await writeFile(new URL("../public/ink-design-draft.md", import.meta.url), spec);
 await writeFile(new URL("../public/totals.ink", import.meta.url), hello + "\n");
 await writeFile(new URL("../public/build-info.json", import.meta.url), JSON.stringify({
   schema: 1, site_revision: siteRevision, implementation,
 }, null, 2) + "\n");
-console.log("Generated the Ink introduction, 25-topic reference and pinned draft download.");
+console.log("Generated the Ink introduction, 25-topic implementation reference and separate pinned design draft.");
