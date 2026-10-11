@@ -1,12 +1,11 @@
 ## A small example
 
-Store a price for each item and define a total:
+A table, a derived total and an atomic update:
 
 ```ink
 module prices;
 
 state Prices: Table<u64, u64> = Table.empty();
-
 keep total_price: u64 = sum(Prices.values());
 
 change set_price(item: u64, price: u64)
@@ -25,18 +24,46 @@ query total() -> u64 reads(total_price) {
 }
 ```
 
-`state` declares the table. `keep` defines a value derived from it. `change` updates the data, and `query` reads the total. Ink sees those relationships when it compiles the program.
+`keep` defines a relationship: the total must agree with the table. `change` declares which state it can update and commits atomically.
 
-## Optimisation knowledge lives outside the compiler.
+Set two prices to 40 and 60: the total is 100. Change 40 to 45: the total is 105. An implementation could scan the table again or maintain the total with `100 - 40 + 45`. Ink can check that an alternative preserves the same behaviour, then compare its cost. A `keep` alone does not force a cache.
 
-Ink draws on a database of reusable algorithms, layouts and transformation laws. Each proposed transformation comes with evidence that the compiler checks before accepting it. Performance measurements help decide whether it is worth using.
+[Download this program](./prices.ink)
 
-That means a new optimisation can improve existing programs when they’re rebuilt. Application code stays the same, and the compiler doesn’t need a dedicated pass for every new idea.
+## Bring it into your app
 
-## Try it.
+Compile to a JavaScript module:
 
-Ink is a [working prototype](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md) with typed state, queries, atomic changes and pure computation. It targets native code, JavaScript and WebAssembly, with GPU support for eligible work.
+```sh
+ink build prices.ink --target javascript -o prices.mjs
+```
 
-Optimisation coverage is still growing. The documentation explains what works today, and the benchmarks show where it helps—and where it costs more.
+```js
+import { createState } from './prices.mjs';
 
-[Get started](https://github.com/siliconjungle/ink-lang#get-started) · [Source code](https://github.com/siliconjungle/ink-lang) · [Benchmarks](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md)
+const prices = createState();
+prices.invoke('set_price', [1n, 40n]);
+prices.invoke('set_price', [2n, 60n]);
+console.log(prices.invoke('total', []).result); // 100n
+
+prices.invoke('set_price', [1n, 45n]);
+console.log(prices.invoke('total', []).result); // 105n
+```
+
+Your app supplies inputs and reads results. Ink owns the typed state and the computation over it. Here, `u64` values cross the JavaScript boundary as BigInt.
+
+## Teach Ink a better way
+
+Algorithms, storage layouts and transformation laws live in a separate knowledge database. Proposed optimisations carry proofs that Ink checks against the program. Measurements help choose among the valid alternatives.
+
+That knowledge can remove intermediate collections, maintain derived results, introduce indexes or reuse unchanged immutable values. The compiler supplies the general execution machinery; the database supplies reusable ways to use it.
+
+A new optimisation can improve existing code when it is rebuilt. The ambition is that a performance idea discovered in one program should help the next one.
+
+## What runs today
+
+Ink is a working prototype with typed tables, atomic changes, queries, generics and pure computation. It emits C, Rust, JavaScript and WebAssembly, with GPU execution for eligible work. Recent work includes indexed storage, grouped updates, maintained queries and shared immutable snapshots.
+
+Coverage and performance depend on the program and target. The [reference](./reference.html), [implementation status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md) and [benchmarks](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md) describe the supported cases and their costs.
+
+[Get started](https://github.com/siliconjungle/ink-lang#get-started) · [Explore the code](https://github.com/siliconjungle/ink-lang) · [Design and ambitions](https://github.com/siliconjungle/ink-lang/blob/main/docs/vision.md)

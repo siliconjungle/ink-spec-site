@@ -95,19 +95,18 @@ fn total(xs: List<u64>) -> u64 {
 }`;
 function page(title, body, skip = "guide", landing = false) {
   return `<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink compiles state and computation together. Define your data, write your queries and describe how it changes. Checked optimisation knowledge helps the compiler avoid unnecessary work."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="State is a program. Compile it. Ink brings typed data, derived results and atomic changes together, with reusable optimisation knowledge checked against your code."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body${landing ? ' class="landing"' : ''}><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
 ${landing ? '' : `<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="${implementation.repository}/tree/${implementation.revision}">Implementation ${implementation.revision.slice(0, 7)}</a></footer>`}
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
 const guideBody = `<h1 id="ink-title">ink</h1>
-<div class="intro" id="purpose"><p><strong>Ink compiles state and computation together.</strong></p>
-<p>Define your data, write the queries you need, and describe how it changes. Ink uses that information to optimise the program.</p>
-<p>If an item’s price changes, a total may need updating. A query that only reads item names can keep its result. Ink can use these relationships to avoid repeating work, maintain derived values and choose how data is stored.</p>
-<p>You write the behaviour. The compiler works out an implementation.</p></div>
+<div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
+<p>Define your data, the results derived from it, and the changes it allows. Ink compiles those pieces together.</p>
+</div>
 <nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;
-await writeFile(new URL("../index.html", import.meta.url), page("ink — state and computation, compiled", guideBody, "purpose", true));
+await writeFile(new URL("../index.html", import.meta.url), page("ink — state is a program", guideBody, "purpose", true));
 codeIndex = 0;
 const referenceBody = `<h1 class="reference-title">ink <span>/ reference</span></h1>
 <div class="intro"><p data-measure>The supported language: values, state, changes and compilation.</p><p>Reviewed against <a href="${implementation.repository}/tree/${implementation.revision}">published implementation ${implementation.revision.slice(0, 7)}</a>. The Ink examples on this page have been checked with the compiler. See <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a> for coverage, or the separate <a href="%BASE_URL%ink-design-draft.md" download>design draft</a> for wider proposals and historical overviews.</p></div>
@@ -118,6 +117,9 @@ await mkdir(new URL("../public", import.meta.url), { recursive: true });
 await writeFile(new URL("../public/ink-specification.md", import.meta.url), `# Ink implementation reference\n\nReviewed against [published implementation ${implementation.revision.slice(0, 7)}](${implementation.repository}/tree/${implementation.revision}). This describes supported behaviour; wider proposals and historical overviews are in the [separate design draft](https://siliconjungle.github.io/ink-spec-site/ink-design-draft.md).\n\n${reference}`);
 await writeFile(new URL("../public/ink-design-draft.md", import.meta.url), spec);
 await writeFile(new URL("../public/totals.ink", import.meta.url), hello + "\n");
+const prices = guide.match(/```ink\n([\s\S]*?)\n```/)?.[1];
+if (!prices) throw new Error("Missing homepage program.");
+await writeFile(new URL("../public/prices.ink", import.meta.url), prices + "\n");
 await writeFile(new URL("../public/build-info.json", import.meta.url), JSON.stringify({
   schema: 1, site_revision: siteRevision, implementation,
 }, null, 2) + "\n");

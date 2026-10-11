@@ -1,6 +1,6 @@
 # Ink implementation reference
 
-Reviewed against [published implementation 1452414](https://github.com/siliconjungle/ink-lang/tree/14524142b25e9de65f470ba2cbae84e500aecb5f). This describes supported behaviour; wider proposals and historical overviews are in the [separate design draft](https://siliconjungle.github.io/ink-spec-site/ink-design-draft.md).
+Reviewed against [published implementation 14bfb7b](https://github.com/siliconjungle/ink-lang/tree/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7). This describes supported behaviour; wider proposals and historical overviews are in the [separate design draft](https://siliconjungle.github.io/ink-spec-site/ink-design-draft.md).
 
 ## 1 How it works
 
@@ -10,13 +10,13 @@ This page describes the published implementation linked in the footer. Wider pro
 
 | Part | Responsibility |
 | --- | --- |
-| [Semantic core](https://github.com/siliconjungle/ink-lang/tree/14524142b25e9de65f470ba2cbae84e500aecb5f/core) | Types, fixed semantics, reference execution and general evidence checking |
+| [Semantic core](https://github.com/siliconjungle/ink-lang/tree/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/core) | Types, fixed semantics, reference execution and general evidence checking |
 | [Knowledge](https://github.com/siliconjungle/ink-knowledge) | Immutable definitions, laws, proofs, snapshots and separate performance observations |
 | [Planner](https://github.com/siliconjungle/ink-planner) | Bounded search, applicability evidence and cost selection |
 | [Runtime](https://github.com/siliconjungle/ink-runtime) | Artifact assembly, scheduling, saved-profile selection, host adapters and fallback |
 | [ABI](https://github.com/siliconjungle/ink-abi) | Shared value descriptors, transport layouts and execution decisions |
 | [Native support](https://github.com/siliconjungle/ink-native-support) | Generated value, ownership, collection and state primitives |
-| [Lowerings](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/backend-packages.md) | C, Rust, JavaScript, Wasm and GPU emission |
+| [Lowerings](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/backend-packages.md) | C, Rust, JavaScript, Wasm and GPU emission |
 
 The core builds independently. The distribution pins the other packages. Proof checking runs locally in Rust; Lean is optional research tooling.
 
@@ -109,7 +109,8 @@ Declarations have concrete parameter, result and field types. Local bindings can
 | `Option<T>`, `Result<T,E>` | Explicit absence and recoverable failure |
 | `List<T>` | Ordered immutable finite sequences |
 | Records | Named fields with declared types |
-| Enums | Named variants without payloads |
+| Enums | Named variants, including bounded payload enums and exhaustive matching |
+| `Array<T,N>` | Immutable fixed shape, with 0–64 elements; elaborated into a checked record |
 | `id` declarations | Nominal 128-bit identifiers |
 | `Table<K,V>` | Declared state roots, accessed through permitted actions |
 | `Buffer<T>`, `Map<K,V>` | Owned invocation-local storage used inside pure helpers |
@@ -134,15 +135,17 @@ fn move(p: Point, dx: f32) -> Point {
 }
 ```
 
-`Nat`, `Bytes`, `f64`, the other integer widths, fixed-length `Array`, `Set`, refinement types, generic declarations, enum payloads and source-level `Prop`/`Proof` types are design proposals. They are not built-in types or syntax in this compiler.
+Type aliases, type/constant parameters and payload enums are supported through bounded elaboration. Generic applications use explicit arguments, such as `identity<u32>(7)`. Payload enums use the existing record/sum wire encoding; their host values are not a new variant-labelled JSON format.
+
+`Nat`, packed `Bytes`, `f64`, the other integer widths, static refinements and dependent `Prop`/`Proof` values remain design proposals. `Set<T>` is an external library alias with normalising operations, rather than a built-in invariant-bearing type. See [generic language foundations](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/generic-language-foundations.md) for instantiation, wire and resource limits.
 
 Fixed-width `+`, `-` and `*` wrap; `checked_add`, `checked_sub` and `checked_mul` return an overflow result instead. `Int` arithmetic is exact. Conversions are explicit. Scalar `f32` comparisons use IEEE rules, while stored aggregate equality compares contained float bits, including signed zeros and NaN payloads.
 
-See [numerical state](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/numerical-state.md) and [local collections](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/local-collections.md) for detailed boundaries.
+See [numerical state](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/numerical-state.md) and [local collections](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/local-collections.md) for detailed boundaries.
 
 ## 4 Functions
 
-A `fn` is pure. It cannot read state, call an action or emit an event. Its body contains sequential `let` bindings followed by a return expression.
+A `fn` is pure. It cannot read state, call an action or emit an event. Bodies support lexical bindings, conditionals, early returns and bounded local iteration. Types, ownership and termination are checked after surface elaboration.
 
 ```ink
 module totals;
@@ -157,13 +160,34 @@ fn positive(x: i32) -> i32 {
 }
 ```
 
-`choose(condition, yes, no)` evaluates only the selected branch. Arguments normally evaluate left to right; `&&` and `||` short-circuit. Lambdas use `fn(x) => expression` inside supported higher-order operations. Generic functions and arbitrary first-class function signatures are not supported.
+`choose(condition, yes, no)` evaluates only the selected branch. Arguments normally evaluate left to right; `&&` and `||` short-circuit. Lambdas use `fn(x) => expression` inside supported higher-order operations. Generic functions require explicit type arguments. Pure unary callback parameters use `fn(T)->U`; named functions or literal lambdas are specialised before execution. Captured owners, escaping callbacks and functions returning callable values are rejected.
 
-`repeat(BOUND, initial, fn(i) => fn(acc) => expression)` has a literal bound of at most 65,536. `repeat_until` accepts a runtime `u32` bound and a stopping predicate. Guarded self recursion is supported when the checker establishes descent of an unsigned word or list parameter. Mutual recursion, `partial fn`, `while`, statement `for`, `var` and local assignment are not source constructs today.
+`repeat(BOUND, initial, fn(i) => fn(acc) => expression)` has a literal bound of at most 65,536. `repeat_until` accepts a runtime `u32` bound and a stopping predicate. Guarded self recursion supports unsigned/list descent, including admitted lexicographic measures. Mutual recursion and arbitrary partial functions remain unsupported.
 
-Owned buffers/maps support temporary mutation through consuming operations and rebinding. The checker rejects reuse after a move and captured owners consumed by repeated callbacks. `parallel_map` preserves result order; worker scheduling and grain size affect cost, not that order. These mechanisms do not expose mutable references or a general borrow syntax.
+`var` locals have explicit types. Pure `for` loops traverse finite lists in order or literal half-open `u32` ranges of at most 65,536 steps. A `while` requires a literal `limit`; reaching the limit continues with the current values. Effectful action loops are unsupported. Local assignment is supported, but does not bypass affine ownership.
 
-See [checked recursion and ordered parallel work](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/bend-inspired.md).
+```ink
+module batches;
+type Sequence<T> = List<T>;
+
+fn first<T>(xs: Sequence<T>, fallback: T) -> T {
+    return xs.at_or(0, fallback);
+}
+
+fn example() -> u32 {
+    return first<u32>([7, 8, 9], 0);
+}
+
+fn total(xs: List<u32>) -> u32 {
+    var result: u32 = 0;
+    for item in xs { result = result + item; }
+    return result;
+}
+```
+
+Owned buffers/maps support temporary mutation through consuming operations and rebinding. The checker rejects reuse after a move and captured owners consumed by repeated callbacks. `parallel_map` preserves result order; worker scheduling and grain size affect cost, not that order. Scoped `split_at` partitions share disjoint ranges; adjacent rejoining can reuse storage. Partial-range growth detaches before overlap. These mechanisms do not expose mutable references or a general borrow syntax.
+
+See [checked recursion and ordered parallel work](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/bend-inspired.md).
 
 ## 5 State and changes
 
@@ -182,7 +206,7 @@ Changes see their own tentative writes. Nested changes share the caller's transa
 
 A `contains` branch can establish the condition for `insert` or `replace`, as in the homepage example. There are no general fallible insert/replace variants. Successful changes advance the `u64` commit version. Version exhaustion aborts a change; queries do not advance it.
 
-See [typed actions](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/typed-actions.md) and [action effects](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/action-effects.md).
+See [typed actions](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/typed-actions.md) and [action effects](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/action-effects.md).
 
 ## 6 Keeping results up to date
 
@@ -190,9 +214,9 @@ See [typed actions](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9
 
 A keep behaves as if evaluated against the state its reader sees, including tentative writes inside a change. An implementation may recompute, cache or incrementally maintain it if the required semantics are preserved. Baseline JavaScript keeps recompute; a `keep` declaration alone is not a promise of incremental execution.
 
-Lists preserve order and duplicates. Table values follow canonical key order. Collection operations include supported forms of map, filter, count, sum, right fold, stopping fold, indexed map, zip, concatenation, scan and sort. Their accepted types differ. `foldr` and `fold_until` have distinct right-to-left and forward stopping semantics. `zip` stops at the shorter input; `concat` appends in order; integer scan is inclusive. `at_or` evaluates its fallback only when the index is out of range.
+Lists preserve order and duplicates. Table values follow canonical key order. Collection operations include supported forms of map, filter, count, sum, left/right folds, stopping fold, indexed map, zip, concatenation, scan and sort. `count` infers exact `Int`, with `u64` available when explicitly expected. Their accepted types differ. `foldr` and `fold_until` have distinct right-to-left and forward stopping semantics. `zip` stops at the shorter input; `concat` appends in order; integer scan is inclusive. `at_or` evaluates its fallback only when the index is out of range.
 
-Automatic unbounded grouping and joins are not general source operators. A checked rewrite can remove ordering work only when its observation permits that. See [collection pipelines](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/collection-pipelines.md) and [sequence semantics](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/sequence-semantics.md).
+Grouping, stable sets and equijoins are ordinary generic definitions in `knowledge/libraries/collections.ink`. Their baseline algorithms and order/duplicate semantics are explicit; a nested-loop join can be quadratic. They are not privileged compiler operators. A checked rewrite can remove ordering work only when its observation permits that. See [collection pipelines](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/collection-pipelines.md) and [sequence semantics](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/sequence-semantics.md).
 
 ## 7 Inputs and events
 
@@ -200,13 +224,27 @@ Automatic unbounded grouping and joins are not general source operators. A check
 
 Time, randomness and external responses must enter as explicit inputs. Source functions and queries do not obtain them from the host.
 
-Durable hosts can persist state and deliver events with retries. Delivery is at least once; the receiver must deduplicate for an exactly-once effect. File and IndexedDB adapters have explicit storage and writer guarantees. These are host contracts, not language-level distributed replication. See [durable state](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/durable-host.md).
+Durable hosts can persist state and deliver events with retries. Delivery is at least once; the receiver must deduplicate for an exactly-once effect. File and IndexedDB adapters have explicit storage and writer guarantees. These are host contracts, not language-level distributed replication. See [durable state](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/durable-host.md).
 
 ## 8 Proofs and contracts
 
 Optimisation proofs are database objects, checked by Ink's Rust checker. The supported calculi include typed equality, congruence, theorem application, cases, structural induction and checked word-arithmetic certificates, with separate admission boundaries for different uses.
 
-The compiler does not accept source declarations such as `theorem`, `requires`, `ensures` or `proof by induction`. Those belong to the design draft. Source type/effect checks and table-presence checks are implemented; they are not a general user-authored contract language.
+Fallible `requires(predicate, error)` and `ensures(result => predicate, error)` clauses are supported on compatible `Result` functions and actions. Requirements run before the body; postconditions check each normal return, including `Err`, in declaration order. Failure in a change aborts its transaction. They are runtime validations, not static refinement facts.
+
+```ink
+module contracts;
+enum Error { Input, Output, }
+
+fn increment(x: u32) -> Result<u32, Error>
+    requires(x > 0, Error.Input)
+    ensures(reply => reply.fold(fn(v) => v < 10, fn(e) => true), Error.Output)
+{
+    return Ok(x + 1);
+}
+```
+
+External law files use ordinary `rewrite` declarations and `ink emit-laws` to check and export canonical evidence. Executable application modules still reject inline rewrites. The broader dependent theorem/tactic language remains a design proposal. See [contracts and law authoring](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/generic-language-foundations.md#fallible-contracts-and-external-theorem-authoring).
 
 Proof authors and search tools propose evidence. The core checks the actual proof bytes and applicable premises. A solver result, entry name, hash or performance observation cannot replace that check. Lean is not required to compile ordinary programs.
 
@@ -229,9 +267,11 @@ Rules live in the knowledge database, with typed interfaces, dependencies, condi
 
 A map-fusion law can combine successive pure maps. A buffer-edit law can remove a private write overwritten before observation. Neither law may silently change events or transaction boundaries.
 
+`ink emit-laws THEOREMS.ink -o BUNDLE.json` checks external rewrite evidence. `--proofs` supplies existing canonical evidence for a provided proof, and `--view` supplies authenticated dependencies. Labels and tactic spellings grant no authority.
+
 Representation entries can describe layouts and maintained results under additional source/action preservation obligations. Their authoring interface is database data, not an implemented `implementation ... for ...` source declaration.
 
-See [semantic optimisation](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/semantic-optimisation.md) and [collection edit laws](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/collection-edit-laws.md).
+See [semantic optimisation](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/semantic-optimisation.md) and [collection edit laws](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/collection-edit-laws.md).
 
 ## 11 Changing representations
 
@@ -241,7 +281,9 @@ Accepted representations compile into ordinary standalone state programs. Normal
 
 To switch compiled variants, checkpoint the old instance between transactions, restore into the target, then publish the target only after restoration succeeds. Direct bridge proofs remain checkable, but optimised direct-bridge emission and an autonomous live switching controller are not implemented.
 
-Standalone representation calls have trusted-caller type and value obligations. Their checkpoint codecs check integrity separately. See [representation contracts](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/database-representations.md).
+Knowledge-defined implementations now include typed multi-table indexed storage, cached admitted aggregate decompositions and grouped replace/remove traversals. Complete action proofs preserve intermediate reads, replies, errors, events, versions and rollback. Unsupported decompositions retain exact source evaluation; an arbitrary predicate does not imply a constant-size cache. See [typed indexed batching](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/general-indexed-batching.md).
+
+Standalone representation calls have trusted-caller type and value obligations. Their checkpoint codecs check integrity separately. See [representation contracts](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/database-representations.md).
 
 ## 12 The knowledge database
 
@@ -251,7 +293,7 @@ The planner searches supported pure expressions and eligible pure action regions
 
 `ink-evidence-v1` selections carry their pinned evidence and replay without the producer, SQLite or a live database. Performance observations are separate objects, matched to exact code, target and workload boundaries. Database growth adds candidates; bounded search does not guarantee a global optimum.
 
-See [the data contract](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/repository-architecture.md).
+See [the data contract](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/repository-architecture.md).
 
 ## 13 Choosing an implementation
 
@@ -259,15 +301,17 @@ Correctness, applicability and cost are separate decisions. An equivalent candid
 
 Measured representation selection is an explicit offline process. It needs comparable evidence for the required lifecycle phases. Missing evidence retains the baseline. Search and checking have resource limits; an unproved proposal cannot become valid because it has a low estimated cost.
 
-See [lifecycle selection](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/reports/incremental-maintenance-selection/README.md).
+See [lifecycle selection](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/reports/incremental-maintenance-selection/README.md).
 
 ## 14 Runtime selection
 
 Eligible pure CPU/JavaScript/GPU implementations can be selected using saved, target-bound cost profiles and request metadata. The common decision code lives in `ink-abi` and runs natively or through Wasm in the browser. Missing comparable evidence or a profile-domain miss keeps compiled CPU execution. Device failure can fall back to CPU.
 
+Compiled pure browser pipelines can combine native JavaScript, Wasm and GPU groups, prepared resources and worker execution using opt-in, workload-bound profiles. Stateful transactions remain on the host.
+
 The runtime performs no profitability probes. Measurement collection and model fitting happen offline. Stateful actions are not repeatedly executed to compare targets.
 
-General live recompilation and automatic representation migration remain proposals. Explicit static backend selection and prepared GPU sessions are available under their documented contracts. See [execution policy](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/adaptive-execution.md).
+General live recompilation and automatic representation migration remain proposals. Explicit static backend selection and prepared GPU sessions are available under their documented contracts. See [execution policy](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/adaptive-execution.md).
 
 ## 15 Saving and restoring state
 
@@ -277,9 +321,9 @@ Checkpoints are taken between transactions. Compatible reference, native, JavaSc
 
 The canonical binary format checks sizes, identities, ordering, tags and integrity. Physical caches are rebuilt by the receiving implementation. Integrity detects corruption; it does not authenticate the sender.
 
-Durable hosts persist a complete checkpoint and retry receipts before returning success, under their storage contract. Recovery reopens the stored record. Schema evolution, general delta-log recovery and persistent task scheduling are not implemented language features.
+Durable hosts use retained journals or immutable roots and append compiled operations with retry receipts between periodic checkpoints. Recovery restores a checkpoint and replays committed operations under the host contract; new query IDs persist receipts without replaying their queries. Native files and IndexedDB have explicit storage and single-writer requirements. Schema evolution and persistent task scheduling remain outside the language. See [incremental durability](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/indexed-aggregate-durable.md).
 
-See [portable snapshots](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/portable-snapshot.md), [selected checkpoints](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/selected-checkpoints.md) and [durable hosts](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/durable-host.md).
+See [portable snapshots](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/portable-snapshot.md), [selected checkpoints](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/selected-checkpoints.md) and [durable hosts](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/durable-host.md).
 
 ## 16 Code as data
 
@@ -287,13 +331,15 @@ Ink has versioned executable-core objects and content-addressed knowledge entrie
 
 Source/value witnesses can bind complete source and supported values to database definitions. Binding data alone does not supply an executable equivalence proof.
 
-A unified editable store for code, schemas and state, general incremental compilation and persistent captured callbacks remain design work. These are not implied by having a knowledge database.
+Proof admission can reuse checked closures against the same exact snapshot and executable module. Optional planner caches bind the compiler, source, knowledge, producer code, budgets and supplied profile context; cached proposals are rechecked before use. Knowledge publication also reuses unchanged Merkle/index work.
+
+A unified editable store for code, schemas and state, unrestricted incremental compilation and persistent captured callbacks remain design work. See [reuse boundaries](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/storage-bulk-incremental.md#reusing-compiler-work).
 
 ## 17 Compilation
 
 The compiler checks source and selected evidence before target emission. Backends emit the accepted computation literally and report unsupported capabilities. The independent reference evaluator remains in core.
 
-Core versions describe actual operations and contracts. Current programs may use versions through V7; the checker derives the required marker and rejects a mismatched one. V7 fixes binary32 arithmetic behaviour. Older supported non-floating programs retain their applicable version.
+Core versions describe actual operations and contracts. Current programs may use versions through V8; the checker derives the required marker and rejects a mismatched one. V7 fixes binary32 arithmetic behaviour; V8 binds the expanded value operations. Generic templates elaborate into concrete checked programs before encoding. Older programs retain their applicable version.
 
 `ink-runtime` assembles artifacts and supplies host orchestration. `ink-abi` defines shared transport and decisions; `ink-native-support` supplies emitted value/storage primitives. A browser application can run precompiled code without shipping the optimiser or proof search.
 
@@ -301,7 +347,7 @@ Core versions describe actual operations and contracts. Current programs may use
 
 C and Rust toolchains produce native code and WebAssembly. JavaScript emits importable ES modules. WebGPU/wgpu runs eligible pure kernels; transactions and recursive physical state execute on the host.
 
-Supported `f32` arithmetic rounds in source order to binary32 and produces canonical arithmetic NaNs. Transport and sign-bit negation preserve payload bits. The packed GPU emitter uses integer lanes for this contract; the earlier portable WGSL float description is not the current V7 contract. Eligible device work does not imply all types or programs run on the GPU.
+Supported `f32` arithmetic rounds in source order to binary32 and produces canonical arithmetic NaNs. Transport and sign-bit negation preserve payload bits. The packed GPU emitter uses integer lanes for this contract; the earlier portable WGSL float description is not the current binary32 contract. Eligible device work does not imply all types or programs run on the GPU.
 
 Some direct pure generated entries use trusted-caller interfaces. Host submission wrappers, state invocation and checkpoint codecs have their own input and resource checks. There is no universal promise that every entry validates arbitrary JavaScript values. Ordinary state invocation and standalone representation invocation also have different contracts.
 
@@ -327,7 +373,7 @@ await restored.restore(saved);
 
 Pure functions are exported through `functions.name(...args)` and dynamic `call(name, args)`. `u64` results are BigInt; JSON hosts must encode them explicitly. Ordinary state modules export `createState()`. Baseline keeps recompute, while admitted compiled representations may use different physical maintenance.
 
-`choose`, Boolean short-circuiting and `at_or` have lazy branches. Option/Result argument evaluation follows each operation's contract; for example, action `ok_or` evaluates its fallback eagerly. See [JavaScript](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/javascript-backend.md), [target parity](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/lowering-parity.md), [binary32 semantics](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/numerical-state.md) and [ordered work](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/bend-inspired.md).
+`choose`, Boolean short-circuiting and `at_or` have lazy branches. Option/Result argument evaluation follows each operation's contract; for example, action `ok_or` evaluates its fallback eagerly. See [JavaScript](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/javascript-backend.md), [target parity](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/lowering-parity.md), [binary32 semantics](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/numerical-state.md) and [ordered work](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/bend-inspired.md).
 
 ## 19 Modules and commands
 
@@ -342,7 +388,7 @@ fn limited(n: u32) -> u32 {
 }
 ```
 
-All top-level declarations are accessible through their import namespace. The root module's names remain public host entry points. The optional `pub` spelling does not provide private visibility. Import cycles, alias shadowing and missing declarations are rejected. Network package resolution and private exports are not implemented.
+Top-level declarations are accessible through their import namespace. Concrete root functions with public value signatures are host entry points; uninstantiated templates and owned Buffer/Map helpers are excluded from the public value interface. The optional `pub` spelling does not provide private visibility. Import cycles, alias shadowing and missing declarations are rejected. Network package resolution and private exports are not implemented.
 
 Useful current commands include:
 
@@ -359,21 +405,21 @@ ink doctor
 
 An execution history is a JSON array of entries such as `{"call":"total","args":[]}`. Pure execution uses `ink run SOURCE FUNCTION ARGS.json`. Build-time discovery uses `--optimise SNAPSHOT.json`; frozen replay uses `--selection SELECTION.json`. Commands such as `ink prove`, `ink knowledge import`, `--mode adaptive` and `ink snapshot inspect` are design proposals, not this CLI.
 
-See [modules](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/modules.md) and [installation](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/installation.md).
+See [modules](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/modules.md) and [installation](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/installation.md).
 
 ## 20 Source syntax
 
 Source is UTF-8; identifiers are case-sensitive ASCII names. Statements use semicolons and blocks use braces. Comments use `//` or non-nesting `/* ... */`. Every file begins with `module name;`, optionally using a dotted module name.
 
-The supported declaration forms are `id`, `record`, nullary `enum`, `fn`, table `state`, `keep`, `event`, `query` and `change`. Record and enum declaration entries require trailing commas. A pure function has `let` bindings and a return expression; action bodies additionally admit `if`/`else`, event emission and expression statements.
+Supported application declarations are `id`, `type` aliases, records, enums with optional payloads, functions, table `state`, keeps, events, queries and changes. Eligible declarations accept type parameters and literal `u32` constant parameters. Record and enum entries require trailing commas. Pure bodies admit lexical binding, early returns, conditionals and finite loops; action bodies additionally admit permitted state changes and event emission.
 
-Expressions include numbers, strings, Booleans, unit, named calls, record construction, fields, supported methods, inline lambdas and postfix `?`. There is no general tuple, list-literal, index-expression or `match` syntax. Lists come from arguments or collection operations; bounded loops use the expression primitives described above.
+Expressions include numbers, strings, Booleans, unit, list literals, named calls, record construction, fields, supported methods, inline lambdas, lazy conditional expressions and exhaustive `match`. Matching supports Bool, Option, Result and supported enums. Pure `?` is supported in let initialisers; arbitrary nested pure propagation remains unsupported. There is no general tuple or unchecked index-expression syntax. Empty lists require an expected element type.
 
-Precedence from tightest to loosest is calls/fields/postfix `?`, unary negation, `*`, `+`/`-`, comparisons, equality, `&&`, `||`. Binary operators associate left. Parentheses override precedence. `/`, `%` and shift operators are not source operators; total integer division/remainder use `quot_or` and `rem_or`, with lazy fallback for their invalid cases.
+Precedence from tightest to loosest is calls/fields/postfix `?`, unary `-`/`!`/`~`, `*`, `+`/`-`, comparisons, equality, word `&`, `^`, `|`, Boolean `&&`, `||`. Binary operators associate left. Parentheses override precedence. Word shifts/rotations use named operations with `u32` counts. Unchecked `/` and `%` are not admitted source operators; `quot_or` and `rem_or` have lazy fallback, and the external integer library provides checked division/remainder.
 
 Positive integer literals use contextual numeric types or default to `u64`; an unconstrained unary negative expression defaults to `i32`. Decimal/exponent literals are `f32`. Integer tokens are bounded by `u64`; use `Int` conversions/operations for exact integer computation. Floating literals must be finite. Numeric overflow, inference and conversion rules are checked rather than inherited from JavaScript.
 
-The full design draft's grammar also contains unsupported proposals. This section describes the current parser; [the parser source](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/core/src/syntax.rs) is the exact syntax authority for the linked revision.
+The full design draft's grammar also contains unsupported proposals. This section describes the current parser; [the parser source](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/core/src/syntax.rs) is the exact syntax authority for the linked revision.
 
 ## 21 Measuring performance
 
@@ -381,7 +427,7 @@ Measure complete returned results and matching semantics. Useful costs include c
 
 The reports retain both gains and regressions. Beating a rescan does not establish an advantage over a handwritten maintained implementation. Passing conformance does not establish a performance improvement.
 
-See [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/BENCHMARKS.md) and [measurement methodology](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/benchmark-methodology.md) for recorded revisions, workloads and boundaries.
+See [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/BENCHMARKS.md) and [measurement methodology](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/benchmark-methodology.md) for recorded revisions, workloads and boundaries.
 
 ## 22 Building Ink
 
@@ -398,15 +444,15 @@ target/release/ink run examples/hello.ink total arguments.json
 
 The core can build without the knowledge, planner, runtime or lowering checkouts. The full distribution uses exact independent package pins. Native/Wasm/GPU emission requires the relevant toolchains and device support. Python is needed for external knowledge discovery; supplied selections can replay without discovery.
 
-See [installation](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/docs/installation.md) and run `ink doctor` for available tools.
+See [installation](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/docs/installation.md) and run `ink doctor` for available tools.
 
 ## 23 Current limits
 
-Ink is a working prototype. Source execution, optimisation admission, target eligibility and profitability have separate coverage. General live strategy switching, schema evolution, an editor, richer source contracts and the wider design types remain unfinished.
+Ink is a working prototype. Source execution, optimisation admission, target eligibility and profitability have separate coverage. General live strategy switching, schema evolution, an editor, static refinements, compact additional numeric carriers and packed Bytes remain unfinished. Supported fallible contracts validate at runtime; they do not make those wider proposals available.
 
 The supported CPU language is broader than the shader subset. Mathematical admission does not prove backend correctness. Unsupported proof domains reject rather than accepting a theorem about a different program.
 
-[Implementation status](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/STATUS.md) lists the published distribution's boundaries. [The plan](https://github.com/siliconjungle/ink-lang/blob/14524142b25e9de65f470ba2cbae84e500aecb5f/PLAN.md) records remaining acceptance work. The separate design draft describes ambitions and contains historical implementation overviews; it is not the supported-language reference.
+[Implementation status](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/STATUS.md) lists the published distribution's boundaries. [The plan](https://github.com/siliconjungle/ink-lang/blob/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/PLAN.md) records remaining acceptance work. The separate design draft describes ambitions and contains historical implementation overviews; it is not the supported-language reference.
 
 ## 24 Maintaining a total
 
@@ -418,7 +464,7 @@ new_total = old_total - previous_value + new_value
 
 This is a schematic update equation, not an additional source API. To use it as a representation, the database must supply proofs connecting its initial value and every action to the declared keep, including deletion, abort and future updates.
 
-Fixed-width totals use their wrapping arithmetic. Exact `Int` arithmetic has different semantics and a separate proof-admission boundary. Float sums cannot be repaired or reassociated with this equation merely because it looks algebraically familiar.
+Fixed-width totals use their wrapping arithmetic. Exact `Int` totals use different arithmetic; their admitted source correspondence now covers arithmetic, conversion, sum and count. Their laws must use exact coefficients rather than wrapping word coefficients. Float sums cannot be repaired or reassociated with this equation merely because it looks algebraically familiar.
 
 Correctness leaves a cost question: reads saved must pay for setup, extra writes, storage and migration. A simple recomputing implementation may win for a short session.
 
@@ -430,4 +476,4 @@ Pure equality concerns returned values in its admitted total domain. Allocation 
 
 Stateful preservation includes results, errors, commit status, versions, logical state and ordered events across permitted future actions. It requires more than equal answers on sampled inputs.
 
-The implemented proof formats and resource checks live in the [core](https://github.com/siliconjungle/ink-lang/tree/14524142b25e9de65f470ba2cbae84e500aecb5f/core). The richer dependent proof-term language and source tactics in the design draft are proposals. Tests and adversarial fixtures validate the implementation within their scope; they do not substitute for its mathematical admission obligations or prove the checker itself.
+The implemented proof formats and resource checks live in the [core](https://github.com/siliconjungle/ink-lang/tree/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7/core). The richer dependent proof-term language and source tactics in the design draft are proposals. Tests and adversarial fixtures validate the implementation within their scope; they do not substitute for its mathematical admission obligations or prove the checker itself.
