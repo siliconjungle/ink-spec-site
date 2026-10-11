@@ -12,7 +12,7 @@ You describe a program's data, changes and results. Implementations may change o
 
 The core owns its complete `core/src` tree and builds independently. The distribution pins these repositories. Proof checking is implemented in Rust; Lean remains separate research tooling.
 
-Pure source graphs can mix CPU and GPU stages. Typed host pipelines keep arrays resident across GPU steps, but general source proofs for resident-buffer routing remain unfinished. General stateful replacement, migration and some specialised optimisation authority also remain work.
+Pure source graphs can mix CPU and GPU stages. Typed host pipelines keep arrays resident across GPU steps, but general source proofs for resident-buffer routing remain unfinished. Source-bound whole-action replacement and physical representations now have restricted admission paths, with explicit checked migration and a Rust physical-definition executor. Broader domains and general live adaptation remain work. Old specialised aggregate/cache/storage-policy approval is retired from default builds. See [current status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md) for exact coverage and active integration work.
 
 ## 2 An inventory program
 

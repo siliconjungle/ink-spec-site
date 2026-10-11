@@ -1,3 +1,11 @@
+## Philosophy
+
+**Keep program meaning stable; let implementation knowledge accumulate.**
+
+Describe the required computation and permitted changes. Make better ways to execute them reusable across programs. Proofs establish which alternatives preserve meaning; measurements guide which are worthwhile. The semantic core defines and checks meaning, while independently versioned knowledge grows the repertoire of implementations.
+
+Useful progress means less work and better complete execution on real workloads. It includes the costs of search, setup, copying, maintenance, migration and teardown. A correct alternative that loses on a workload should remain optional. Read [the philosophy and ambitions](https://github.com/siliconjungle/ink-lang/blob/main/docs/vision.md).
+
 ## Get started
 
 Build the compiler with Rust:
@@ -63,6 +71,8 @@ fn advance(x: u32, step: u32) -> u32 {
 
 New laws can improve existing programs without adding optimisation cases to the compiler. Search is bounded; it keeps a valid candidate when the budget runs out. A proof establishes equivalence. A separate cost estimate or measurement decides whether to select it.
 
+This machinery goes beyond storing proof files. Entries have typed interfaces, explicit application conditions and exact dependencies, so the planner can discover and reuse them. Canonical knowledge is stored as immutable JSON files and snapshots, with a rebuildable SQLite discovery index. Storage itself grants no mathematical authority.
+
 ```sh
 target/release/ink build totals.ink \
   --optimise knowledge/store/snapshot.json -o build/totals
@@ -71,6 +81,14 @@ target/release/ink build totals.ink \
 Build plans record the selected transformations and proof dependencies. `--selection selection.json` replays a pinned plan without searching or reading the current database. [Selection and proof contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/semantic-optimisation.md).
 
 Whole-action proofs can also replace a complete action in a restricted domain. For example, a database law can reduce two removals of the same key to one, while preserving replies, every table, rollback, versions and ordered events. These proofs cover every initial state and argument; the compiler checks the proposed alternative against the actual source. [Whole-action contract and limits](https://github.com/siliconjungle/ink-lang/blob/main/docs/action-transitions.md).
+
+## Implementations as knowledge
+
+The store can also supply physical state layouts, cached-query implementations and migration bridges. The core checks encoding, decoding, observations and invariant preservation for every source action. The current admission domain is restricted; physical definitions execute through the Rust backend. Checked bridges allow explicit switches at transaction boundaries while retaining portable logical snapshots. [Representation contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/database-representations.md).
+
+Fixed-key queries now have checked delta maintenance for supported remove/replace chains, with refresh fallback for unsupported updates. Existing owned Buffer/Map operations and loops also have broader logical correspondence and 215 database laws. An external representation selector charges lifecycle phases, action counts, memory and exact migration costs. Its small-fixture profile selects direct lookup because the delta cache loses on complete costs. [Owned laws](https://github.com/siliconjungle/ink-lang/blob/main/docs/owned-optimisation.md) · [Point-delta contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/point-query-delta.md) · [Lifecycle evidence](https://github.com/siliconjungle/ink-lang/blob/main/reports/incremental-maintenance-selection/README.md).
+
+The broader ambition is to repair only affected results after changes, select indexes or caches using operation frequencies and lifetime, and choose execution targets using size and residency. Exact change information can establish that a cached answer remains valid. A historical pattern only helps estimate whether caching will pay. General live strategy control remains work in progress.
 
 ## Where it runs
 
@@ -86,7 +104,7 @@ Pure and stateful programs compile to JavaScript:
 target/release/ink build totals.ink --target javascript -o totals.mjs
 ```
 
-Import the module and call `functions.total([1, 2, 3])`; its `u64` result is `39n`. JavaScript preserves Ink's wrapping words, exact `u64` and `f32` rounding. It also supports exact integers, strings, IDs, Option/Result, tables, transactions and portable snapshots. Stateful modules export `createState()`. [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md).
+Import the module and call `functions.total([1n, 2n, 3n])`; its `u64` result is `39n`. Direct JavaScript calls use BigInt values for `u64` parameters and elements. JavaScript preserves Ink's wrapping words, exact `u64` and `f32` rounding. It also supports exact integers, strings, IDs, Option/Result, tables, transactions and portable snapshots. Stateful modules export `createState()`. [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/main/docs/javascript-backend.md).
 
 Supported pure graphs can combine CPU and GPU stages. GPU pipelines can keep arrays resident across steps and iterations. Browser bundles compare eligible JavaScript, Wasm and WebGPU execution, including conversions, transfers and setup, and retain compiled CPU fallback. No target is always fastest.
 
@@ -102,6 +120,8 @@ C, Rust, JavaScript and Wasm share the same portable snapshot format for a check
 
 Runtime adapters persist native C/Rust and compiled JavaScript or C/Rust Wasm state through synced files or IndexedDB in the browser. Native executables accept `--durable FILE`. They recover state and pending events before retrying calls; delivery is at least once, with receiver deduplication. [Durable host contract](https://github.com/siliconjungle/ink-lang/blob/main/docs/durable-host.md). General live migration and arbitrary program rewind remain future work. [State and host ABI](https://github.com/siliconjungle/ink-lang/blob/main/docs/wasm-abi.md).
 
+Existing `i32`, `f32` and fixed numerical vectors also cross tables, actions, keeps, events and checkpoints on CPU targets. Stored float-bit identity and scalar IEEE comparisons are distinct contracts; numerical execution support does not automatically extend the stateful replacement proof domain. [Numerical state](https://github.com/siliconjungle/ink-lang/blob/main/docs/numerical-state.md).
+
 ## Knowledge and execution
 
 The semantic core defines meaning and checks evidence. The distribution assembles independently pinned packages:
@@ -115,8 +135,18 @@ The semantic core defines meaning and checks evidence. The distribution assemble
 
 Entries have content identities, explicit kinds, semantics versions, typed interfaces and exact dependencies. SQLite is a rebuildable index; exported views authenticate selected entries against a pinned snapshot. Performance observations live separately and name their workload, hardware and toolchain. Storage and measurements never grant proof authority.
 
+## Performance and direction
+
+Recent database-only laws remove traversals, intermediate collections and redundant GPU stages with the production compiler unchanged. Many measured cases improve over earlier Ink; others regress. Strong handwritten Rust and JavaScript controls often remain faster, and complete GPU requests can lose even after dispatch counts fall. Resident execution and full requests need separate measurements. [Benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md).
+
+Current work carries useful facts through composition into memory lowering, attributes setup and complete-state transport costs, tests broader incremental workloads, and improves target-specific profitability. Parallel work, owned partitions, guarded recursion and an additional bounded Lean verdict are also being integrated. Their scope and release state are tracked in [implementation status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md).
+
+The goal is reusable improvements on unfamiliar programs and competitive complete execution on specified hardware. A larger catalogue, a smaller expression or a valid proof alone does not demonstrate faster execution. [Acceptance gates](https://github.com/siliconjungle/ink-lang/blob/main/PLAN.md).
+
 ## Current scope
 
-Ink is a working prototype. Expression rewrites compose in pure functions and eligible action regions; complete action replacement is checked for a restricted subset. General physical representations, numerical state/action boundaries, live browser source editing, automatic migration, richer libraries and proof-authoring syntax remain unfinished. The checker, source correspondence, lowerers and physical adapters are trusted implementations; a checked rewrite is not a proof of the final machine code.
+Ink is a working prototype. Expression rewrites compose in supported pure functions and action regions; whole-action and physical-representation admission cover restricted domains. CPU numerical state and explicit checked migrations work today. Broader correspondence, efficient physical execution, general live adaptation, richer libraries and proof-authoring syntax remain unfinished. Editor support and schema evolution are outside the current acceptance scope.
+
+The Rust checker, source correspondence, lowerers, codecs, hosts and toolchains remain trusted implementations. Lean research proves specified models or separate calculi; it does not verify the complete compiler. A checked transformation is not an end-to-end proof of the final machine code.
 
 For the complete design, read the [language reference](%BASE_URL%reference.html) or download the [full draft](%BASE_URL%ink-specification.md). For implementation details, see [status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md), [architecture](https://github.com/siliconjungle/ink-lang/blob/main/docs/repository-architecture.md) and [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md).
