@@ -1,26 +1,13 @@
-## Philosophy
+## Optimisation knowledge lives outside the compiler.
 
-Keep the contract clear. Make better implementations reusable. A better algorithm, a smarter layout, a way to avoid unnecessary work: each discovery should become knowledge that other programs can use.
+Ink draws on a database of reusable algorithms, layouts and transformation laws. Each proposed transformation comes with evidence that the compiler checks before accepting it. Performance measurements help decide whether it is worth using.
 
-Ink’s optimisation knowledge evolves independently of its compiler. New proved transformations can improve existing programs when rebuilt, without changing their source or adding dedicated compiler passes.
+That means a new optimisation can improve existing programs when they’re rebuilt. Application code stays the same, and the compiler doesn’t need a dedicated pass for every new idea.
 
-## Same meaning. Less work.
+## Try it.
 
-A collection fusion law can combine two maps into one:
+Ink is a [working prototype](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md) with typed state, queries, atomic changes and pure computation. It targets native code, JavaScript and WebAssembly, with GPU support for eligible work.
 
-```ink
-xs.map(f).map(g)
+Optimisation coverage is still growing. The documentation explains what works today, and the benchmarks show where it helps—and where it costs more.
 
-// A proved alternative for pure, total mappings:
-xs.map(fn(x) => g(f(x)))
-```
-
-The proof establishes the same result. Measurements guide whether the alternative is worth choosing. One law can serve many programs.
-
-## Room for better implementations
-
-The ambition reaches beyond expressions: algorithms, indexes, cached results, storage layouts and execution targets.
-
-Your program defines the contract. A planner proposes alternatives. The core checks the evidence. Implementation knowledge keeps growing.
-
-Ink is a working prototype. Checked optimisation works in supported domains; broader coverage and consistently faster execution remain active work. [Current state](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md) · [Evidence](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md)
+[Get started](https://github.com/siliconjungle/ink-lang#get-started) · [Source code](https://github.com/siliconjungle/ink-lang) · [Benchmarks](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md)

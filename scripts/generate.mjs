@@ -94,16 +94,19 @@ fn total(xs: List<u64>) -> u64 {
 }`;
 function page(title, body, skip = "guide", landing = false) {
   return `<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Keep program meaning stable. Let implementation knowledge accumulate. Ink is a programming language built around reusable, locally checked optimisation knowledge."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink compiles state and computation together. Define your data, write your queries and describe how it changes. Checked optimisation knowledge helps the compiler avoid unnecessary work."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body${landing ? ' class="landing"' : ''}><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
 ${landing ? '' : `<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="${implementation.repository}/tree/${implementation.revision}">Implementation ${implementation.revision.slice(0, 7)}</a></footer>`}
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
 const guideBody = `<h1 id="ink-title">ink</h1>
-<div class="intro" id="purpose"><p>Keep program meaning stable.<br>Let implementation knowledge accumulate.</p></div>
+<div class="intro" id="purpose"><p><strong>Ink compiles state and computation together.</strong></p>
+<p>Define your data, write the queries you need, and describe how it changes. Ink uses that information to optimise the program.</p>
+<p>If an item’s price changes, a total may need updating. A query that only reads item names can keep its result. Ink can use these relationships to avoid repeating work, maintain derived values and choose how data is stored.</p>
+<p>You write the behaviour. The compiler works out an implementation.</p></div>
 <nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;
-await writeFile(new URL("../index.html", import.meta.url), page("ink — knowledge that compounds", guideBody, "purpose", true));
+await writeFile(new URL("../index.html", import.meta.url), page("ink — state and computation, compiled", guideBody, "purpose", true));
 codeIndex = 0;
 const referenceBody = `<h1 class="reference-title">ink <span>/ reference</span></h1>
 <div class="intro"><p data-measure>The language design, from values and transactions to proofs and execution.</p><p>This reference includes proposed syntax. Explore <a href="%BASE_URL%index.html">the idea behind Ink</a> and <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a>.</p></div>

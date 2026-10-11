@@ -2,7 +2,7 @@
 
 [Live site](https://siliconjungle.github.io/ink-spec-site/) · [Language reference](https://siliconjungle.github.io/ink-spec-site/reference.html)
 
-A concise introduction to Ink's philosophy and reusable optimisation knowledge, with one illustrative transformation. The full 25-topic design reference, implementation status and benchmark evidence stay linked from the front page.
+A concise introduction to compiling state and computation together, with an example of avoiding unnecessary recomputation and an explanation of reusable optimisation knowledge. The full 25-topic design reference, implementation status and benchmark evidence stay linked from the front page.
 
 The site keeps a simple dark reading layout, local syntax highlighting, copy controls and bundled fonts. It makes no third-party runtime requests.
 
@@ -24,7 +24,7 @@ npm run preview
 
 ## Edit and sync
 
-- `content/guide.md`: philosophy and idea for the front page.
+- `content/guide.md`: optimisation knowledge and getting started on the front page; the opening copy lives in `scripts/generate.mjs`.
 - `content/readable-spec.md`: full design reference, including proposed syntax.
 - `content/spec.md`: committed compiler draft, with absolute links for the download.
 - `content/implementation.json`: exact compiler revision described by the draft.

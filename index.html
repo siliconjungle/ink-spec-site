@@ -1,20 +1,17 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Keep program meaning stable. Let implementation knowledge accumulate. Ink is a programming language built around reusable, locally checked optimisation knowledge."><title>ink — knowledge that compounds</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink compiles state and computation together. Define your data, write your queries and describe how it changes. Checked optimisation knowledge helps the compiler avoid unnecessary work."><title>ink — state and computation, compiled</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body class="landing"><a class="skip" href="#purpose">Skip to the content</a><main class="site-shell"><h1 id="ink-title">ink</h1>
-<div class="intro" id="purpose"><p>Keep program meaning stable.<br>Let implementation knowledge accumulate.</p></div>
+<div class="intro" id="purpose"><p><strong>Ink compiles state and computation together.</strong></p>
+<p>Define your data, write the queries you need, and describe how it changes. Ink uses that information to optimise the program.</p>
+<p>If an item’s price changes, a total may need updating. A query that only reads item names can keep its result. Ink can use these relationships to avoid repeating work, maintain derived values and choose how data is stored.</p>
+<p>You write the behaviour. The compiler works out an implementation.</p></div>
 <nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
-<div id="guide" class="chapters"><section class="chapter" id="philosophy" aria-labelledby="title-philosophy"><h2 id="title-philosophy">Philosophy</h2><div class="prose"><p>Keep the contract clear. Make better implementations reusable. A better algorithm, a smarter layout, a way to avoid unnecessary work: each discovery should become knowledge that other programs can use.</p>
-<p>Ink’s optimisation knowledge evolves independently of its compiler. New proved transformations can improve existing programs when rebuilt, without changing their source or adding dedicated compiler passes.</p>
+<div id="guide" class="chapters"><section class="chapter" id="optimisation-knowledge-lives-outside-the-compiler" aria-labelledby="title-optimisation-knowledge-lives-outside-the-compiler"><h2 id="title-optimisation-knowledge-lives-outside-the-compiler">Optimisation knowledge lives outside the compiler.</h2><div class="prose"><p>Ink draws on a database of reusable algorithms, layouts and transformation laws. Each proposed transformation comes with evidence that the compiler checks before accepting it. Performance measurements help decide whether it is worth using.</p>
+<p>That means a new optimisation can improve existing programs when they’re rebuilt. Application code stays the same, and the compiler doesn’t need a dedicated pass for every new idea.</p>
 </div></section>
-<section class="chapter" id="same-meaning-less-work" aria-labelledby="title-same-meaning-less-work"><h2 id="title-same-meaning-less-work">Same meaning. Less work.</h2><div class="prose"><p>A collection fusion law can combine two maps into one:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-1">xs.<span class="tok-function">map</span>(f).<span class="tok-function">map</span>(g)
-
-<span class="tok-comment">// A proved alternative for pure, total mappings:</span>
-xs.<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(x) <span class="tok-operator">=&gt;</span> <span class="tok-function">g</span>(<span class="tok-function">f</span>(x)))</code></pre></div><p>The proof establishes the same result. Measurements guide whether the alternative is worth choosing. One law can serve many programs.</p>
-</div></section>
-<section class="chapter" id="room-for-better-implementations" aria-labelledby="title-room-for-better-implementations"><h2 id="title-room-for-better-implementations">Room for better implementations</h2><div class="prose"><p>The ambition reaches beyond expressions: algorithms, indexes, cached results, storage layouts and execution targets.</p>
-<p>Your program defines the contract. A planner proposes alternatives. The core checks the evidence. Implementation knowledge keeps growing.</p>
-<p>Ink is a working prototype. Checked optimisation works in supported domains; broader coverage and consistently faster execution remain active work. <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">Current state</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md">Evidence</a></p>
+<section class="chapter" id="try-it" aria-labelledby="title-try-it"><h2 id="title-try-it">Try it.</h2><div class="prose"><p>Ink is a <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">working prototype</a> with typed state, queries, atomic changes and pure computation. It targets native code, JavaScript and WebAssembly, with GPU support for eligible work.</p>
+<p>Optimisation coverage is still growing. The documentation explains what works today, and the benchmarks show where it helps—and where it costs more.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang#get-started">Get started</a> · <a href="https://github.com/siliconjungle/ink-lang">Source code</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md">Benchmarks</a></p>
 </div></section></div>
 
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>
