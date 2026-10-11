@@ -6,7 +6,29 @@
 <p>If an item’s price changes, a total may need updating. A query that only reads item names can keep its result. Ink can use these relationships to avoid repeating work, maintain derived values and choose how data is stored.</p>
 <p>You write the behaviour. The compiler works out an implementation.</p></div>
 <nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
-<div id="guide" class="chapters"><section class="chapter" id="optimisation-knowledge-lives-outside-the-compiler" aria-labelledby="title-optimisation-knowledge-lives-outside-the-compiler"><h2 id="title-optimisation-knowledge-lives-outside-the-compiler">Optimisation knowledge lives outside the compiler.</h2><div class="prose"><p>Ink draws on a database of reusable algorithms, layouts and transformation laws. Each proposed transformation comes with evidence that the compiler checks before accepting it. Performance measurements help decide whether it is worth using.</p>
+<div id="guide" class="chapters"><section class="chapter" id="a-small-example" aria-labelledby="title-a-small-example"><h2 id="title-a-small-example">A small example</h2><div class="prose"><p>Store a price for each item and define a total:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-1"><span class="tok-keyword">module</span> prices;
+
+<span class="tok-keyword">state</span> <span class="tok-type">Prices</span>: <span class="tok-type">Table</span><span class="tok-operator">&lt;</span><span class="tok-type">u64</span>, <span class="tok-type">u64</span><span class="tok-operator">&gt;</span> <span class="tok-operator">=</span> <span class="tok-type">Table</span>.<span class="tok-function">empty</span>();
+
+<span class="tok-keyword">keep</span> total_price: <span class="tok-type">u64</span> <span class="tok-operator">=</span> <span class="tok-function">sum</span>(<span class="tok-type">Prices</span>.<span class="tok-function">values</span>());
+
+<span class="tok-keyword">change</span> <span class="tok-function">set_price</span>(item: <span class="tok-type">u64</span>, price: <span class="tok-type">u64</span>)
+    <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">String</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Prices</span>)
+{
+    <span class="tok-keyword">if</span> <span class="tok-type">Prices</span>.<span class="tok-function">contains</span>(item) {
+        <span class="tok-type">Prices</span>.<span class="tok-function">replace</span>(item, price);
+    } <span class="tok-keyword">else</span> {
+        <span class="tok-type">Prices</span>.<span class="tok-function">insert</span>(item, price);
+    }
+    <span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(());
+}
+
+<span class="tok-keyword">query</span> <span class="tok-function">total</span>() <span class="tok-operator">-&gt;</span> <span class="tok-type">u64</span> <span class="tok-keyword">reads</span>(total_price) {
+    <span class="tok-keyword">return</span> total_price;
+}</code></pre></div><p><code>state</code> declares the table. <code>keep</code> defines a value derived from it. <code>change</code> updates the data, and <code>query</code> reads the total. Ink sees those relationships when it compiles the program.</p>
+</div></section>
+<section class="chapter" id="optimisation-knowledge-lives-outside-the-compiler" aria-labelledby="title-optimisation-knowledge-lives-outside-the-compiler"><h2 id="title-optimisation-knowledge-lives-outside-the-compiler">Optimisation knowledge lives outside the compiler.</h2><div class="prose"><p>Ink draws on a database of reusable algorithms, layouts and transformation laws. Each proposed transformation comes with evidence that the compiler checks before accepting it. Performance measurements help decide whether it is worth using.</p>
 <p>That means a new optimisation can improve existing programs when they’re rebuilt. Application code stays the same, and the compiler doesn’t need a dedicated pass for every new idea.</p>
 </div></section>
 <section class="chapter" id="try-it" aria-labelledby="title-try-it"><h2 id="title-try-it">Try it.</h2><div class="prose"><p>Ink is a <a href="https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md">working prototype</a> with typed state, queries, atomic changes and pure computation. It targets native code, JavaScript and WebAssembly, with GPU support for eligible work.</p>
