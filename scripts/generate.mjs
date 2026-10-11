@@ -92,24 +92,22 @@ const hello = `module totals;
 fn total(xs: List<u64>) -> u64 {
     return sum(xs.map(fn(x) => x * 3 + 7));
 }`;
-function page(title, body, skip = "guide") {
+function page(title, body, skip = "guide", landing = false) {
   return `<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink: a language whose optimisation knowledge grows independently of its compiler, with locally checked proofs and native/JavaScript/Wasm/GPU execution."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
-<body><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
-<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a><a href="${implementation.repository}/tree/${implementation.revision}">Implementation ${implementation.revision.slice(0, 7)}</a></footer>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Keep program meaning stable. Let implementation knowledge accumulate. Ink is a programming language built around reusable, locally checked optimisation knowledge."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<body${landing ? ' class="landing"' : ''}><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
+<footer class="source-link">${landing ? '<a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/vision.md">The philosophy</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a>' : `<a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a><a href="${implementation.repository}/tree/${implementation.revision}">Implementation ${implementation.revision.slice(0, 7)}</a>`}</footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
 const guideBody = `<h1 id="ink-title">ink</h1>
-<div class="intro" id="purpose"><p data-measure>A programming language whose optimisation knowledge can grow independently of its compiler.</p>
-<p>Write typed programs for computation and state. A planner discovers and combines proved alternatives from an external knowledge store; a small semantic core checks that each accepted change preserves the actual program's meaning.</p>
-<p class="status-note">Working prototype. Native, JavaScript, Wasm and GPU subsets run today; the full language is still a draft.</p></div>
-<nav class="reading-links" aria-label="Documentation"><a href="#get-started">Get started</a><a href="%BASE_URL%reference.html">Language reference</a><a href="https://github.com/siliconjungle/ink-lang">GitHub</a></nav>
-${codePanel(hello, "totals.ink · supported today")}
+<div class="intro" id="purpose"><p class="philosophy">Keep program meaning stable.<br>Let implementation knowledge accumulate.</p>
+<p data-measure>Ink is a programming language built to make better ways of running programs reusable.</p></div>
+<nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;
-await writeFile(new URL("../index.html", import.meta.url), page("ink — programming language", guideBody));
+await writeFile(new URL("../index.html", import.meta.url), page("ink — knowledge that compounds", guideBody, "purpose", true));
 codeIndex = 0;
 const referenceBody = `<h1 class="reference-title">ink <span>/ reference</span></h1>
-<div class="intro"><p data-measure>The language design, from values and transactions to proofs and execution.</p><p>This reference includes proposed syntax. For the working subset, start with the <a href="%BASE_URL%index.html">practical guide</a> and <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a>.</p></div>
+<div class="intro"><p data-measure>The language design, from values and transactions to proofs and execution.</p><p>This reference includes proposed syntax. Explore <a href="%BASE_URL%index.html">the idea behind Ink</a> and <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a>.</p></div>
 <nav class="reading-links" aria-label="Reference topics"><a href="#chapter-3">Types</a><a href="#chapter-5">State</a><a href="#chapter-8">Proofs</a><a href="#chapter-12">Knowledge</a><a href="#chapter-20">Grammar</a><a href="%BASE_URL%ink-specification.md" download>Full draft</a></nav>
 <div id="specification" class="chapters">${sections(reference, true)}</div>`;
 await writeFile(new URL("../reference.html", import.meta.url), page("ink — language reference", referenceBody, "specification"));
@@ -119,4 +117,4 @@ await writeFile(new URL("../public/totals.ink", import.meta.url), hello + "\n");
 await writeFile(new URL("../public/build-info.json", import.meta.url), JSON.stringify({
   schema: 1, site_revision: siteRevision, implementation,
 }, null, 2) + "\n");
-console.log("Generated the practical guide, 25-topic reference and pinned draft download.");
+console.log("Generated the Ink introduction, 25-topic reference and pinned draft download.");

@@ -1,8 +1,8 @@
 # Ink documentation
 
-[Live guide](https://siliconjungle.github.io/ink-spec-site/) · [Language reference](https://siliconjungle.github.io/ink-spec-site/reference.html)
+[Live site](https://siliconjungle.github.io/ink-spec-site/) · [Language reference](https://siliconjungle.github.io/ink-spec-site/reference.html)
 
-A short practical guide to Ink, with runnable examples and links to the implementation. The full 25-topic design reference and Markdown draft stay one click away. Proposed syntax is kept in the reference; the front-page examples use the working compiler.
+A concise introduction to Ink's philosophy and reusable optimisation knowledge, with one illustrative transformation. The full 25-topic design reference, implementation status and benchmark evidence stay linked from the front page.
 
 The site keeps a simple dark reading layout, local syntax highlighting, copy controls and bundled fonts. It makes no third-party runtime requests.
 
@@ -24,7 +24,7 @@ npm run preview
 
 ## Edit and sync
 
-- `content/guide.md`: short front page.
+- `content/guide.md`: philosophy and idea for the front page.
 - `content/readable-spec.md`: full design reference, including proposed syntax.
 - `content/spec.md`: committed compiler draft, with absolute links for the download.
 - `content/implementation.json`: exact compiler revision described by the draft.
