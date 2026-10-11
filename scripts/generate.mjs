@@ -96,7 +96,7 @@ function page(title, body, skip = "guide", landing = false) {
   return `<!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Keep program meaning stable. Let implementation knowledge accumulate. Ink is a programming language built around reusable, locally checked optimisation knowledge."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body${landing ? ' class="landing"' : ''}><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
-<footer class="source-link">${landing ? '<a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/vision.md">The philosophy</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a>' : `<a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="https://github.com/siliconjungle/ink-spec-site">Site source</a><a href="${implementation.repository}/tree/${implementation.revision}">Implementation ${implementation.revision.slice(0, 7)}</a>`}</footer>
+${landing ? '' : `<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="${implementation.repository}/tree/${implementation.revision}">Implementation ${implementation.revision.slice(0, 7)}</a></footer>`}
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
 const guideBody = `<h1 id="ink-title">ink</h1>
