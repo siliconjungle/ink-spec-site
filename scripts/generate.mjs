@@ -100,8 +100,7 @@ function page(title, body, skip = "guide", landing = false) {
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
 const guideBody = `<h1 id="ink-title">ink</h1>
-<div class="intro" id="purpose"><p class="philosophy">Keep program meaning stable.<br>Let implementation knowledge accumulate.</p>
-<p data-measure>Ink is a programming language built to make better ways of running programs reusable.</p></div>
+<div class="intro" id="purpose"><p>Keep program meaning stable.<br>Let implementation knowledge accumulate.</p></div>
 <nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;
 await writeFile(new URL("../index.html", import.meta.url), page("ink — knowledge that compounds", guideBody, "purpose", true));
