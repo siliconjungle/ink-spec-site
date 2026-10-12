@@ -1,6 +1,6 @@
 # Ink implementation reference
 
-Reviewed against [published implementation 14bfb7b](https://github.com/siliconjungle/ink-lang/tree/14bfb7b42a7e5bac357827fed4bae169ccc3e4c7). This describes supported behaviour; wider proposals and historical overviews are in the [separate design draft](https://siliconjungle.github.io/ink-spec-site/ink-design-draft.md).
+Reviewed against [published implementation 803a7f3](https://github.com/siliconjungle/ink-lang/tree/803a7f3743b14ca8f58dcba84939612515a09ccf). This describes supported behaviour; wider proposals and historical overviews are in the [separate design draft](https://siliconjungle.github.io/ink-spec-site/ink-design-draft.md).
 
 ## 1 How it works
 
