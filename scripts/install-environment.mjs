@@ -9,5 +9,5 @@ const hash=createHash('sha256').update(await readFile(`${source}/ink-compiler.wa
 if(info.sha256!==hash)throw Error('Browser compiler hash does not match its manifest.');
 for(const name of ['index.html','environment-sw.js','runtime/assets.json','clang/clang.wasm','clang/lld.wasm'])await readFile(`${source}/${name}`);
 await mkdir(target,{recursive:true});await cp(source,target,{recursive:true});
-await writeFile(`${target}/environment-info.json`,JSON.stringify({repository:'https://github.com/siliconjungle/ink-environment',revision:'0761d3675695b76f57afadbdd1c889864ca9fa26',compiler:info},null,2)+'\n');
+await writeFile(`${target}/environment-info.json`,JSON.stringify({repository:'https://github.com/siliconjungle/ink-environment',revision:'fc9a3fd1930e373ee6723f0df12ad4382113c66d',compiler:info},null,2)+'\n');
 console.log('Installed checked browser environment at '+target);

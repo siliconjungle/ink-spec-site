@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: siliconjungle/ink-environment
-          ref: 0761d3675695b76f57afadbdd1c889864ca9fa26
+          ref: fc9a3fd1930e373ee6723f0df12ad4382113c66d
           path: .environment-build
       - name: Set up Rust for the browser compiler
         uses: dtolnay/rust-toolchain@stable
