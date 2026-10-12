@@ -1,0 +1,13 @@
+import {readFile,writeFile,cp,mkdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {resolve} from 'node:path';
+const [sourcePath,targetPath]=process.argv.slice(2);
+if(!sourcePath||!targetPath)throw Error('Usage: node scripts/install-environment.mjs BUILT_APP DESTINATION');
+const source=resolve(sourcePath),target=resolve(targetPath);
+const info=JSON.parse(await readFile(`${source}/compiler-info.json`));
+const hash=createHash('sha256').update(await readFile(`${source}/ink-compiler.wasm`)).digest('hex');
+if(info.sha256!==hash)throw Error('Browser compiler hash does not match its manifest.');
+for(const name of ['index.html','environment-sw.js','runtime/assets.json','clang/clang.wasm','clang/lld.wasm'])await readFile(`${source}/${name}`);
+await mkdir(target,{recursive:true});await cp(source,target,{recursive:true});
+await writeFile(`${target}/environment-info.json`,JSON.stringify({repository:'https://github.com/siliconjungle/ink-environment',revision:'0761d3675695b76f57afadbdd1c889864ca9fa26',compiler:info},null,2)+'\n');
+console.log('Installed checked browser environment at '+target);

@@ -58,3 +58,11 @@ npm run build:pages
 ```
 
 `dist-pages/` uses `/ink-spec-site/` as its base. The two HTML entry points, fonts, scripts and downloads work under that path. Local `dist/` remains a separate root-path preview. Vite's entry points are defined in `vite.config.ts`.
+
+The [browser environment](https://siliconjungle.github.io/ink-spec-site/environment/)
+is built from the exact `ink-environment` revision pinned in the Pages workflow.
+Deployment builds its checker and target emitters, runtime/planner and browser
+Clang assets, validates them, and installs the static app at `environment/`.
+For a local full-site preview, build that package and run
+`node scripts/install-environment.mjs /path/to/ink-environment/dist/app dist-pages/environment`
+after `npm run build:pages`. Code and inputs stay in the browser.

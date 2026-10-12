@@ -29,6 +29,33 @@ jobs:
         run: npm ci
       - name: Build and check specification
         run: npm run build:pages
+      - name: Check out pinned Ink environment
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: siliconjungle/ink-environment
+          ref: 0761d3675695b76f57afadbdd1c889864ca9fa26
+          path: .environment-build
+      - name: Set up Rust for the browser compiler
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install environment dependencies
+        working-directory: .environment-build
+        run: npm ci
+      - name: Prepare pinned runtime and physical toolchain assets
+        working-directory: .environment-build
+        run: npm run prepare:assets
+      - name: Build browser compiler
+        working-directory: .environment-build
+        run: npm run build:compiler
+      - name: Check the environment
+        working-directory: .environment-build
+        run: npm test
+      - name: Build the environment
+        working-directory: .environment-build
+        run: npm run build
+      - name: Install environment on the main site
+        run: node scripts/install-environment.mjs .environment-build/dist/app dist-pages/environment
       - name: Upload page
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:

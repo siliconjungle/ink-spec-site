@@ -104,7 +104,7 @@ const guideBody = `<h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
 <p>Define data, derived results and permitted changes. Ink compiles them together, with pure pipelines that can span JavaScript, WebAssembly and WebGPU.</p>
 </div>
-<nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
+<nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink in your browser</a><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;
 await writeFile(new URL("../index.html", import.meta.url), page("ink — state is a program", guideBody, "purpose", true));
 codeIndex = 0;

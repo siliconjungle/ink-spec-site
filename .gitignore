@@ -5,3 +5,5 @@ dist-pages/
 *.log
 preview*.jpg
 public/build-info.json
+
+.environment-build/

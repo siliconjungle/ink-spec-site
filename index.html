@@ -4,7 +4,7 @@
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
 <p>Define data, derived results and permitted changes. Ink compiles them together, with pure pipelines that can span JavaScript, WebAssembly and WebGPU.</p>
 </div>
-<nav class="reading-links" aria-label="Explore Ink"><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
+<nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink in your browser</a><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
 <div id="guide" class="chapters"><section class="chapter" id="a-small-example" aria-labelledby="title-a-small-example"><h2 id="title-a-small-example">A small example</h2><div class="prose"><p>A table, a derived total and an atomic update:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-1"><span class="tok-keyword">module</span> prices;
 
@@ -26,7 +26,7 @@
     <span class="tok-keyword">return</span> total_price;
 }</code></pre></div><p><code>keep</code> defines a relationship: the total must agree with the table. <code>change</code> declares which state it can update and commits atomically.</p>
 <p>Set two prices to 40 and 60: the total is 100. Change 40 to 45: the total is 105. An implementation could scan the table again or maintain the total with <code>100 - 40 + 45</code>. Ink can check that an alternative preserves the same behaviour, then compare its cost. A <code>keep</code> alone does not force a cache.</p>
-<p><a href="./prices.ink">Download this program</a></p>
+<p><a href="./environment/?example=prices">Run this example in the editor</a> · <a href="./prices.ink">Download this program</a></p>
 </div></section>
 <section class="chapter" id="bring-it-into-your-app" aria-labelledby="title-bring-it-into-your-app"><h2 id="title-bring-it-into-your-app">Bring it into your app</h2><div class="prose"><p>Compile to a JavaScript module:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-2">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-2">ink build prices.ink --target javascript -o prices.mjs</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-3">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-3">import { createState } from './prices.mjs';
@@ -40,6 +40,7 @@ prices.invoke('set_price', [1n, 45n]);
 console.log(prices.invoke('total', []).result); // 105n</code></pre></div><p>Your app supplies inputs and reads results. Ink owns the typed state and the computation over it. Here, <code>u64</code> values cross the JavaScript boundary as BigInt.</p>
 </div></section>
 <section class="chapter" id="split-the-work-across-targets" aria-labelledby="title-split-the-work-across-targets"><h2 id="title-split-the-work-across-targets">Split the work across targets</h2><div class="prose"><p>Ink can split a compiled pure pipeline across <strong>JavaScript, WebAssembly and WebGPU</strong>. Saved performance profiles guide which stages run where, using input size and accounting for startup, data transfers and repeated use. Consecutive GPU stages can keep their intermediate data on the device.</p>
+<p><a href="./environment/">Try a three-stage pipeline in the editor</a>: compile it, run it, then profile the targets to see what this browser chooses.</p>
 <p>This works for eligible browser pipelines. Stateful changes stay on the host. <a href="https://github.com/siliconjungle/ink-lang/blob/main/docs/adaptive-execution.md">See how placement works</a>.</p>
 </div></section>
 <section class="chapter" id="teach-ink-a-better-way" aria-labelledby="title-teach-ink-a-better-way"><h2 id="title-teach-ink-a-better-way">Teach Ink a better way</h2><div class="prose"><p>Algorithms, storage layouts and transformation laws live in a separate knowledge database. Proposed optimisations carry proofs that Ink checks against the program. Measurements help choose among the valid alternatives.</p>

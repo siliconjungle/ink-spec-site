@@ -28,7 +28,7 @@ query total() -> u64 reads(total_price) {
 
 Set two prices to 40 and 60: the total is 100. Change 40 to 45: the total is 105. An implementation could scan the table again or maintain the total with `100 - 40 + 45`. Ink can check that an alternative preserves the same behaviour, then compare its cost. A `keep` alone does not force a cache.
 
-[Download this program](./prices.ink)
+[Run this example in the editor](./environment/?example=prices) · [Download this program](./prices.ink)
 
 ## Bring it into your app
 
@@ -55,6 +55,8 @@ Your app supplies inputs and reads results. Ink owns the typed state and the com
 ## Split the work across targets
 
 Ink can split a compiled pure pipeline across **JavaScript, WebAssembly and WebGPU**. Saved performance profiles guide which stages run where, using input size and accounting for startup, data transfers and repeated use. Consecutive GPU stages can keep their intermediate data on the device.
+
+[Try a three-stage pipeline in the editor](./environment/): compile it, run it, then profile the targets to see what this browser chooses.
 
 This works for eligible browser pipelines. Stateful changes stay on the host. [See how placement works](https://github.com/siliconjungle/ink-lang/blob/main/docs/adaptive-execution.md).
 
