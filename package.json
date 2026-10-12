@@ -11,7 +11,8 @@
     "build": "npm run generate && npm run check && vite build",
     "build:pages": "npm run generate && npm run check && vite build --base=/ink-spec-site/ --outDir dist-pages",
     "preview": "vite preview --host 127.0.0.1 --port 4318 --strictPort",
-    "sync:reference": "node scripts/sync-reference.mjs"
+    "sync:reference": "node scripts/sync-reference.mjs",
+    "check:reference": "node scripts/check-reference.mjs"
   },
   "dependencies": {
     "@chenglou/pretext": "0.0.9",
@@ -22,5 +23,6 @@
     "marked": "18.1.0",
     "typescript": "5.9.3",
     "vite": "8.3.4"
-  }
+  },
+  "license": "MIT"
 }

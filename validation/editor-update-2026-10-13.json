@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "date": "2026-10-13",
+  "distribution": "e61ae630c5f91cf935cb6726d170820cbbacddf6",
+  "core": "51af4dda101688c78f68684cf574ab613edf6c36",
+  "editor": "94e6d934ce26fb563ff2e06e889ab00154697ad0",
+  "compiler_sha256": "215b8fecd41e8eef55e64e301602964bb0798d414bd2e0c9f49ff3e0842fc947",
+  "packages": {
+    "schema": 1,
+    "distribution": "e61ae630c5f91cf935cb6726d170820cbbacddf6",
+    "core": "51af4dda101688c78f68684cf574ab613edf6c36",
+    "javascript": "12f535564488318ba5a709dff274f2c6151e0998",
+    "c": "cc3dd719106a17f14f3249712fa21514a5f38877",
+    "gpu": "4b4edc75d678155b0ed923f9e7c27bbe118617c2",
+    "wasm": "8ed92b356867d5e587289d18ba349fc7756cc872",
+    "runtime": "449857995a2e8778f98d58fc125158fca93016d4",
+    "planner": "3623796f4d8df8e6212833241fa84accb9b8b8a1",
+    "abi": "ba66a365b4e7c2fe80fff4e7443a781f61eb9a56"
+  },
+  "checks": {
+    "reference_complete_programs": 8,
+    "homepage_bound_calls": [
+      100,
+      105
+    ],
+    "checkpoint_restore": 105,
+    "editor_rust_tests": 4,
+    "editor_wasm_node_tests": 6,
+    "planner_tests": 117,
+    "python_wheels_include_license": true,
+    "installed_license_files": 12,
+    "site_types_and_freerange": "passed",
+    "production_builds": "passed"
+  },
+  "browser": {
+    "surface": "Codex in-app browser",
+    "price_history_totals": [
+      100,
+      105
+    ],
+    "static_contract_result": 42,
+    "pipeline_results": {
+      "javascript": 4114612224,
+      "wasm": 4114612224,
+      "webgpu": 4114612224
+    },
+    "webgpu_dispatches": 4,
+    "webgpu_upload_bytes": 32772,
+    "webgpu_readback_bytes": 4,
+    "explicit_profile_heldout_passed": true,
+    "saved_profile_adaptive_backend": "gpu",
+    "runtime_profitability_probes": false
+  },
+  "scope": "Conformance and packaging checks on published source pins; no new general performance claim. Browser checked the same compiler bytes and runtime sources before the final documentation-only distribution pin update."
+}

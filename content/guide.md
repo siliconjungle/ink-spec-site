@@ -11,11 +11,7 @@ keep total_price: u64 = sum(Prices.values());
 change set_price(item: u64, price: u64)
     -> Result<Unit, String> writes(Prices)
 {
-    if Prices.contains(item) {
-        Prices.replace(item, price);
-    } else {
-        Prices.insert(item, price);
-    }
+    Prices.put(item, price);
     return Ok(());
 }
 
@@ -24,9 +20,9 @@ query total() -> u64 reads(total_price) {
 }
 ```
 
-`keep` defines a relationship: the total must agree with the table. `change` declares which state it can update and commits atomically.
+`keep` defines a relationship: the total must agree with the table. `change` declares which state it can update and commits atomically. `put` inserts or replaces a row.
 
-Set two prices to 40 and 60: the total is 100. Change 40 to 45: the total is 105. An implementation could scan the table again or maintain the total with `100 - 40 + 45`. Ink can check that an alternative preserves the same behaviour, then compare its cost. A `keep` alone does not force a cache.
+Set prices to 40 and 60: the total is 100. Change 40 to 45: it becomes 105. The JavaScript backend can retain an unchanged scalar total; a relevant write may require a scan. A separately proved implementation could maintain it with `100 - 40 + 45`. Measurements decide whether that extra maintenance pays for itself.
 
 [Run this example in the editor](./environment/?example=prices) · [Download this program](./prices.ink)
 
@@ -42,36 +38,80 @@ ink build prices.ink --target javascript -o prices.mjs
 import { createState } from './prices.mjs';
 
 const prices = createState();
-prices.invoke('set_price', [1n, 40n]);
-prices.invoke('set_price', [2n, 60n]);
-console.log(prices.invoke('total', []).result); // 100n
+const setPrice = prices.bind('set_price');
+const total = prices.bind('total', { resultOnly: true });
 
-prices.invoke('set_price', [1n, 45n]);
-console.log(prices.invoke('total', []).result); // 105n
+setPrice(1n, 40n);
+setPrice(2n, 60n);
+console.log(total()); // 100n
+setPrice(1n, 45n);
+console.log(total()); // 105n
 ```
 
-Your app supplies inputs and reads results. Ink owns the typed state and the computation over it. Here, `u64` values cross the JavaScript boundary as BigInt.
-
-## Split the work across targets
-
-Ink can split a compiled pure pipeline across **JavaScript, WebAssembly and WebGPU**. Saved performance profiles guide which stages run where, using input size and accounting for startup, data transfers and repeated use. Consecutive GPU stages can keep their intermediate data on the device.
-
-[Try a three-stage pipeline in the editor](./environment/): compile it, run it, then profile the targets to see what this browser chooses.
-
-This works for eligible browser pipelines. Stateful changes stay on the host. [See how placement works](https://github.com/siliconjungle/ink-lang/blob/main/docs/adaptive-execution.md).
+Your app supplies inputs and reads results. Ink owns typed state and its computation. Typed bound calls resolve an entry once; scalar arguments must use the correct carrier, including BigInt for `u64`. Ordinary `invoke(name, args)` remains available with its checked input and full result envelope. Returning only a result still preserves rollback, versions and committed events.
 
 ## Teach Ink a better way
 
-Algorithms, storage layouts and transformation laws live in a separate knowledge database. Proposed optimisations carry proofs that Ink checks against the program. Measurements help choose among the valid alternatives.
+Algorithms, storage layouts and transformation laws live in a separate knowledge database. Ink checks a proposed optimisation's proofs against the actual program. Measurements choose among valid alternatives.
 
-That knowledge can remove intermediate collections, maintain derived results, introduce indexes or reuse unchanged immutable values. The compiler supplies the general execution machinery; the database supplies reusable ways to use it.
+Knowledge can remove intermediate collections, maintain derived results, introduce indexes, select layouts or reuse immutable values. It can also supply a new typed helper algorithm that was absent from the source: for example, replace a filtered list followed by a count with a proved ordered counting loop. The helper passes ordinary type, ownership and termination checks, and an equality proof must justify its use.
 
-A new optimisation can improve existing code when it is rebuilt. The ambition is that a performance idea discovered in one program should help the next one.
+A new optimisation can improve the same source when rebuilt. The compiler supplies general checking and execution machinery; the database accumulates reusable ways to use it.
+
+[How database-authored algorithms work](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/database-executable-extensions.md)
+
+## Plan before the application runs
+
+Search can compose a query rewrite, maintained representation, physical layout and execution route, revisiting layers while there is useful work and budget. Every step has its own checked obligations. The emitted application executes the selected plan without carrying a proof search engine.
+
+With an installed knowledge checkout:
+
+```sh
+ink compile prices.ink --optimise knowledge --target rust \
+  --search-budget 16384 --state-limit 4096 --planning-seconds 3600 -o prices.rs
+ink compile prices.ink --plan prices.rs.planning.json --target rust -o replayed.rs
+```
+
+The first command records the selected chain and search receipt. Frozen replay checks the proof packet without rediscovering it. More search can find better alternatives; it does not guarantee a global optimum. Missing comparable lifecycle measurements retains the baseline.
+
+[Search, planning and physical strategies](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/database-planning.md)
+
+## Learn from real usage
+
+Optional recording captures call frequencies, input shapes, concurrency and lifecycle phases without storing input values. Publish those immutable observations, then compile again: planning discovers compatible recordings and uses measured complete-session costs across the observed cohorts. You do not have to invent query/update weights.
+
+Proofs establish correctness. Profiles guide profitability. A past observation cannot establish a type invariant or predict every future request. Compiled resource plans can choose capacity reservations, checked final-use releases and admission credits. Runtime credit checks still handle future overload, rejecting with `INK_BACKPRESSURE` while preserving accepted-call order.
+
+[Observed usage, proved properties and resources](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/proved-usage-planning.md)
+
+## Split the work across targets
+
+Eligible pure pipelines can combine **JavaScript, WebAssembly and WebGPU**. Saved target-bound cost profiles account for startup, data transfers and repeated use. Consecutive GPU stages can keep intermediates on the device. Stateful transactions execute on the host.
+
+[Try a three-stage pipeline in the editor](./environment/): compile, run, then explicitly profile targets to see this browser's eligible placement. Ordinary Run does not perform profitability experiments. The editor's local placement profiles and the offline compiler's knowledge search are separate capabilities.
+
+[How placement works](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/adaptive-execution.md)
+
+## See what growing knowledge changes
+
+The proof-growth study holds a compiler fixed and adds reusable law families to typed application kernels. At 16 families, the geometric-mean speedup is 2.17× against the zero-family baseline for the designed JavaScript inputs, and 2.39× for its actual AST/mesh input cohorts. Native and Wasm gains differ; the fused GPU alternative regresses on average. These chosen kernels are not an estimate for arbitrary unseen applications.
+
+![Execution gains and regressions as reusable proof families grow](./proof-growth.svg)
+
+The report separates complete-call timing, compiler improvements, database-only growth, compilation cost and forced alternatives. The practical aim is to remove work and let measurements reject losing choices.
+
+[Sources, controls, costs and regressions](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/proof-growth-epoch3.md)
 
 ## What runs today
 
-Ink is a working prototype with typed tables, atomic changes, queries, generics and pure computation. It emits C, Rust, JavaScript and WebAssembly, with GPU execution for eligible work. Recent work includes indexed storage, grouped updates, maintained queries and shared immutable snapshots.
+Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include C, Rust, JavaScript and both Wasm paths, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.
 
-Coverage and performance depend on the program and target. The [reference](./reference.html), [implementation status](https://github.com/siliconjungle/ink-lang/blob/main/STATUS.md) and [benchmarks](https://github.com/siliconjungle/ink-lang/blob/main/BENCHMARKS.md) describe the supported cases and their costs.
+The standalone [editor repository](https://github.com/siliconjungle/ink-environment) contains the real browser compiler and execution environment. It supports single-file programs and explicit local target profiling. Linked imports, automatic external knowledge search and native Rust execution are outside that editor's current scope. Its exact compiler and package versions are linked below; language support, proof coverage and target eligibility remain distinct.
 
-[Get started](https://github.com/siliconjungle/ink-lang#get-started) · [Explore the code](https://github.com/siliconjungle/ink-lang) · [Design and ambitions](https://github.com/siliconjungle/ink-lang/blob/main/docs/vision.md)
+[Language reference](./reference.html) · [Implementation status](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/STATUS.md) · [Benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/BENCHMARKS.md)
+
+## Open source
+
+Ink's compiler, optimisation knowledge, planner, lowerers, runtime, ABI, native support, editor, documentation site and Lean exporter are MIT licensed. Bundled dependencies, fonts and research data retain their own licences and notices.
+
+[MIT license](./ink-license.txt) · [Language repository](https://github.com/siliconjungle/ink-lang) · [Editor repository](https://github.com/siliconjungle/ink-environment) · [Design and ambitions](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/vision.md)

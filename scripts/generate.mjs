@@ -9,7 +9,7 @@ const esc = (s) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 const keywords = new Set(
-  "module import pub id record enum type fn partial let var return if else match for in while state event keep change query reads writes emits emit requires ensures where theorem by rewrite from to proof implementation representation abstraction initialise step observe certificate normalize arithmetic induction cases intro exact apply".split(
+  "module import pub private invariant spec id record enum type fn partial let var return if else match for in while state event keep change query reads writes emits emit requires ensures before result where theorem by rewrite from to proof implementation representation abstraction initialise step observe certificate normalize arithmetic induction cases intro exact apply".split(
     " ",
   ),
 );
@@ -70,11 +70,17 @@ renderer.table = function (token) {
 renderer.html = ({ text }) => esc(text);
 marked.use({ renderer, gfm: true });
 
-const read = (name) => readFile(new URL(`../content/${name}`, import.meta.url), "utf8");
+const implementation = JSON.parse(await readFile(new URL('../content/implementation.json', import.meta.url), 'utf8'));
+const environment = JSON.parse(await readFile(new URL('../content/environment.json', import.meta.url), 'utf8'));
+for (const value of [implementation.revision, environment.revision, environment.distribution]) {
+  if (!/^[a-f0-9]{40}$/.test(value)) throw Error('Documentation pins must be exact Git revisions');
+}
+if (environment.distribution !== implementation.revision) throw Error('Reference and browser editor must describe the same distribution');
+const read = async (name) => (await readFile(new URL(`../content/${name}`, import.meta.url), "utf8"))
+  .replaceAll('{{ink_revision}}', implementation.revision);
 const spec = await read("spec.md");
 const reference = await read("readable-spec.md");
 const guide = await read("guide.md");
-const implementation = JSON.parse(await read("implementation.json"));
 const siteRevision = process.env.GITHUB_SHA || execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 function sections(markdown, numbered = false) {
@@ -97,12 +103,13 @@ function page(title, body, skip = "guide", landing = false) {
   return `<!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink compiles state and computation together. Eligible pipelines span JavaScript, Wasm and WebGPU, with measured profiles guiding placement."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body${landing ? ' class="landing"' : ''}><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
-${landing ? '' : `<footer class="source-link"><a href="https://github.com/siliconjungle/ink-lang">Compiler</a><a href="${implementation.repository}/tree/${implementation.revision}">Implementation ${implementation.revision.slice(0, 7)}</a></footer>`}
+<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="${implementation.repository}/tree/${implementation.revision}">Language ${implementation.revision.slice(0, 7)}</a><a href="${environment.repository}/tree/${environment.revision}">Editor ${environment.revision.slice(0, 7)}</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
 const guideBody = `<h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
 <p>Define data, derived results and permitted changes. Ink compiles them together, with pure pipelines that can span JavaScript, WebAssembly and WebGPU.</p>
+<p>Implementation knowledge grows independently of the compiler. Rebuild the same program with more proved knowledge to discover better ways to execute it.</p>
 </div>
 <nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink in your browser</a><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;
@@ -122,5 +129,13 @@ if (!prices) throw new Error("Missing homepage program.");
 await writeFile(new URL("../public/prices.ink", import.meta.url), prices + "\n");
 await writeFile(new URL("../public/build-info.json", import.meta.url), JSON.stringify({
   schema: 1, site_revision: siteRevision, implementation,
+  environment,
 }, null, 2) + "\n");
+await writeFile(new URL('../public/ink-license.txt', import.meta.url), await readFile(new URL('../LICENSE', import.meta.url), 'utf8'));
 console.log("Generated the Ink introduction, 25-topic implementation reference and separate pinned design draft.");
+
+const notices = [];
+for (const [name, path] of [['Pretext', '@chenglou/pretext/LICENSE'], ['IBM Plex Mono', '@fontsource/ibm-plex-mono/LICENSE']]) {
+  notices.push(`${name}\n${await readFile(new URL('../node_modules/' + path, import.meta.url), 'utf8')}`);
+}
+await writeFile(new URL('../public/third-party-notices.txt', import.meta.url), notices.join('\n\n'));

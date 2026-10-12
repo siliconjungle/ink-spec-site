@@ -27,7 +27,9 @@ npm run preview
 - `content/guide.md`: state/JavaScript examples, reusable optimisation knowledge and current scope on the front page; the opening copy lives in `scripts/generate.mjs`.
 - `content/readable-spec.md`: supported-language reference, reviewed against the published compiler revision; unsupported proposals are identified explicitly.
 - `content/spec.md`: committed compiler draft, with absolute links for the download.
-- `content/implementation.json`: exact published compiler revision used for the reference review and synced draft.
+- `content/implementation.json`: exact published distribution used for the reference review and synced draft.
+- `content/environment.json`: independently versioned editor, with the same distribution revision. The workflow reads this pin; installation checks built provenance.
+- `scripts/check-reference.mjs`: compile every supported Ink example through the pinned browser compiler, then execute the homepage bound calls and checkpoint/restore.
 - `scripts/generate.mjs`: semantic HTML, syntax highlighting, downloads and build information.
 - `src/style.css`: reading layout; `src/main.ts`: copying and cached text measurement.
 
@@ -66,3 +68,14 @@ Clang assets, validates them, and installs the static app at `environment/`.
 For a local full-site preview, build that package and run
 `node scripts/install-environment.mjs /path/to/ink-environment/dist/app dist-pages/environment`
 after `npm run build:pages`. Code and inputs stay in the browser.
+
+## Versioned updates and licensing
+
+Reference links use `{{ink_revision}}`, resolved from `content/implementation.json` at generation, so the footer, body links and downloadable reference describe one reviewed source revision. Syncing the design draft updates its source pin; it does not edit the handwritten guide or reference. Review those files, update the editor and its `ink-pins.json`, set `content/environment.json`, and run the example checks before publishing. The editor and reference distributions must match. Historical research reports retain their acquired revisions.
+
+```sh
+cargo build --locked --manifest-path /path/to/ink-environment/compiler/Cargo.toml --bin ink-browser-check
+npm run check:reference -- /path/to/ink-environment/compiler/target/debug/ink-browser-check /path/to/ink-lang/target/debug/ink
+```
+
+This site and its project-authored content are [MIT licensed](LICENSE). Font and third-party runtime notices are shipped separately in `third-party-notices.txt`. The independently maintained [editor repository](https://github.com/siliconjungle/ink-environment) is also MIT licensed. Build manifests identify the exact site, language and editor revisions.
