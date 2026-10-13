@@ -93,7 +93,23 @@ fn mark_received(document: json.Json) -> Result<json.Json, json.JsonError> {
 fn identity(document: json.Json) -> json.Json { return document; }
 ```
 
-`Json` is an ordinary recursive datatype from the pinned knowledge library. It supports arbitrary nested objects and arrays, exact numeric tokens, missing-versus-null lookup, updates and projection. It is a tagged Ink value, not a plain JavaScript object: the `mark_received` function below expects that representation, produced here by `JsonCodec.parse`. Use declared records for direct object calls as above; there is no general `JsonCodec.fromJS` adapter. General schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.
+`Json` is an ordinary recursive datatype from the pinned knowledge library. It supports arbitrary nested objects and arrays, exact numeric tokens, missing-versus-null lookup, updates and projection. JavaScript apps can supply plain objects through the explicit `fromJS` boundary and get plain objects back with `toJS`. No JSON text round trip or record declaration for each object shape is needed:
+
+```js
+import {JsonCodec, valueCodecs, callOwned} from './documents.mjs';
+
+const documents = new JsonCodec(valueCodecs.identity.result);
+const input = {title: 'hello', unknown: {items: [true, null, 3]}};
+const result = callOwned('mark_received', [documents.fromJS(input)]);
+if (Object.hasOwn(result, 'Ok')) console.log(documents.toJS(result.Ok));
+// {received: true, title: 'hello', unknown: {items: [true, null, 3]}}
+```
+
+These adapters run only when a JavaScript host calls them. Native Rust/C/Wasm execution, source types and wire formats are unchanged; existing calls acquire no implicit conversion. Containers are detached. Cycles, getters, undefined, functions, class instances and sparse arrays reject rather than being silently coerced. Inputs must be stable plain data; Proxy traps are not sandboxed.
+
+Finite Numbers and BigInts can enter this boundary. On return, the default Number policy rejects overflow or decimal precision loss. Use `toJS(value, {numbers: 'bigint'})` for exact integers, or `{numbers: 'string'}` to retain every numeric token as a string. JSON has no separate BigInt tag, and ordinary JavaScript objects need not preserve JSON member order or number spelling. The [complete boundary contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/json-and-portable-values.md#plain-objects-at-the-javascript-boundary) covers accepted properties and resource limits.
+
+Text remains a separate entry point when the input really is JSON. `JsonCodec.parse` preserves exact numeric tokens; schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.
 
 ```js
 import {JsonCodec, valueCodecs, callBinary} from './documents.mjs';

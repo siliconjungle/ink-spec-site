@@ -1,8 +1,20 @@
 import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
 import {resolve} from 'node:path';
-const {JsonCodec,TypedJsonCodec,callBinary,callCompact,valueCodecs}=await import(pathToFileURL(resolve(process.argv[2])).href);
+const {JsonCodec,TypedJsonCodec,callBinary,callCompact,callOwned,valueCodecs}=await import(pathToFileURL(resolve(process.argv[2])).href);
 const documents=new JsonCodec(valueCodecs.identity.result);
+const host={title:'hello',unknown:{items:[true,null,3]}},expected={received:true,...host};
+const document=documents.fromJS(host),owned=callOwned('mark_received',[document]);
+assert.deepEqual(documents.toJS(owned.Ok),expected);
+for(const [codec,call] of [[valueCodecs.mark_received,callBinary],[{arguments:valueCodecs.mark_received.arguments.compact(),result:valueCodecs.mark_received.result.compact()},callCompact]]){
+ const request=codec.arguments.encode({document}),result=codec.result.decode(call('mark_received',request));
+ assert.deepEqual(documents.toJS(result.Ok),expected);
+}
+host.unknown.items[0]=false;assert.equal(documents.toJS(owned.Ok).unknown.items[0],true);
+const big=documents.fromJS({id:9007199254740993n});
+assert.throws(()=>documents.toJS(big),/precision/);
+assert.deepEqual(documents.toJS(big,{numbers:'bigint'}),{id:9007199254740993n});
+assert.throws(()=>documents.fromJS({missing:undefined}));
 for(const text of ['{}','{"title":null,"unknown":[123456789012345678901234567890,1e10000]}','{"__proto__":"safe"}']){
  const bytes=documents.parseBinary(text),codecs=valueCodecs.mark_received;
  const request=codecs.arguments.encodeWith(w=>w.frame(()=>w.bytes(bytes.subarray(40))));
