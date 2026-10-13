@@ -84,6 +84,18 @@ The native proof-authoring path now offers an explicit `shared-v2` Boolean circu
 
 [Compiled layouts, experiments and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#compiled-record-elision-217237) · [Shared circuits, trust scope and open tests](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/shared-bit-circuits.md)
 
+## Captured private values
+
+The compiled JavaScript module now offers typed opaque handles through `compiledValues` and `callCompiled`. Capture validates and owns the input once; subsequent calls retain the private representation. Materialize an owned public value only when needed, or encode the handle directly for transport. Binary calls also use literal private readers and writers. These boundaries apply to general first-order Ink values.
+
+In three fresh-process cohorts, a captured 512-field document edit with a complete detached output takes **36.536 µs** versus **104.964 µs** for the paired Frontier lane: **2.87× faster**. Initial capture is excluded from those hot calls and reported separately: approximately **2.8 ms** for Ink’s validation/capture/conversion versus **45 µs** for Frontier’s clone. Retaining a private output takes 3.283 µs, but that is a different output contract and has no matched Frontier win claim.
+
+The selected layout’s full binary text pipeline remains 797.950 µs, and its logical text pipeline 830.311 µs. The end-to-end Frontier goal remains open. Workload profiles must account for setup, reuse, retained memory and the chosen output boundary.
+
+The frozen ten-program quick corpus compiles all programs and admits alternatives for seven, but selects none at the default evidence gates. Quick budgets defer the new layout family. Interleaving recipe stages and allowing the balanced budget discovers two record-layout proposals and admits them on the unchanged `compact-set` program; this proves discovery and admission, not profitability.
+
+[Captured-value APIs and trust scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/private-record-layouts.md#captured-private-value-boundaries) · [Bound benchmarks and corpus receipts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#captured-private-values-and-literal-binary-calls-242247)
+
 ## Measure your application
 
 Start with the unchanged source and a baseline built by the same compiler. Keep development inputs separate from evaluation inputs. Check returned values, errors, events and snapshots before timing; consume the complete output during timing.

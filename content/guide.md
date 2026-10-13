@@ -234,3 +234,19 @@ The standalone [editor repository](https://github.com/siliconjungle/ink-environm
 Ink's compiler, optimisation knowledge, planner, lowerers, runtime, ABI, native support, editor, documentation site and Lean exporter are MIT licensed. Bundled dependencies, fonts and research data retain their own licences and notices.
 
 [MIT license](./ink-license.txt) · [Language repository](https://github.com/siliconjungle/ink-lang) · [Editor repository](https://github.com/siliconjungle/ink-environment) · [Design and ambitions](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/vision.md)
+
+## Keep values in compiled storage
+
+A compiled JavaScript module exposes typed opaque values. Capture a logical input once or decode an agreed-schema binary value, call functions with the handle, and encode the result directly for transport. The handle owns its private data and rejects foreign or mismatched types. Public materialization returns detached mutable containers.
+
+```javascript
+import {compiledValues, callCompiled, JsonCodec, valueCodecs} from './documents.mjs';
+const json = new JsonCodec(valueCodecs.identity.result);
+const input = compiledValues.mark_received.params[0];
+const document = input.decodeCompact(json.parseCompact(text));
+const result = callCompiled('mark_received', [document]);
+const bytes = compiledValues.mark_received.result.encodeCompact(result);
+const logical = compiledValues.mark_received.result.materialize(result);
+```
+
+Capture and decoding costs belong in the workload profile. Private outputs, detached public outputs and encoded outputs have different costs. State actions retain their separate capture and transaction APIs.

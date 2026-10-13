@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
 import {resolve} from 'node:path';
-const {JsonCodec,TypedJsonCodec,callBinary,callCompact,callOwned,valueCodecs}=await import(pathToFileURL(resolve(process.argv[2])).href);
+const {JsonCodec,TypedJsonCodec,callBinary,callCompact,callOwned,valueCodecs,compiledValues,callCompiled}=await import(pathToFileURL(resolve(process.argv[2])).href);
 const documents=new JsonCodec(valueCodecs.identity.result);
 const host={title:'hello',unknown:{items:[true,null,3]}},expected={received:true,...host};
 const document=documents.fromJS(host),owned=callOwned('mark_received',[document]);
@@ -37,3 +37,9 @@ for(const text of ['{}','{"title":null,"unknown":[123456789012345678901234567890
 }
 assert.throws(()=>documents.parse('{"x":1,"x":2}'));
 console.log('Published JSON flow preserves exact numbers and unknown fields, and rejects duplicate names and malformed binary.');
+
+const privateInput=compiledValues.mark_received.params[0];
+const privateDoc=privateInput.decodeCompact(documents.parseCompact(JSON.stringify({title:'hello',unknown:{items:[true,null,3]}})));
+const privateReply=callCompiled('mark_received',[privateDoc]);
+assert.deepEqual(documents.toJS(compiledValues.mark_received.result.materialize(privateReply).Ok),documents.toJS(owned.Ok));
+assert.deepEqual(compiledValues.mark_received.result.encodeCompact(privateReply),valueCodecs.mark_received.result.compact().encode(owned));
