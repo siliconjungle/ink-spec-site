@@ -1043,4 +1043,4 @@ This interface makes the architecture implementable in stages without claiming t
 
 The executable-core V5 extension adds ordered parallel mapping, affine buffer
 partitions/rejoining and guarded unsigned/list self recursion. Exact semantics
-and target limits are specified in [the extension](https://github.com/siliconjungle/ink-lang/blob/e61ae630c5f91cf935cb6726d170820cbbacddf6/docs/bend-inspired.md).
+and target limits are specified in [the extension](https://github.com/siliconjungle/ink-lang/blob/970378ff154d3e02ab059320e62bd2e6ecd6b59d/docs/parallel-execution.md).
