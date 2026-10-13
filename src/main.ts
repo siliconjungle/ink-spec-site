@@ -46,6 +46,8 @@ async function measuredPanels() {
     { naturalWidth: number; code: HTMLElement }
   >();
   for (const panel of document.querySelectorAll<HTMLElement>(".code-panel")) {
+    // Dynamic/wrapped output keeps native CSS sizing; its text changes after loading.
+    if (panel.hasAttribute("data-native-wrap")) continue;
     const code = panel.querySelector("code");
     if (!code) continue;
     const prepared = prepareWithSegments(
