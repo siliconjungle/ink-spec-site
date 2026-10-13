@@ -125,7 +125,7 @@ ink compile prices.ink --optimise knowledge --target rust \
 ink compile prices.ink --plan prices.rs.planning.json --target rust -o replayed.rs
 ```
 
-The first command records the selected chain and search receipt. Frozen replay checks the proof packet without rediscovering it. More search can find better alternatives; it does not guarantee a global optimum. Missing comparable lifecycle measurements retains the baseline.
+The first command records the selected chain and search receipt. Frozen replay checks the proof packet without rediscovering it. More search can find better alternatives; it does not guarantee a global optimum. Ordinary selection retains the baseline without comparable lifecycle evidence. An explicitly supplied experimental work model can predict pure-call gains, subject to its separate guards.
 
 [Search, planning and physical strategies](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/database-planning.md)
 
@@ -147,37 +147,15 @@ Eligible pure pipelines can combine **JavaScript, WebAssembly and WebGPU**. Save
 
 ## See what growing knowledge changes
 
-The proof-growth study holds a compiler fixed and adds reusable law families to typed application kernels. At 16 families, the geometric-mean speedup is 2.17× against the zero-family baseline for the designed JavaScript inputs, and 2.39× for its actual AST/mesh input cohorts. Native and Wasm gains differ; the fused GPU alternative regresses on average. These chosen kernels are not an estimate for arbitrary unseen applications.
+Two different improvements matter: finding a better algorithm and executing the chosen algorithm with less overhead. Ink measures them separately.
 
 ![Execution gains and regressions as reusable proof families grow](./proof-growth.svg)
 
-The report separates complete-call timing, compiler improvements, database-only growth, compilation cost and forced alternatives. The practical aim is to remove work and let measurements reject losing choices.
+With the compiler fixed, the 16-family proof-growth study reports 2.17× on designed JavaScript inputs and 2.39× on its actual AST/mesh cohorts. The fused GPU alternative regresses on average. A separate ten-program study combines compiler improvements and measured planning for a 1.73× geometric-mean gain over the previous default; selection alone contributes 1.29× against the updated compiler's baseline.
 
-[Sources, controls, costs and regressions](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/proof-growth-epoch3.md)
+These are specific workload results. JSON encoding has improved, while decoding, state updates, text conversion and memory still show important gaps against the Frontier controls. The experimental work model has selected only one program in its held-out validation.
 
-Fresh-process JavaScript lifecycle controls now include owned JSON trees, live
-state with acknowledged events, and retained portable/compact document buffers.
-The measured 32-document fixture retains about 3.82 MB of heap in Ink versus
-0.79 MB in Frontier; the 4096-row state fixture retains about 3.24 MB versus
-0.84 MB. These shared-host, forced-GC observations expose a datatype-storage
-gap; they are not universal ratios or exact allocation counts. Import, first use,
-construction and process peak memory are reported separately, and protocol
-differences remain explicit.
-
-[Matched lifecycle and footprint evidence](https://github.com/siliconjungle/ink-lang/blob/a6f49dc3eac9de296853b6a145f188649e508eac/reports/frontier-json-2026-10-13/README.md)
-
-The direct compact construction release retains the performance gaps. Fresh
-three-process JavaScript cohorts show detached logical output about 1.84× faster
-and compact message encoding about 1.41× faster than Frontier. Portable encoding
-is approximately tied. Compact/portable decoding takes about 1.29× / 2.18× longer,
-4096-row replacement about 3.56× longer, and JSON text editing about 4.50× longer.
-Each is a separate measured boundary, with full source preflight and explicit
-protocol/ownership controls. Direct compact construction improves the Ink
-32-document initialization phase by 1.51× while still taking 1.81× longer than
-its corresponding Frontier control. These shared-host results do not establish
-an overall or universal speed win.
-
-[Current comparison, controls and remaining gaps](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md)
+[Read the results, controls and remaining gaps](./performance.html)
 
 Private datatype layouts are being evaluated separately from compiled execution.
 Prepared-value probes reduce wrapper allocations and test guarded native-object
@@ -192,6 +170,15 @@ certificates retain their original circuit mode and bytes.
 ## What runs today
 
 Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include C, Rust, JavaScript and both Wasm paths, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.
+
+| Use | Current boundary |
+| --- | --- |
+| Embed typed state and derived results in an application | Compiled calls, atomic changes, rollback, ordered events and explicit checkpoints |
+| Compile collection and numerical computation | CPU execution across supported lowerers; a narrower pure subset can run on the GPU |
+| Explore proved alternatives to an algorithm or representation | Bounded offline search, checked evidence and separate profitability decisions |
+| Experiment in the browser | Single-file compilation, execution and explicit local target profiling |
+
+Ink remains a working prototype. Broad performance on unfamiliar applications, automatic live strategy switching and schema evolution are open work. The checker, codecs, lowerers and host toolchains are trusted implementations; accepted rewrite proofs do not establish end-to-end compiler correctness.
 
 The standalone [editor repository](https://github.com/siliconjungle/ink-environment) contains the real browser compiler and execution environment. It supports single-file programs and explicit local target profiling. Linked imports, automatic external knowledge search and native Rust execution are outside that editor's current scope. Its exact compiler and package versions are linked below; language support, proof coverage and target eligibility remain distinct.
 

@@ -326,6 +326,10 @@ Offline compilation automatically discovers compatible immutable usage recording
 
 See [observed usage and certified resources](https://github.com/siliconjungle/ink-lang/blob/08294be1f03d92693c71ad2385cce23f6ac33820/docs/proved-usage-planning.md) and [lifecycle selection](https://github.com/siliconjungle/ink-lang/blob/08294be1f03d92693c71ad2385cce23f6ac33820/reports/incremental-maintenance-selection/README.md).
 
+The Python compiled planner also supports explicitly supplied `--work-model` and `--work-workload` files. This experimental path predicts gains from deterministic work counts only when ordinary selection lacks comparable evidence. It is opt-in; timing-based decisions take precedence. Work counts cannot establish peak memory or migration costs, so a requested memory limit or nonzero migration count retains the baseline on this path.
+
+Work is averaged within each phase before applying its lifecycle frequency. Adding repeated input samples does not change the intended phase mix. Both the model's bytes and the workload's bytes are included in compiled-plan cache identity; changing either forces new planning, while a cache hit still rechecks the selected proof chain. The published work model has selected one of ten held-out programs, so broad predictive reliability remains unestablished. See [selection policy and validation](./performance.html#selection-policy).
+
 ## 14 Runtime selection
 
 Eligible pure CPU/JavaScript/GPU implementations can be selected using saved, target-bound cost profiles and request metadata. The common decision code lives in `ink-abi` and runs natively or through Wasm in the browser. Missing comparable evidence or a profile-domain miss keeps compiled CPU execution. Device failure can fall back to CPU.
@@ -472,9 +476,11 @@ The reports retain both gains and regressions. Beating a rescan does not establi
 
 The [proof-growth study](https://github.com/siliconjungle/ink-lang/blob/08294be1f03d92693c71ad2385cce23f6ac33820/docs/proof-growth-epoch3.md) holds the compiler fixed while adding reusable law families. Its chosen kernels gain on some targets and regress on others; total entry count does not predict arbitrary-program speed.
 
+[Performance evidence](./performance.html) separates database-only gains, compiler and planner improvements, JSON/state comparisons and retained memory, with the controls and limitations for each study.
+
 See [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/08294be1f03d92693c71ad2385cce23f6ac33820/BENCHMARKS.md) and [measurement methodology](https://github.com/siliconjungle/ink-lang/blob/08294be1f03d92693c71ad2385cce23f6ac33820/docs/benchmark-methodology.md) for recorded revisions, workloads and boundaries.
 
-The [Frontier state/JSON comparison](https://github.com/siliconjungle/ink-lang/blob/08294be1f03d92693c71ad2385cce23f6ac33820/reports/frontier-json-2026-10-13/README.md) reports gains for mixed state, a supplied checked read-heavy alternative and JSON edits retained in compiled form. Ordinary row replacement and JSON conversion remain slower; startup and peak-memory rankings are missing. Compact messages have a different protocol contract. The reports do not establish all-metrics superiority.
+The [Frontier state/JSON comparison](https://github.com/siliconjungle/ink-lang/blob/08294be1f03d92693c71ad2385cce23f6ac33820/reports/frontier-json-2026-10-13/README.md) reports gains for mixed state, a supplied checked read-heavy alternative and JSON edits retained in compiled form. Ordinary row replacement and JSON text conversion remain slower. Newer lifecycle controls measure startup, construction, retained memory and process peak memory separately, with substantial storage gaps in the tested fixtures. Compact messages have a different protocol contract. The reports do not establish all-metrics superiority.
 
 ## 22 Building Ink
 

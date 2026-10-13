@@ -81,6 +81,7 @@ const read = async (name) => (await readFile(new URL(`../content/${name}`, impor
 const spec = await read("spec.md");
 const reference = await read("readable-spec.md");
 const guide = await read("guide.md");
+const performance = await read("performance.md");
 const siteRevision = process.env.GITHUB_SHA || execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 function sections(markdown, numbered = false) {
@@ -101,25 +102,32 @@ fn total(xs: List<u64>) -> u64 {
 }`;
 function page(title, body, skip = "guide", landing = false) {
   return `<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink compiles state and computation together. Eligible pipelines span JavaScript, Wasm and WebGPU, with measured profiles guiding placement."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink is a typed language for state and computation, with locally checked optimisation proofs and an independently growing knowledge database. Explore the working prototype, language reference and measured results."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body${landing ? ' class="landing"' : ''}><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="${implementation.repository}/tree/${implementation.revision}">Language ${implementation.revision.slice(0, 7)}</a><a href="${environment.repository}/tree/${environment.revision}">Editor ${environment.revision.slice(0, 7)}</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
 const guideBody = `<h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
-<p>Define data, derived results and permitted changes. Ink compiles them together, with pure pipelines that can span JavaScript, WebAssembly and WebGPU.</p>
-<p>Implementation knowledge grows independently of the compiler. Rebuild the same program with more proved knowledge to discover better ways to execute it.</p>
+<p>Ink is a typed language for data and the computation around it. Define state, derived results and atomic changes, then compile them together.</p>
+<p>A separate knowledge database supplies algorithms, layouts and optimisation laws. Ink checks their proofs against your program; performance evidence guides which valid implementation to use.</p>
+<p class="status-note">Working prototype. MIT licensed. Native, JavaScript and WebAssembly execution, with eligible pure work on WebGPU.</p>
 </div>
-<nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink in your browser</a><a href="https://github.com/siliconjungle/ink-lang">Explore the code ↗</a><a href="%BASE_URL%reference.html">Read the reference</a></nav>
+<nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink</a><a href="%BASE_URL%reference.html">Language reference</a><a href="%BASE_URL%performance.html">Performance evidence</a><a href="https://github.com/siliconjungle/ink-lang">Source code</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;
 await writeFile(new URL("../index.html", import.meta.url), page("ink — state is a program", guideBody, "purpose", true));
 codeIndex = 0;
 const referenceBody = `<h1 class="reference-title">ink <span>/ reference</span></h1>
 <div class="intro"><p data-measure>The supported language: values, state, changes and compilation.</p><p>Reviewed against <a href="${implementation.repository}/tree/${implementation.revision}">published implementation ${implementation.revision.slice(0, 7)}</a>. The Ink examples on this page have been checked with the compiler. See <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a> for coverage, or the separate <a href="%BASE_URL%ink-design-draft.md" download>design draft</a> for wider proposals and historical overviews.</p></div>
-<nav class="reading-links" aria-label="Reference topics"><a href="#chapter-3">Types</a><a href="#chapter-5">State</a><a href="#chapter-8">Proofs</a><a href="#chapter-12">Knowledge</a><a href="#chapter-20">Syntax</a><a href="%BASE_URL%ink-specification.md" download>Download reference</a></nav>
+<nav class="reading-links" aria-label="Reference topics"><a href="%BASE_URL%">Introduction</a><a href="#chapter-3">Types</a><a href="#chapter-5">State</a><a href="#chapter-8">Proofs</a><a href="#chapter-13">Selection</a><a href="#chapter-20">Syntax</a><a href="%BASE_URL%ink-specification.md" download>Download reference</a></nav>
 <div id="specification" class="chapters">${sections(reference, true)}</div>`;
 await writeFile(new URL("../reference.html", import.meta.url), page("ink — language reference", referenceBody, "specification"));
+codeIndex = 0;
+const performanceBody = `<h1 class="reference-title">ink <span>/ performance</span></h1>
+<div class="intro"><p>Less work, measured at the boundary that matters.</p><p>Published results include wins, regressions and the cost of getting started. A checked optimisation preserves meaning within its admitted domain; its speed still depends on the program, inputs and target.</p><p class="status-note">Evidence acquired 13 October 2026. The current planner fixes are correctness and selection-policy changes, not a new timing study.</p></div>
+<nav class="reading-links" aria-label="Performance topics"><a href="%BASE_URL%">Introduction</a><a href="#compiler-and-planner">Compiler and planner</a><a href="#json-and-state">JSON and state</a><a href="#selection-policy">Selection policy</a><a href="%BASE_URL%reference.html">Reference</a></nav>
+<div id="performance" class="chapters">${sections(performance)}</div>`;
+await writeFile(new URL('../performance.html', import.meta.url), page('ink — performance evidence', performanceBody, 'performance'));
 const jsonBody=`<h1 class="reference-title">ink <span>/ JSON flow</span></h1>
 <div class="intro"><p>JSON at the boundary. Compiled values between computers.</p><p>This runs the published <code>mark_received</code> Ink function. It preserves unfamiliar fields and exact numeric tokens. The relay validates and passes the binary buffer onward.</p></div>
 <nav class="reading-links" aria-label="JSON resources"><a href="%BASE_URL%#json-across-boundaries">Read the guide</a><a href="%BASE_URL%documents.ink">Download the source</a><a href="${implementation.repository}/blob/${implementation.revision}/docs/json-and-portable-values.md">Representation contract</a></nav>

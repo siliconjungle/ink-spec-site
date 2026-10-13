@@ -1,6 +1,6 @@
 # Ink documentation
 
-[Live site](https://siliconjungle.github.io/ink-spec-site/) · [Language reference](https://siliconjungle.github.io/ink-spec-site/reference.html)
+[Live site](https://siliconjungle.github.io/ink-spec-site/) · [Language reference](https://siliconjungle.github.io/ink-spec-site/reference.html) · [Performance evidence](https://siliconjungle.github.io/ink-spec-site/performance.html)
 
 A concise introduction to compiling state and computation together, with a runnable price-table example, its JavaScript interface and an explanation of reusable optimisation knowledge. The 25-topic implementation reference, implementation status and benchmark evidence stay linked from the front page. Wider proposals and historical overviews are kept in a separate design-draft download.
 
@@ -26,6 +26,7 @@ npm run preview
 
 - `content/guide.md`: state/JavaScript examples, reusable optimisation knowledge and current scope on the front page; the opening copy lives in `scripts/generate.mjs`.
 - `content/readable-spec.md`: supported-language reference, reviewed against the published compiler revision; unsupported proposals are identified explicitly.
+- `content/performance.md`: separately attributed compiler/planner, fixed-compiler knowledge, JSON/state and lifecycle results, plus current selection policy. Historical measurements keep their original evidence boundaries.
 - `content/spec.md`: committed compiler draft, with absolute links for the download.
 - `content/implementation.json`: exact published distribution used for the reference review and synced draft.
 - `content/environment.json`: independently versioned editor, with the same distribution revision. The workflow reads this pin; installation checks built provenance.
@@ -59,7 +60,7 @@ Pushes to `main` run `.github/workflows/pages.yml`, which builds, checks and dep
 npm run build:pages
 ```
 
-`dist-pages/` uses `/ink-spec-site/` as its base. The two HTML entry points, fonts, scripts and downloads work under that path. Local `dist/` remains a separate root-path preview. Vite's entry points are defined in `vite.config.ts`.
+`dist-pages/` uses `/ink-spec-site/` as its base. The introduction, reference, performance evidence and JSON flow entry points, fonts, scripts and downloads work under that path. Local `dist/` remains a separate root-path preview. Vite's entry points are defined in `vite.config.ts`.
 
 The [browser environment](https://siliconjungle.github.io/ink-spec-site/environment/)
 is built from the exact `ink-environment` revision pinned in the Pages workflow.
