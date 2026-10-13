@@ -106,6 +106,16 @@ The frozen ten-program quick corpus compiles all programs and admits alternative
 
 [Captured-value APIs and trust scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/private-record-layouts.md#captured-private-value-boundaries) · [Bound benchmarks and corpus receipts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#fused-external-capture-254259)
 
+## Follow-up controls
+
+Three processes now interleave previous and candidate state modules within each process. Prepared replacement takes 0.709 µs previous versus 0.695 µs candidate, while Frontier takes 0.436 µs. The candidate regresses in one process; ordinary replacement also shows no consistent gain. The reusable-cell/flat-event-buffer and direct table-call experiments were removed. These measurements support no new state-speed claim.
+
+An ownership correction preserves same-sort aliases within one detached state reply, including recursive schema paths, while retaining separate memo keys for different erased source records. It shares no mutable containers with state or another invocation. The full JavaScript, JSON/maintained-state parity and cache/subscription checks pass.
+
+A separate planning-engine study on an Apple M4 Pro retains selective database queries, search-local derived costs and lazy negative matching. Wide search falls from 15.212 s to 1.232 s over seven paired runs with identical output digests. Matching-heavy controls are essentially unchanged and one small broad-query control loses slightly. This measures planning overhead, not compiled application execution; its ratios should not be multiplied by JavaScript runtime gains.
+
+[Rejected state experiments and ownership controls](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#state-controller-controls-260271) · [Planning engine protocol and tradeoffs](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/pipeline-work-2026-10-14/README.md)
+
 ## Measure your application
 
 Start with the unchanged source and a baseline built by the same compiler. Keep development inputs separate from evaluation inputs. Check returned values, errors, events and snapshots before timing; consume the complete output during timing.
