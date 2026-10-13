@@ -138,6 +138,17 @@ The report separates complete-call timing, compiler improvements, database-only 
 
 [Sources, controls, costs and regressions](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/proof-growth-epoch3.md)
 
+Fresh-process JavaScript lifecycle controls now include owned JSON trees, live
+state with acknowledged events, and retained portable/compact document buffers.
+The measured 32-document fixture retains about 3.82 MB of heap in Ink versus
+0.79 MB in Frontier; the 4096-row state fixture retains about 3.24 MB versus
+0.84 MB. These shared-host, forced-GC observations expose a datatype-storage
+gap; they are not universal ratios or exact allocation counts. Import, first use,
+construction and process peak memory are reported separately, and protocol
+differences remain explicit.
+
+[Matched lifecycle and footprint evidence](https://github.com/siliconjungle/ink-lang/blob/a6f49dc3eac9de296853b6a145f188649e508eac/reports/frontier-json-2026-10-13/README.md)
+
 ## What runs today
 
 Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include C, Rust, JavaScript and both Wasm paths, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.
