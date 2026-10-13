@@ -11,7 +11,7 @@ if (!compiler) throw Error('Usage: node scripts/check-reference.mjs /path/to/ink
 const directory = await mkdtemp(join(tmpdir(), 'ink-reference-'));
 let checked = 0;
 try {
-  for (const file of ['guide.md', 'readable-spec.md']) {
+  for (const file of ['home.md', 'guide.md', 'readable-spec.md']) {
     const text = await readFile(new URL(`../content/${file}`, import.meta.url), 'utf8');
     for (const match of text.matchAll(/```ink\n([\s\S]*?)\n```/g)) {
       const source = match[1];
@@ -51,7 +51,7 @@ try {
         assert.equal(owned.scores[0], 3);
         assert.equal(received.scores[0], 3);
       }
-      if (file === 'guide.md' && checked === 1) {
+      if (source.startsWith('module prices;')) {
         const {createState} = await import(pathToFileURL(modulePath).href);
         const state = createState();
         const setPrice = state.bind('set_price');

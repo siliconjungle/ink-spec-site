@@ -24,7 +24,8 @@ npm run preview
 
 ## Edit and sync
 
-- `content/guide.md`: state/JavaScript examples, reusable optimisation knowledge and current scope on the front page; the opening copy lives in `scripts/generate.mjs`.
+- `content/home.md`: concise language introduction and two small examples on the front page; the opening copy lives in `scripts/generate.mjs`.
+- `content/guide.md`: the detailed application, JavaScript/JSON, optimisation and target guide at `guide.html`. Previous homepage section links redirect here when their sections have moved.
 - `content/readable-spec.md`: supported-language reference, reviewed against the published compiler revision; unsupported proposals are identified explicitly.
 - `content/performance.md`: separately attributed compiler/planner, fixed-compiler knowledge, JSON/state and lifecycle results, plus current selection policy. Historical measurements keep their original evidence boundaries.
 - `content/spec.md`: committed compiler draft, with absolute links for the download.
@@ -60,7 +61,7 @@ Pushes to `main` run `.github/workflows/pages.yml`, which builds, checks and dep
 npm run build:pages
 ```
 
-`dist-pages/` uses `/ink-spec-site/` as its base. The introduction, reference, performance evidence and JSON flow entry points, fonts, scripts and downloads work under that path. Local `dist/` remains a separate root-path preview. Vite's entry points are defined in `vite.config.ts`.
+`dist-pages/` uses `/ink-spec-site/` as its base. The introduction, guide, reference, performance evidence and JSON flow entry points, fonts, scripts and downloads work under that path. Local `dist/` remains a separate root-path preview. Vite's entry points are defined in `vite.config.ts`.
 
 The [browser environment](https://siliconjungle.github.io/ink-spec-site/environment/)
 is built from the exact `ink-environment` revision pinned in the Pages workflow.

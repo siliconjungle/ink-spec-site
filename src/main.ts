@@ -8,6 +8,20 @@ import {
 } from "@chenglou/pretext";
 import { panelWidth, codeViewport, needsScroll, textHeight } from "./layout";
 
+// Preserve links to detailed sections that moved off the homepage.
+const guideAnchors = document.getElementById("guide-anchors");
+if (guideAnchors) {
+  const moved: string[] = JSON.parse(guideAnchors.textContent ?? "[]");
+  const followGuideLink = () => {
+    const anchor = location.hash.slice(1);
+    if (moved.includes(anchor) && !document.getElementById(anchor)) {
+      location.replace(new URL(`guide.html#${anchor}`, location.href).href);
+    }
+  };
+  followGuideLink();
+  window.addEventListener("hashchange", followGuideLink);
+}
+
 const announcer = document.getElementById("copy-status");
 for (const button of document.querySelectorAll<HTMLButtonElement>(
   "[data-copy]",

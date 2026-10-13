@@ -81,6 +81,7 @@ const read = async (name) => (await readFile(new URL(`../content/${name}`, impor
 const spec = await read("spec.md");
 const reference = await read("readable-spec.md");
 const guide = await read("guide.md");
+const home = await read("home.md");
 const performance = await read("performance.md");
 const siteRevision = process.env.GITHUB_SHA || execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -107,15 +108,22 @@ function page(title, body, skip = "guide", landing = false) {
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="${implementation.repository}/tree/${implementation.revision}">Language ${implementation.revision.slice(0, 7)}</a><a href="${environment.repository}/tree/${environment.revision}">Editor ${environment.revision.slice(0, 7)}</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
-const guideBody = `<h1 id="ink-title">ink</h1>
+const homeBody = `<h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
 <p>Ink is a typed language for data and the computation around it. Define state, derived results and atomic changes, then compile them together.</p>
-<p>A separate knowledge database supplies algorithms, layouts and optimisation laws. Ink checks their proofs against your program; performance evidence guides which valid implementation to use.</p>
-<p class="status-note">Working prototype. MIT licensed. Native, JavaScript and WebAssembly execution, with eligible pure work on WebGPU.</p>
+<p>Write what should stay true. Let reusable, proof-checked knowledge offer better ways to run it.</p>
+<p class="status-note">Open source. MIT licensed. Working prototype.</p>
 </div>
-<nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink</a><a href="%BASE_URL%reference.html">Language reference</a><a href="%BASE_URL%performance.html">Performance evidence</a><a href="https://github.com/siliconjungle/ink-lang">Source code</a></nav>
+<nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink</a><a href="%BASE_URL%guide.html">Read the guide</a><a href="https://github.com/siliconjungle/ink-lang">Source code</a></nav>
+<div id="guide" class="chapters">${sections(home)}</div>
+<script type="application/json" id="guide-anchors">${JSON.stringify([...guide.matchAll(/^## (.+)$/gm)].map(m => slug(m[1])))}</script>`;
+await writeFile(new URL("../index.html", import.meta.url), page("ink — state is a program", homeBody, "purpose", true));
+codeIndex = 0;
+const guideBody = `<h1 class="reference-title">ink <span>/ guide</span></h1>
+<div class="intro"><p>From a small stateful program to application boundaries and proof-checked optimisation.</p></div>
+<nav class="reading-links" aria-label="Guide topics"><a href="%BASE_URL%">Introduction</a><a href="#bring-it-into-your-app">Embedding Ink</a><a href="#javascript-values-without-json">JavaScript values</a><a href="#json-across-boundaries">JSON</a><a href="%BASE_URL%reference.html">Reference</a><a href="%BASE_URL%performance.html">Performance</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;
-await writeFile(new URL("../index.html", import.meta.url), page("ink — state is a program", guideBody, "purpose", true));
+await writeFile(new URL("../guide.html", import.meta.url), page("ink — guide", guideBody));
 codeIndex = 0;
 const referenceBody = `<h1 class="reference-title">ink <span>/ reference</span></h1>
 <div class="intro"><p data-measure>The supported language: values, state, changes and compilation.</p><p>Reviewed against <a href="${implementation.repository}/tree/${implementation.revision}">published implementation ${implementation.revision.slice(0, 7)}</a>. The Ink examples on this page have been checked with the compiler. See <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a> for coverage, or the separate <a href="%BASE_URL%ink-design-draft.md" download>design draft</a> for wider proposals and historical overviews.</p></div>
@@ -130,14 +138,14 @@ const performanceBody = `<h1 class="reference-title">ink <span>/ performance</sp
 await writeFile(new URL('../performance.html', import.meta.url), page('ink — performance evidence', performanceBody, 'performance'));
 const jsonBody=`<h1 class="reference-title">ink <span>/ JSON flow</span></h1>
 <div class="intro"><p>JSON at the boundary. Compiled values between computers.</p><p>This runs the published <code>mark_received</code> Ink function. It preserves unfamiliar fields and exact numeric tokens. The relay validates and passes the binary buffer onward.</p></div>
-<nav class="reading-links" aria-label="JSON resources"><a href="%BASE_URL%#json-across-boundaries">Read the guide</a><a href="%BASE_URL%documents.ink">Download the source</a><a href="${implementation.repository}/blob/${implementation.revision}/docs/json-and-portable-values.md">Representation contract</a></nav>
+<nav class="reading-links" aria-label="JSON resources"><a href="%BASE_URL%guide.html#json-across-boundaries">Read the guide</a><a href="%BASE_URL%documents.ink">Download the source</a><a href="${implementation.repository}/blob/${implementation.revision}/docs/json-and-portable-values.md">Representation contract</a></nav>
 <section class="chapter" id="json-flow"><h2>Keep the value compiled</h2><div class="prose"><label for="json-input">Input JSON</label><textarea id="json-input" spellcheck="false" rows="7">{"title":"hello","unknown":{"amount":123456789012345678901234567890,"scale":1e10000},"nullable":null}</textarea><label><input type="checkbox" id="json-compact"> Use compact transport with a shared schema</label><button type="button" id="json-run">Run the compiled flow</button><p id="json-status" role="status" aria-live="polite">Loading the compiled program…</p><div class="code-panel" data-native-wrap><pre aria-label="Output JSON"><code id="json-output"></code></pre></div><p>The path is parse → binary request → validated relay → compiled modification → binary reply → JSON output. This demo stays in your browser; an application supplies its own network transport.</p><p>Compact transport omits per-message schema hashes and frame lengths. Both peers must agree on the exact argument/result schemas and transport version before using it. Portable transport identifies the schema in every message.</p><p>Compiled calls materialize target values. This demonstrates portable binary interoperability, without claiming zero-copy execution or a measured speedup.</p></div></section>`;
 await writeFile(new URL('../json.html',import.meta.url),page('ink — JSON and compiled values',jsonBody,'json-flow').replace('</body>','<script type="module" src="/src/json-demo.ts"></script></body>'));
 await mkdir(new URL("../public", import.meta.url), { recursive: true });
 await writeFile(new URL("../public/ink-specification.md", import.meta.url), `# Ink implementation reference\n\nReviewed against [published implementation ${implementation.revision.slice(0, 7)}](${implementation.repository}/tree/${implementation.revision}). This describes supported behaviour; wider proposals and historical overviews are in the [separate design draft](https://siliconjungle.github.io/ink-spec-site/ink-design-draft.md).\n\n${reference}`);
 await writeFile(new URL("../public/ink-design-draft.md", import.meta.url), spec);
 await writeFile(new URL("../public/totals.ink", import.meta.url), hello + "\n");
-const prices = guide.match(/```ink\n([\s\S]*?)\n```/)?.[1];
+const prices = home.match(/```ink\n([\s\S]*?)\n```/)?.[1];
 if (!prices) throw new Error("Missing homepage program.");
 await writeFile(new URL("../public/prices.ink", import.meta.url), prices + "\n");
 await writeFile(new URL("../public/build-info.json", import.meta.url), JSON.stringify({
