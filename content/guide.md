@@ -179,6 +179,16 @@ an overall or universal speed win.
 
 [Current comparison, controls and remaining gaps](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md)
 
+Private datatype layouts are being evaluated separately from compiled execution.
+Prepared-value probes reduce wrapper allocations and test guarded native-object
+sequences, compact scalar tags and templates learned from usage. These probes
+are not selected compiler implementations and do not establish an overall speed
+win. An explicit shared Boolean-circuit mode now reduces proof-generation cost;
+48 bounded tagged-word equations replay through the normal checker. Existing
+certificates retain their original circuit mode and bytes.
+
+[Versioned circuit scope, evidence and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/shared-bit-circuits.md)
+
 ## What runs today
 
 Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include C, Rust, JavaScript and both Wasm paths, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.
