@@ -133,6 +133,8 @@ fn move(p: Point, dx: f32) -> Point {
 
 Type aliases, type/constant parameters and payload enums are supported through bounded elaboration. Generic applications use explicit arguments, such as `identity<u32>(7)`. Payload enums use the existing record/sum wire encoding; their host values are not a new variant-labelled JSON format.
 
+`std:json` supplies an ordinary recursive `Json` datatype with Null, Boolean, Number, Text, Array and Object variants. Number stores its exact JSON token; object members are ordered source values. Constructors, accessors, field replacement/removal and projection live in the knowledge library. Checked text adapters reject duplicate keys, invalid number tokens and malformed Unicode. Missing is `None`; present null is `Some(Json.Null)`.
+
 `Nat`, packed `Bytes`, `f64`, the other integer widths, a general dependent `Prop`/`Proof` value language remain design proposals. Source specifications and invariants create checked obligations; database properties can justify erased computations and physical capacity hints. `Set<T>` is an external library alias with normalising operations, rather than a built-in invariant-bearing type. See [generic language foundations](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/generic-language-foundations.md) for instantiation, wire and resource limits.
 
 Fixed-width `+`, `-` and `*` wrap; `checked_add`, `checked_sub` and `checked_mul` return an overflow result instead. `Int` arithmetic is exact. Conversions are explicit. Scalar `f32` comparisons use IEEE rules, while stored aggregate equality compares contained float bits, including signed zeros and NaN payloads.
@@ -390,6 +392,8 @@ await restored.restore(saved);
 
 Pure functions are exported through `functions.name(...args)` and dynamic `call(name, args)`. `u64` results are BigInt; JSON hosts must encode them explicitly. Ordinary state modules export `createState()`. Deterministic scalar keeps retain results across unchanged dependencies; admitted compiled representations can use other proved maintenance algorithms. Resolve a typed entry once with `state.bind(name)`; `{ resultOnly: true }` returns its result while preserving transactions and the committed outbox. Typed bound scalar inputs are a caller obligation, and composite inputs/results retain their ownership contracts.
 
+Generated JavaScript modules also export `ValueCodec`, `JsonCodec`, `TypedJsonCodec`, `valueCodecs` and `callBinary(name, bytes)`. The schema-bound `ink-value-wire-v1` format transports ordinary declared values as binary buffers, preserving exact Int/word values and raw f32 bits. JSON conversion is a separate, fallible boundary. Native C/Rust expose `State::call_binary`; the optional C/Wasm export is `lang_call_binary`, with `StateInstance.pureBinary` on Wasm hosts. Rust borrowed validation can inspect and relay bytes without building a document tree. Structural validation alone does not establish a source precondition. [JSON and portable values](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/json-and-portable-values.md) defines schemas, limits, number policies and the trust boundary.
+
 `choose`, Boolean short-circuiting and `at_or` have lazy branches. Option/Result argument evaluation follows each operation's contract; for example, action `ok_or` evaluates its fallback eagerly. See [JavaScript](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/javascript-backend.md), [target parity](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/lowering-parity.md), [binary32 semantics](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/numerical-state.md) and [ordered work](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/bend-inspired.md).
 
 ## 19 Modules and commands
@@ -405,7 +409,7 @@ fn limited(n: u32) -> u32 {
 }
 ```
 
-Top-level declarations are accessible through their import namespace. Concrete root functions with public value signatures are host entry points; uninstantiated templates and owned Buffer/Map helpers are excluded from the public value interface. The optional `pub` spelling does not provide general private visibility; `private state` has its explicit importing-module boundary. Import cycles, alias shadowing and missing declarations are rejected. Network package resolution and private exports are not implemented.
+Top-level declarations are accessible through their import namespace. `std:json` embeds the distribution's pinned knowledge library. The browser editor remains a single-file compiler; the [JSON flow demo](./json.html) runs a precompiled linked program. Concrete root functions with public value signatures are host entry points; uninstantiated templates and owned Buffer/Map helpers are excluded from the public value interface. The optional `pub` spelling does not provide general private visibility; `private state` has its explicit importing-module boundary. Import cycles, alias shadowing and missing declarations are rejected. Network package resolution and private exports are not implemented.
 
 Useful current commands include:
 

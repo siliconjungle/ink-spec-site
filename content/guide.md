@@ -50,6 +50,38 @@ console.log(total()); // 105n
 
 Your app supplies inputs and reads results. Ink owns typed state and its computation. Typed bound calls resolve an entry once; scalar arguments must use the correct carrier, including BigInt for `u64`. Ordinary `invoke(name, args)` remains available with its checked input and full result envelope. Returning only a result still preserves rollback, versions and committed events.
 
+## JSON across boundaries
+
+JSON can enter Ink, become a compiled value, change, and travel as binary bytes. A server can validate and forward those bytes; conversion back to JSON is needed only at a consumer that wants JSON.
+
+```ink
+module documents;
+import "std:json" as json;
+
+fn mark_received(document: json.Json) -> Result<json.Json, json.JsonError> {
+    return json.set(document, "received", json.boolean(true));
+}
+fn identity(document: json.Json) -> json.Json { return document; }
+```
+
+`Json` is an ordinary recursive datatype from the pinned knowledge library. It supports arbitrary nested objects and arrays, exact numeric tokens, missing-versus-null lookup, updates and projection. General schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.
+
+```js
+import {JsonCodec, valueCodecs, callBinary} from './documents.mjs';
+
+const documents = new JsonCodec(valueCodecs.identity.result);
+const document = documents.parse('{"title":"hello","unknown":1e10000}');
+const request = valueCodecs.mark_received.arguments.encode({document});
+// An external network layer can carry request and reply unchanged.
+const reply = callBinary('mark_received', request);
+const result = valueCodecs.mark_received.result.decode(reply);
+console.log(documents.stringify(result.Ok));
+```
+
+The portable binary format binds a declared schema and validates lengths, types and resource bounds. Rust also offers borrowed validation without constructing a document tree. Networking stays outside Ink. Compiled calls currently materialize target values, and Wasm boundaries copy buffers; this is not a zero-copy or speedup claim. Dynamic JSON runs on CPU hosts.
+
+[Try the compiled JSON flow](./json.html) · [Download the source](./documents.ink) · [JSON and portable value contracts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/json-and-portable-values.md)
+
 ## Teach Ink a better way
 
 Algorithms, storage layouts and transformation laws live in a separate knowledge database. Ink checks a proposed optimisation's proofs against the actual program. Measurements choose among valid alternatives.

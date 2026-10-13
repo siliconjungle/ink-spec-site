@@ -120,6 +120,11 @@ const referenceBody = `<h1 class="reference-title">ink <span>/ reference</span><
 <nav class="reading-links" aria-label="Reference topics"><a href="#chapter-3">Types</a><a href="#chapter-5">State</a><a href="#chapter-8">Proofs</a><a href="#chapter-12">Knowledge</a><a href="#chapter-20">Syntax</a><a href="%BASE_URL%ink-specification.md" download>Download reference</a></nav>
 <div id="specification" class="chapters">${sections(reference, true)}</div>`;
 await writeFile(new URL("../reference.html", import.meta.url), page("ink — language reference", referenceBody, "specification"));
+const jsonBody=`<h1 class="reference-title">ink <span>/ JSON flow</span></h1>
+<div class="intro"><p>JSON at the boundary. Compiled values between computers.</p><p>This runs the published <code>mark_received</code> Ink function. It preserves unfamiliar fields and exact numeric tokens. The relay validates and passes the binary buffer onward.</p></div>
+<nav class="reading-links" aria-label="JSON resources"><a href="%BASE_URL%#json-across-boundaries">Read the guide</a><a href="%BASE_URL%documents.ink">Download the source</a><a href="${implementation.repository}/blob/${implementation.revision}/docs/json-and-portable-values.md">Representation contract</a></nav>
+<section class="chapter" id="json-flow"><h2>Keep the value compiled</h2><div class="prose"><label for="json-input">Input JSON</label><textarea id="json-input" spellcheck="false" rows="7">{"title":"hello","unknown":{"amount":123456789012345678901234567890,"scale":1e10000},"nullable":null}</textarea><button type="button" id="json-run">Run the compiled flow</button><p id="json-status" role="status" aria-live="polite">Loading the compiled program…</p><div class="code-panel"><pre aria-label="Output JSON"><code id="json-output"></code></pre></div><p>The path is parse → binary request → validated relay → compiled modification → binary reply → JSON output. This demo stays in your browser; an application supplies its own network transport.</p><p>Compiled calls materialize target values. This demonstrates portable binary interoperability, without claiming zero-copy execution or a measured speedup.</p></div></section>`;
+await writeFile(new URL('../json.html',import.meta.url),page('ink — JSON and compiled values',jsonBody,'json-flow').replace('</body>','<script type="module" src="/src/json-demo.ts"></script></body>'));
 await mkdir(new URL("../public", import.meta.url), { recursive: true });
 await writeFile(new URL("../public/ink-specification.md", import.meta.url), `# Ink implementation reference\n\nReviewed against [published implementation ${implementation.revision.slice(0, 7)}](${implementation.repository}/tree/${implementation.revision}). This describes supported behaviour; wider proposals and historical overviews are in the [separate design draft](https://siliconjungle.github.io/ink-spec-site/ink-design-draft.md).\n\n${reference}`);
 await writeFile(new URL("../public/ink-design-draft.md", import.meta.url), spec);
@@ -132,6 +137,9 @@ await writeFile(new URL("../public/build-info.json", import.meta.url), JSON.stri
   environment,
 }, null, 2) + "\n");
 await writeFile(new URL('../public/ink-license.txt', import.meta.url), await readFile(new URL('../LICENSE', import.meta.url), 'utf8'));
+const documents=guide.match(/```ink\n(module documents;[\s\S]*?)\n```/)?.[1];
+if(!documents)throw Error('Missing JSON program');
+await writeFile(new URL('../public/documents.ink',import.meta.url),documents+'\n');
 console.log("Generated the Ink introduction, 25-topic implementation reference and separate pinned design draft.");
 
 const notices = [];

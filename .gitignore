@@ -9,3 +9,7 @@ public/build-info.json
 .environment-build/
 
 .language-check/
+
+public/json-demo.mjs
+public/json-demo.mjs.manifest.json
+public/json-demo.mjs.plan.json

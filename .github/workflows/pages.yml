@@ -66,6 +66,10 @@ jobs:
           cargo build --locked --manifest-path .environment-build/compiler/Cargo.toml --bin ink-browser-check
           cargo build --locked --manifest-path .language-check/Cargo.toml --bin ink
           npm run check:reference -- .environment-build/compiler/target/debug/ink-browser-check .language-check/target/debug/ink
+      - name: Compile and execute the pinned JSON flow
+        run: |
+          .language-check/target/debug/ink build public/documents.ink --target javascript -o dist-pages/json-demo.mjs
+          node scripts/check-json.mjs dist-pages/json-demo.mjs
       - name: Build the environment
         working-directory: .environment-build
         run: npm run build

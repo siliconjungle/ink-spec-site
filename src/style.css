@@ -365,3 +365,8 @@ td:first-child {
   height: auto;
   margin: 1.5rem 0;
 }
+
+#json-input {display:block;width:100%;box-sizing:border-box;margin:.75rem 0 1rem;padding:1rem;font:inherit;line-height:1.55;color:var(--ink,#ddd);background:transparent;border:1px solid currentColor;border-radius:4px;resize:vertical;}
+#json-run {font:inherit;color:inherit;background:transparent;border:1px solid currentColor;padding:.65rem 1rem;cursor:pointer;}
+#json-run:disabled {opacity:.5;cursor:wait;}
+#json-output {white-space:pre-wrap;overflow-wrap:anywhere;}
