@@ -2,7 +2,7 @@
 
 Every result needs a baseline. Adding knowledge to a fixed compiler, improving the compiler itself and comparing with another library answer different questions. Their speedup factors should not be multiplied together.
 
-The results below are published experiments from 13 October 2026. Each report retains its acquired source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.
+The results below retain separate published experiments from 13–14 October 2026. Each report retains its acquired source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.
 
 ## Compiler and planner
 
@@ -30,7 +30,7 @@ Native Rust and Rust-Wasm ratios are 1.10× and 1.08× at that checkpoint. The f
 
 ## JSON and state
 
-The latest published compact-construction release compares separate boundaries against Frontier. Results are medians of three fresh-process medians on a shared Node 26.1 / Apple M2 host, with complete-output preflight and rotated timing rounds. Time is in microseconds per call; lower is better.
+An earlier compact-construction release compares separate boundaries against Frontier. Results are medians of three fresh-process medians on a shared Node 26.1 / Apple M2 host, with complete-output preflight and rotated timing rounds. Time is in microseconds per call; lower is better.
 
 | Boundary | Ink | Frontier | Comparison |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@ Current planner safeguards include:
 
 A checked physical plan can now remove single-field record wrappers in compiled JavaScript. In three fresh-process cohorts, the selected 4,096-row state retains 2.33 MB versus ordinary Ink’s 3.24 MB: 28.3% less heap. Replacement takes 2.32 µs versus 2.85 µs, an 18.4% reduction. Frontier still wins at approximately 0.7 µs and 0.84 MB. Public JSON trees keep their logical format and do not gain this memory reduction.
 
-Selecting the layout across the whole module makes logical JSON calls slower because they convert inputs and reconstruct outputs. Detached edits take 328 µs with elision versus 37 µs with ordinary Ink and 101 µs with Frontier. The previous Ink release rerun also takes about 36 µs, so the older 53-to-37 µs comparison does not establish a new compiler speedup. These are explicit alternatives, not an unconditional default. Private captured-value and wire boundaries remain integration work.
+Selecting the layout across the whole module makes logical JSON calls slower because they convert inputs and reconstruct outputs. Detached edits take 328 µs with elision versus 37 µs with ordinary Ink and 101 µs with Frontier. The previous Ink release rerun also takes about 36 µs, so the older 53-to-37 µs comparison does not establish a new compiler speedup. These are explicit alternatives, not an unconditional default. Private captured-value and wire boundaries are now supported; their separate measurements appear below.
 
 Earlier flattened-sum, tagged-word and dictionary probes remain isolated carrier experiments. They do not establish compiled action or transaction performance. The measured modules precede the concurrent JavaScript object-adapter addition; reports retain their exact bytes and scope.
 
@@ -88,13 +88,23 @@ The native proof-authoring path now offers an explicit `shared-v2` Boolean circu
 
 The compiled JavaScript module now offers typed opaque handles through `compiledValues` and `callCompiled`. Capture validates and owns the input once; subsequent calls retain the private representation. Materialize an owned public value only when needed, or encode the handle directly for transport. Binary calls also use literal private readers and writers. These boundaries apply to general first-order Ink values.
 
-In three fresh-process cohorts, a captured 512-field document edit with a complete detached output takes **36.536 µs** versus **104.964 µs** for the paired Frontier lane: **2.87× faster**. Initial capture is excluded from those hot calls and reported separately: approximately **2.8 ms** for Ink’s validation/capture/conversion versus **45 µs** for Frontier’s clone. Retaining a private output takes 3.283 µs, but that is a different output contract and has no matched Frontier win claim.
+The latest paired cohort compares exact previous and fused-capture modules with the same source, physical plan, ABI and benchmark. Three fresh processes per implementation alternate on the shared Node 26.1 / Apple M2 host.
+
+| Boundary | Previous Ink µs | Current Ink µs | Paired Frontier µs |
+| --- | ---: | ---: | ---: |
+| Warm capture of three typed arguments | 580.693 | 89.770 | 23.159 (document clone only) |
+| Capture, edit and detached owned output | 616.112 | 124.542 | 126.854 |
+| Prepared edit and detached owned output | 36.139 | 36.482 | 103.290 |
+
+Literal validation, ownership and private conversion now run in one traversal, making warm capture **6.47× faster** and the capture/edit/output lifecycle **4.95× faster** than the paired previous module. Prepared owned execution is **2.83× faster** than Frontier. The fresh-input lifecycle is close to Frontier on this fixture; its small difference is not a robust win. Ink validates its typed logical input while Frontier clones a native document without matching validation, and neither ingress lane includes JSON parsing.
+
+Cold codec construction takes 571 → 418 µs; first capture after construction takes 2,660 → 1,619 µs. Cold import takes 11.1 → 11.9 ms with additional literal helper code. These are separate single observations per process, aggregated across three processes. Earlier initial-capture figures included lazy codec construction and should not be pooled with this split. Private-only or encoded outputs remain different boundaries, with no matched Frontier win claimed.
 
 The selected layout’s full binary text pipeline remains 797.950 µs, and its logical text pipeline 830.311 µs. The end-to-end Frontier goal remains open. Workload profiles must account for setup, reuse, retained memory and the chosen output boundary.
 
 The frozen ten-program quick corpus compiles all programs and admits alternatives for seven, but selects none at the default evidence gates. Quick budgets defer the new layout family. Interleaving recipe stages and allowing the balanced budget discovers two record-layout proposals and admits them on the unchanged `compact-set` program; this proves discovery and admission, not profitability.
 
-[Captured-value APIs and trust scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/private-record-layouts.md#captured-private-value-boundaries) · [Bound benchmarks and corpus receipts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#captured-private-values-and-literal-binary-calls-242247)
+[Captured-value APIs and trust scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/private-record-layouts.md#captured-private-value-boundaries) · [Bound benchmarks and corpus receipts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#fused-external-capture-254259)
 
 ## Measure your application
 

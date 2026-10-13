@@ -4,7 +4,7 @@
 <div class="intro"><p>Less work, measured at the boundary that matters.</p><p>Published results include wins, regressions and the cost of getting started. A checked optimisation preserves meaning within its admitted domain; its speed still depends on the program, inputs and target.</p><p class="status-note">Evidence acquired 13 October 2026. The current planner fixes are correctness and selection-policy changes, not a new timing study.</p></div>
 <nav class="reading-links" aria-label="Performance topics"><a href="%BASE_URL%">Introduction</a><a href="#compiler-and-planner">Compiler and planner</a><a href="#json-and-state">JSON and state</a><a href="#selection-policy">Selection policy</a><a href="%BASE_URL%reference.html">Reference</a></nav>
 <div id="performance" class="chapters"><section class="chapter" id="read-the-comparisons" aria-labelledby="title-read-the-comparisons"><h2 id="title-read-the-comparisons">Read the comparisons</h2><div class="prose"><p>Every result needs a baseline. Adding knowledge to a fixed compiler, improving the compiler itself and comparing with another library answer different questions. Their speedup factors should not be multiplied together.</p>
-<p>The results below are published experiments from 13 October 2026. Each report retains its acquired source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.</p>
+<p>The results below retain separate published experiments from 13–14 October 2026. Each report retains its acquired source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.</p>
 </div></section>
 <section class="chapter" id="compiler-and-planner" aria-labelledby="title-compiler-and-planner"><h2 id="title-compiler-and-planner">Compiler and planner</h2><div class="prose"><p>The frozen planning corpus contains ten programs. Selection uses development inputs; evaluation uses 24 separate inputs per program spanning sizes and distributions. The JavaScript harness uses paired, interleaved timing and checks the outputs.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
@@ -32,14 +32,14 @@
 </tr>
 </tbody></table>
 </div><p>These averages include regressions. The same-compiler comparison reports 39 robust gains and eight robust losses across its evaluation cells. Small compact-set inputs lose despite gains at larger sizes, and sequence-every shows a small overall regression. The corpus is ten small programs on one JavaScript host, not a forecast for arbitrary applications.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2/bench/planning-corpus/results-measured-2026-10-13.md">Corpus protocol, per-program results and regressions</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2/docs/in-place-reuse.md">Ownership analysis and in-place appends</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/f7a1c09742c2bb35533d606b704246acd4297710/bench/planning-corpus/results-measured-2026-10-13.md">Corpus protocol, per-program results and regressions</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/f7a1c09742c2bb35533d606b704246acd4297710/docs/in-place-reuse.md">Ownership analysis and in-place appends</a></p>
 </div></section>
 <section class="chapter" id="knowledge-with-the-compiler-fixed" aria-labelledby="title-knowledge-with-the-compiler-fixed"><h2 id="title-knowledge-with-the-compiler-fixed">Knowledge with the compiler fixed</h2><div class="prose"><p>The separate proof-growth experiment adds reusable law families without changing the compiler during the study. At 16 families it reports 2.17× geometric-mean speedup on designed JavaScript inputs and 2.39× on its actual AST/mesh cohorts, relative to zero families.</p>
 <p><img src="./proof-growth.svg" alt="Execution gains and regressions as reusable proof families grow"></p>
 <p>Native Rust and Rust-Wasm ratios are 1.10× and 1.08× at that checkpoint. The fused GPU cohort is 0.79× and therefore slower on average. These are selected kernels with their stated boundaries; entry count alone does not predict useful optimisation coverage.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2/docs/proof-growth-epoch3.md">Fixed-compiler sources, controls and costs</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/f7a1c09742c2bb35533d606b704246acd4297710/docs/proof-growth-epoch3.md">Fixed-compiler sources, controls and costs</a></p>
 </div></section>
-<section class="chapter" id="json-and-state" aria-labelledby="title-json-and-state"><h2 id="title-json-and-state">JSON and state</h2><div class="prose"><p>The latest published compact-construction release compares separate boundaries against Frontier. Results are medians of three fresh-process medians on a shared Node 26.1 / Apple M2 host, with complete-output preflight and rotated timing rounds. Time is in microseconds per call; lower is better.</p>
+<section class="chapter" id="json-and-state" aria-labelledby="title-json-and-state"><h2 id="title-json-and-state">JSON and state</h2><div class="prose"><p>An earlier compact-construction release compares separate boundaries against Frontier. Results are medians of three fresh-process medians on a shared Node 26.1 / Apple M2 host, with complete-output preflight and rotated timing rounds. Time is in microseconds per call; lower is better.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
 <thead>
 <tr>
@@ -118,20 +118,50 @@
 <p><a href="https://github.com/siliconjungle/ink-planner/blob/5dd9523c5f5b97df517c12b610d5ba126dc785cf/docs/work-model.md">Work-model protocol and held-out results</a> · <a href="./reference.html#chapter-13">Selection reference</a></p>
 </div></section>
 <section class="chapter" id="research-under-evaluation" aria-labelledby="title-research-under-evaluation"><h2 id="title-research-under-evaluation">Research under evaluation</h2><div class="prose"><p>A checked physical plan can now remove single-field record wrappers in compiled JavaScript. In three fresh-process cohorts, the selected 4,096-row state retains 2.33 MB versus ordinary Ink’s 3.24 MB: 28.3% less heap. Replacement takes 2.32 µs versus 2.85 µs, an 18.4% reduction. Frontier still wins at approximately 0.7 µs and 0.84 MB. Public JSON trees keep their logical format and do not gain this memory reduction.</p>
-<p>Selecting the layout across the whole module makes logical JSON calls slower because they convert inputs and reconstruct outputs. Detached edits take 328 µs with elision versus 37 µs with ordinary Ink and 101 µs with Frontier. The previous Ink release rerun also takes about 36 µs, so the older 53-to-37 µs comparison does not establish a new compiler speedup. These are explicit alternatives, not an unconditional default. Private captured-value and wire boundaries remain integration work.</p>
+<p>Selecting the layout across the whole module makes logical JSON calls slower because they convert inputs and reconstruct outputs. Detached edits take 328 µs with elision versus 37 µs with ordinary Ink and 101 µs with Frontier. The previous Ink release rerun also takes about 36 µs, so the older 53-to-37 µs comparison does not establish a new compiler speedup. These are explicit alternatives, not an unconditional default. Private captured-value and wire boundaries are now supported; their separate measurements appear below.</p>
 <p>Earlier flattened-sum, tagged-word and dictionary probes remain isolated carrier experiments. They do not establish compiled action or transaction performance. The measured modules precede the concurrent JavaScript object-adapter addition; reports retain their exact bytes and scope.</p>
 <p>The native proof-authoring path now offers an explicit <code>shared-v2</code> Boolean circuit encoding alongside the unchanged default <code>literal-v1</code>. A representative obligation shrinks from 78,828 clauses to 1,763. This reduces proof construction costs; it does not establish a compiled-program speedup or authorise a new datatype layout. The report also records two baseline hardening-test failures that remain open.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2/reports/frontier-json-2026-10-13/README.md#compiled-record-elision-217237">Compiled layouts, experiments and limits</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2/docs/shared-bit-circuits.md">Shared circuits, trust scope and open tests</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/f7a1c09742c2bb35533d606b704246acd4297710/reports/frontier-json-2026-10-13/README.md#compiled-record-elision-217237">Compiled layouts, experiments and limits</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/f7a1c09742c2bb35533d606b704246acd4297710/docs/shared-bit-circuits.md">Shared circuits, trust scope and open tests</a></p>
 </div></section>
 <section class="chapter" id="captured-private-values" aria-labelledby="title-captured-private-values"><h2 id="title-captured-private-values">Captured private values</h2><div class="prose"><p>The compiled JavaScript module now offers typed opaque handles through <code>compiledValues</code> and <code>callCompiled</code>. Capture validates and owns the input once; subsequent calls retain the private representation. Materialize an owned public value only when needed, or encode the handle directly for transport. Binary calls also use literal private readers and writers. These boundaries apply to general first-order Ink values.</p>
-<p>In three fresh-process cohorts, a captured 512-field document edit with a complete detached output takes <strong>36.536 µs</strong> versus <strong>104.964 µs</strong> for the paired Frontier lane: <strong>2.87× faster</strong>. Initial capture is excluded from those hot calls and reported separately: approximately <strong>2.8 ms</strong> for Ink’s validation/capture/conversion versus <strong>45 µs</strong> for Frontier’s clone. Retaining a private output takes 3.283 µs, but that is a different output contract and has no matched Frontier win claim.</p>
+<p>The latest paired cohort compares exact previous and fused-capture modules with the same source, physical plan, ABI and benchmark. Three fresh processes per implementation alternate on the shared Node 26.1 / Apple M2 host.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th align="right">Previous Ink µs</th>
+<th align="right">Current Ink µs</th>
+<th align="right">Paired Frontier µs</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Warm capture of three typed arguments</td>
+<td align="right">580.693</td>
+<td align="right">89.770</td>
+<td align="right">23.159 (document clone only)</td>
+</tr>
+<tr>
+<td>Capture, edit and detached owned output</td>
+<td align="right">616.112</td>
+<td align="right">124.542</td>
+<td align="right">126.854</td>
+</tr>
+<tr>
+<td>Prepared edit and detached owned output</td>
+<td align="right">36.139</td>
+<td align="right">36.482</td>
+<td align="right">103.290</td>
+</tr>
+</tbody></table>
+</div><p>Literal validation, ownership and private conversion now run in one traversal, making warm capture <strong>6.47× faster</strong> and the capture/edit/output lifecycle <strong>4.95× faster</strong> than the paired previous module. Prepared owned execution is <strong>2.83× faster</strong> than Frontier. The fresh-input lifecycle is close to Frontier on this fixture; its small difference is not a robust win. Ink validates its typed logical input while Frontier clones a native document without matching validation, and neither ingress lane includes JSON parsing.</p>
+<p>Cold codec construction takes 571 → 418 µs; first capture after construction takes 2,660 → 1,619 µs. Cold import takes 11.1 → 11.9 ms with additional literal helper code. These are separate single observations per process, aggregated across three processes. Earlier initial-capture figures included lazy codec construction and should not be pooled with this split. Private-only or encoded outputs remain different boundaries, with no matched Frontier win claimed.</p>
 <p>The selected layout’s full binary text pipeline remains 797.950 µs, and its logical text pipeline 830.311 µs. The end-to-end Frontier goal remains open. Workload profiles must account for setup, reuse, retained memory and the chosen output boundary.</p>
 <p>The frozen ten-program quick corpus compiles all programs and admits alternatives for seven, but selects none at the default evidence gates. Quick budgets defer the new layout family. Interleaving recipe stages and allowing the balanced budget discovers two record-layout proposals and admits them on the unchanged <code>compact-set</code> program; this proves discovery and admission, not profitability.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2/docs/private-record-layouts.md#captured-private-value-boundaries">Captured-value APIs and trust scope</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2/reports/frontier-json-2026-10-13/README.md#captured-private-values-and-literal-binary-calls-242247">Bound benchmarks and corpus receipts</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/f7a1c09742c2bb35533d606b704246acd4297710/docs/private-record-layouts.md#captured-private-value-boundaries">Captured-value APIs and trust scope</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/f7a1c09742c2bb35533d606b704246acd4297710/reports/frontier-json-2026-10-13/README.md#fused-external-capture-254259">Bound benchmarks and corpus receipts</a></p>
 </div></section>
 <section class="chapter" id="measure-your-application" aria-labelledby="title-measure-your-application"><h2 id="title-measure-your-application">Measure your application</h2><div class="prose"><p>Start with the unchanged source and a baseline built by the same compiler. Keep development inputs separate from evaluation inputs. Check returned values, errors, events and snapshots before timing; consume the complete output during timing.</p>
 <p>Include the phases your application pays for: compilation, startup, construction, calls, copying, transfers, migration, retained memory and teardown. Repeat in fresh processes and retain losing results. A faster warm query may not repay an index&#39;s setup and write costs, and a faster GPU kernel may lose once transfers are included.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2/BENCHMARKS.md">Benchmark inventory</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2/STATUS.md">Current implementation status</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/f7a1c09742c2bb35533d606b704246acd4297710/BENCHMARKS.md">Benchmark inventory</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/f7a1c09742c2bb35533d606b704246acd4297710/STATUS.md">Current implementation status</a></p>
 </div></section></div>
-<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/2a8e4271e1fc496f49282ef74b81a3640ce2d8d2">Language 2a8e427</a><a href="https://github.com/siliconjungle/ink-environment/tree/d56fb3675293e8eef35832ae1cefb80c31cfae5c">Editor d56fb36</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
+<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/f7a1c09742c2bb35533d606b704246acd4297710">Language f7a1c09</a><a href="https://github.com/siliconjungle/ink-environment/tree/97786296fd2bb7c70b9bf0a868b07942a34abb81">Editor 9778629</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>
