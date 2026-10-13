@@ -78,7 +78,7 @@ const result = valueCodecs.mark_received.result.decode(reply);
 console.log(documents.stringify(result.Ok));
 ```
 
-The portable binary format binds a declared schema and validates lengths, types and resource bounds. JavaScript binds validation and visitation operations to the immutable schema once, while retaining complete checks. Rust also offers borrowed validation without constructing a document tree. Networking stays outside Ink. Compiled calls currently materialize target values, and Wasm boundaries copy buffers; this is not a zero-copy or speedup claim. Dynamic JSON runs on CPU hosts.
+The portable binary format binds a declared schema and validates lengths, types and resource bounds. JavaScript binds validation and visitation operations to the immutable schema once, while retaining complete checks. Compiler-derived codecs can then materialize validated bytes with literal typed readers; runtime-defined schemas keep the generic decoder. Rust also offers borrowed validation without constructing a document tree. Networking stays outside Ink. Compiled calls currently materialize target values, and Wasm boundaries copy buffers; this is not a zero-copy or speedup claim. Dynamic JSON runs on CPU hosts.
 
 JavaScript `callOwned` returns a detached logical result for callers using the same stable, well-typed inputs as a plain pure call. `ValueCodec.capture` validates and owns external logical values in one pass; `ValueCodec.copy` requires already valid values. Resource bounds apply to copying, and ordinary pure calls keep their existing sharing contract.
 
