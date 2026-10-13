@@ -111,7 +111,7 @@ function page(title, body, skip = "guide", landing = false) {
 const homeBody = `<h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
 <p>Ink is a typed language for data and the computation around it. Define state, derived results and atomic changes, then compile them together.</p>
-<p>Write what should stay true. Let reusable, proof-checked knowledge offer better ways to run it.</p>
+<p>Ink's planner searches a growing knowledge library, composing optimisations backed by checked proofs that preserve your program's meaning. As the library grows, those optimisations can compound: rebuilding the same code with the same compiler can produce a better implementation.</p>
 <p class="status-note">Open source. MIT licensed. Working prototype.</p>
 </div>
 <nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink</a><a href="%BASE_URL%guide.html">Read the guide</a><a href="https://github.com/siliconjungle/ink-lang">Source code</a></nav>
