@@ -39,15 +39,32 @@ console.log(total()); // 100n
 setPrice(1n, 45n);
 console.log(total()); // 105n</code></pre></div><p>Your app supplies inputs and reads results. Ink owns typed state and its computation. Typed bound calls resolve an entry once; scalar arguments must use the correct carrier, including BigInt for <code>u64</code>. Ordinary <code>invoke(name, args)</code> remains available with its checked input and full result envelope. Returning only a result still preserves rollback, versions and committed events.</p>
 </div></section>
+<section class="chapter" id="javascript-values-without-json" aria-labelledby="title-javascript-values-without-json"><h2 id="title-javascript-values-without-json">JavaScript values, without JSON</h2><div class="prose"><p>JSON text is optional. A declared Ink record accepts a matching JavaScript object; lists use arrays, strings and booleans use their usual JavaScript values, and <code>u64</code> uses BigInt. Supported typed arrays can also supply list inputs. These values can be called directly or encoded as binary without <code>JSON.stringify</code> or <code>JSON.parse</code>.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-4">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-4"><span class="tok-keyword">module</span> profiles;
+
+<span class="tok-keyword">record</span> <span class="tok-type">Profile</span> { name: <span class="tok-type">String</span>, scores: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, visits: <span class="tok-type">u64</span>, }
+<span class="tok-keyword">fn</span> <span class="tok-function">identity</span>(profile: <span class="tok-type">Profile</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Profile</span> { <span class="tok-keyword">return</span> profile; }</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-5">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-5">import {functions, valueCodecs, callOwned, callBinary} from './profiles.mjs';
+
+const profile = {name: 'Ada', scores: [3, 5], visits: 2n};
+const borrowed = functions.identity(profile); // may share the input object
+const checked = valueCodecs.identity.arguments.capture({profile});
+const owned = callOwned('identity', [checked.profile]); // detached result
+
+// Binary transport accepts the same typed JavaScript data directly.
+const request = valueCodecs.identity.arguments.encode({profile});
+const reply = callBinary('identity', request);
+const received = valueCodecs.identity.result.decode(reply);</code></pre></div><p>Direct pure functions trust stable, correctly typed inputs; they do not validate arbitrary external data. <code>capture</code> validates and owns an external logical value, and binary calls validate their byte input. <code>callOwned</code> detaches the result but does not add input validation by itself.</p>
+<p>This is typed data interchange, not serialization of arbitrary JavaScript objects. Functions, symbols, <code>undefined</code>, cyclic graphs and class behavior have no general wire representation. Prototypes, methods and shared-object identity are not preserved; <code>Date</code>, <code>Map</code> and <code>Set</code> need an explicit representation in supported Ink types.</p>
+</div></section>
 <section class="chapter" id="json-across-boundaries" aria-labelledby="title-json-across-boundaries"><h2 id="title-json-across-boundaries">JSON across boundaries</h2><div class="prose"><p>JSON can enter Ink, become a compiled value, change, and travel as binary bytes. A server can validate and forward those bytes; conversion back to JSON is needed only at a consumer that wants JSON.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-4">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-4"><span class="tok-keyword">module</span> documents;
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-6">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-6"><span class="tok-keyword">module</span> documents;
 <span class="tok-keyword">import</span> <span class="tok-string">&quot;std:json&quot;</span> as json;
 
 <span class="tok-keyword">fn</span> <span class="tok-function">mark_received</span>(document: json.<span class="tok-type">Json</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span>json.<span class="tok-type">Json</span>, json.<span class="tok-type">JsonError</span><span class="tok-operator">&gt;</span> {
     <span class="tok-keyword">return</span> json.<span class="tok-function">set</span>(document, <span class="tok-string">&quot;received&quot;</span>, json.<span class="tok-function">boolean</span>(<span class="tok-constant">true</span>));
 }
-<span class="tok-keyword">fn</span> <span class="tok-function">identity</span>(document: json.<span class="tok-type">Json</span>) <span class="tok-operator">-&gt;</span> json.<span class="tok-type">Json</span> { <span class="tok-keyword">return</span> document; }</code></pre></div><p><code>Json</code> is an ordinary recursive datatype from the pinned knowledge library. It supports arbitrary nested objects and arrays, exact numeric tokens, missing-versus-null lookup, updates and projection. General schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-5">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-5">import {JsonCodec, valueCodecs, callBinary} from './documents.mjs';
+<span class="tok-keyword">fn</span> <span class="tok-function">identity</span>(document: json.<span class="tok-type">Json</span>) <span class="tok-operator">-&gt;</span> json.<span class="tok-type">Json</span> { <span class="tok-keyword">return</span> document; }</code></pre></div><p><code>Json</code> is an ordinary recursive datatype from the pinned knowledge library. It supports arbitrary nested objects and arrays, exact numeric tokens, missing-versus-null lookup, updates and projection. It is a tagged Ink value, not a plain JavaScript object: the <code>mark_received</code> function below expects that representation, produced here by <code>JsonCodec.parse</code>. Use declared records for direct object calls as above; there is no general <code>JsonCodec.fromJS</code> adapter. General schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-7">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-7">import {JsonCodec, valueCodecs, callBinary} from './documents.mjs';
 
 const documents = new JsonCodec(valueCodecs.identity.result);
 const document = documents.parse('{&quot;title&quot;:&quot;hello&quot;,&quot;unknown&quot;:1e10000}');
@@ -64,7 +81,7 @@ compact schema validator checks the result. This is an explicit construction
 alternative: paired tests improve the 512-field numeric fixture by about 18%,
 while small and Unicode fixtures regress. Choose the boundary using comparable
 workload measurements.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-6">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-6">import {JsonCodec, valueCodecs, callCompact} from './documents.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-8">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-8">import {JsonCodec, valueCodecs, callCompact} from './documents.mjs';
 const documents = new JsonCodec(valueCodecs.identity.result);
 const document = documents.parseCompact('{&quot;title&quot;:&quot;hello&quot;}');
 const requests = valueCodecs.mark_received.arguments.compact();
@@ -79,7 +96,7 @@ const reply = callCompact('mark_received', request);</code></pre></div><p><a hre
 </div></section>
 <section class="chapter" id="plan-before-the-application-runs" aria-labelledby="title-plan-before-the-application-runs"><h2 id="title-plan-before-the-application-runs">Plan before the application runs</h2><div class="prose"><p>Search can compose a query rewrite, maintained representation, physical layout and execution route, revisiting layers while there is useful work and budget. Every step has its own checked obligations. The emitted application executes the selected plan without carrying a proof search engine.</p>
 <p>With an installed knowledge checkout:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-7">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-7">ink compile prices.ink --optimise knowledge --target rust \
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-9">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-9">ink compile prices.ink --optimise knowledge --target rust \
   --search-budget 16384 --state-limit 4096 --planning-seconds 3600 -o prices.rs
 ink compile prices.ink --plan prices.rs.planning.json --target rust -o replayed.rs</code></pre></div><p>The first command records the selected chain and search receipt. Frozen replay checks the proof packet without rediscovering it. More search can find better alternatives; it does not guarantee a global optimum. Ordinary selection retains the baseline without comparable lifecycle evidence. An explicitly supplied experimental work model can predict pure-call gains, subject to its separate guards.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/08294be1f03d92693c71ad2385cce23f6ac33820/docs/database-planning.md">Search, planning and physical strategies</a></p>

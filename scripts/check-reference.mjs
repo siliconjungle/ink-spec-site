@@ -3,6 +3,7 @@ import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
+import assert from 'node:assert/strict';
 
 const compiler = process.argv[2];
 const languageCompiler = process.argv[3];
@@ -32,6 +33,24 @@ try {
       ++checked;
       const modulePath = join(directory, `example-${checked}.mjs`);
       await writeFile(modulePath, reply.ok.javascript);
+      if (file === 'guide.md' && source.startsWith('module profiles;')) {
+        const {functions, valueCodecs, callOwned, callBinary} = await import(pathToFileURL(modulePath).href);
+        const profile = {name:'Ada', scores:[3,5], visits:2n};
+        assert.deepEqual(functions.identity(profile), profile);
+        const checked = valueCodecs.identity.arguments.capture({profile});
+        assert.notEqual(checked.profile, profile);
+        assert.notEqual(checked.profile.scores, profile.scores);
+        const owned = callOwned('identity', [checked.profile]);
+        assert.deepEqual(owned, profile);
+        assert.notEqual(owned.scores, checked.profile.scores);
+        const request = valueCodecs.identity.arguments.encode({profile});
+        const received = valueCodecs.identity.result.decode(callBinary('identity', request));
+        assert.deepEqual(received, profile);
+        assert.throws(() => valueCodecs.identity.arguments.capture({profile:{...profile, visits:-1n}}));
+        profile.scores[0] = 99;
+        assert.equal(owned.scores[0], 3);
+        assert.equal(received.scores[0], 3);
+      }
       if (file === 'guide.md' && checked === 1) {
         const {createState} = await import(pathToFileURL(modulePath).href);
         const state = createState();

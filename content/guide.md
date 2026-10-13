@@ -50,6 +50,35 @@ console.log(total()); // 105n
 
 Your app supplies inputs and reads results. Ink owns typed state and its computation. Typed bound calls resolve an entry once; scalar arguments must use the correct carrier, including BigInt for `u64`. Ordinary `invoke(name, args)` remains available with its checked input and full result envelope. Returning only a result still preserves rollback, versions and committed events.
 
+## JavaScript values, without JSON
+
+JSON text is optional. A declared Ink record accepts a matching JavaScript object; lists use arrays, strings and booleans use their usual JavaScript values, and `u64` uses BigInt. Supported typed arrays can also supply list inputs. These values can be called directly or encoded as binary without `JSON.stringify` or `JSON.parse`.
+
+```ink
+module profiles;
+
+record Profile { name: String, scores: List<u32>, visits: u64, }
+fn identity(profile: Profile) -> Profile { return profile; }
+```
+
+```js
+import {functions, valueCodecs, callOwned, callBinary} from './profiles.mjs';
+
+const profile = {name: 'Ada', scores: [3, 5], visits: 2n};
+const borrowed = functions.identity(profile); // may share the input object
+const checked = valueCodecs.identity.arguments.capture({profile});
+const owned = callOwned('identity', [checked.profile]); // detached result
+
+// Binary transport accepts the same typed JavaScript data directly.
+const request = valueCodecs.identity.arguments.encode({profile});
+const reply = callBinary('identity', request);
+const received = valueCodecs.identity.result.decode(reply);
+```
+
+Direct pure functions trust stable, correctly typed inputs; they do not validate arbitrary external data. `capture` validates and owns an external logical value, and binary calls validate their byte input. `callOwned` detaches the result but does not add input validation by itself.
+
+This is typed data interchange, not serialization of arbitrary JavaScript objects. Functions, symbols, `undefined`, cyclic graphs and class behavior have no general wire representation. Prototypes, methods and shared-object identity are not preserved; `Date`, `Map` and `Set` need an explicit representation in supported Ink types.
+
 ## JSON across boundaries
 
 JSON can enter Ink, become a compiled value, change, and travel as binary bytes. A server can validate and forward those bytes; conversion back to JSON is needed only at a consumer that wants JSON.
@@ -64,7 +93,7 @@ fn mark_received(document: json.Json) -> Result<json.Json, json.JsonError> {
 fn identity(document: json.Json) -> json.Json { return document; }
 ```
 
-`Json` is an ordinary recursive datatype from the pinned knowledge library. It supports arbitrary nested objects and arrays, exact numeric tokens, missing-versus-null lookup, updates and projection. General schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.
+`Json` is an ordinary recursive datatype from the pinned knowledge library. It supports arbitrary nested objects and arrays, exact numeric tokens, missing-versus-null lookup, updates and projection. It is a tagged Ink value, not a plain JavaScript object: the `mark_received` function below expects that representation, produced here by `JsonCodec.parse`. Use declared records for direct object calls as above; there is no general `JsonCodec.fromJS` adapter. General schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.
 
 ```js
 import {JsonCodec, valueCodecs, callBinary} from './documents.mjs';
