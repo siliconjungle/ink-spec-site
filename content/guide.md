@@ -84,6 +84,23 @@ JavaScript `callOwned` returns a detached logical result for callers using the s
 
 JavaScript also supplies `valueCodec.compact()` and `callCompact`. This optional transport omits the per-message schema hash and node frame lengths when both peers have already agreed on the exact schema identity and format. Type, Unicode, count and resource checks remain. Portable messages and state checkpoints retain their existing formats. The demo lets you try both transports.
 
+`JsonCodec.parseCompact` and `TypedJsonCodec.parseCompact` can emit agreed-schema
+bytes directly from JSON tokens, avoiding a temporary logical tree. The complete
+compact schema validator checks the result. This is an explicit construction
+alternative: paired tests improve the 512-field numeric fixture by about 18%,
+while small and Unicode fixtures regress. Choose the boundary using comparable
+workload measurements.
+
+```js
+import {JsonCodec, valueCodecs, callCompact} from './documents.mjs';
+const documents = new JsonCodec(valueCodecs.identity.result);
+const document = documents.parseCompact('{"title":"hello"}');
+const requests = valueCodecs.mark_received.arguments.compact();
+const request = requests.encodeWith(w => w.frame(() => w.bytes(document.subarray(1))));
+// Both peers negotiate the exact schema identity and transport format first.
+const reply = callCompact('mark_received', request);
+```
+
 [Try the compiled JSON flow](./json.html) · [Download the source](./documents.ink) · [JSON and portable value contracts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/json-and-portable-values.md)
 
 ## Teach Ink a better way
@@ -148,6 +165,19 @@ construction and process peak memory are reported separately, and protocol
 differences remain explicit.
 
 [Matched lifecycle and footprint evidence](https://github.com/siliconjungle/ink-lang/blob/a6f49dc3eac9de296853b6a145f188649e508eac/reports/frontier-json-2026-10-13/README.md)
+
+The direct compact construction release retains the performance gaps. Fresh
+three-process JavaScript cohorts show detached logical output about 1.84× faster
+and compact message encoding about 1.41× faster than Frontier. Portable encoding
+is approximately tied. Compact/portable decoding takes about 1.29× / 2.18× longer,
+4096-row replacement about 3.56× longer, and JSON text editing about 4.50× longer.
+Each is a separate measured boundary, with full source preflight and explicit
+protocol/ownership controls. Direct compact construction improves the Ink
+32-document initialization phase by 1.51× while still taking 1.81× longer than
+its corresponding Frontier control. These shared-host results do not establish
+an overall or universal speed win.
+
+[Current comparison, controls and remaining gaps](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md)
 
 ## What runs today
 

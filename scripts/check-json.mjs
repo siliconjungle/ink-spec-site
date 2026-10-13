@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
 import {resolve} from 'node:path';
-const {JsonCodec,callBinary,callCompact,valueCodecs}=await import(pathToFileURL(resolve(process.argv[2])).href);
+const {JsonCodec,TypedJsonCodec,callBinary,callCompact,valueCodecs}=await import(pathToFileURL(resolve(process.argv[2])).href);
 const documents=new JsonCodec(valueCodecs.identity.result);
 for(const text of ['{}','{"title":null,"unknown":[123456789012345678901234567890,1e10000]}','{"__proto__":"safe"}']){
  const bytes=documents.parseBinary(text),codecs=valueCodecs.mark_received;
@@ -13,6 +13,10 @@ for(const text of ['{}','{"title":null,"unknown":[123456789012345678901234567890
  const malformed=request.slice();malformed[40]^=255;assert.throws(()=>callBinary('mark_received',malformed));
  const ingress=codecs.arguments.compact(),egress=codecs.result.compact();
  const short=ingress.encode({document:documents.parse(text)}),before=short.slice();
+ assert.deepEqual(documents.parseCompact(text),documents.values.compact().encode(documents.parse(text)));
+ const directDocument=documents.parseCompact(text);
+ assert.deepEqual(ingress.encodeWith(w=>w.frame(()=>w.bytes(directDocument.subarray(1)))),short);
+ const typed=new TypedJsonCodec(codecs.arguments);assert.deepEqual(typed.parseCompact(typed.stringify({document:documents.parse(text)})),short);
  assert.equal(ingress.validate(short),true);const compactReply=callCompact('mark_received',short);
  assert.deepEqual(short,before);assert.deepEqual(egress.decode(compactReply),result);
  const render=new Uint8Array(40+reply.length-45);render.set(bytes.subarray(0,40));render.set(reply.subarray(45),40);
