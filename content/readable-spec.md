@@ -139,6 +139,8 @@ Type aliases, type/constant parameters and payload enums are supported through b
 
 Fixed-width `+`, `-` and `*` wrap; `checked_add`, `checked_sub` and `checked_mul` return an overflow result instead. `Int` arithmetic is exact. Conversions are explicit. Scalar `f32` comparisons use IEEE rules, while stored aggregate equality compares contained float bits, including signed zeros and NaN payloads.
 
+Core V11 supplies exact binary32 `sqrt` and division, `is_nan`/`is_finite`, named rounding (`floor`, `ceil`, `trunc`, `round_ties_even`), raw-bit reinterpretation and explicit integer/F32 conversions. Fallible float-to-integer conversions truncate before checking range and return `Option`. `popcount`, `leading_zeros` and `trailing_zeros` use the declared 32/64-bit word width. UTF-8 primitives provide byte length/access, boundary-checked slicing, concatenation and search; their coordinates are bytes. `std:math` and `std:text` supply ordinary algorithms. Bounded transcendental approximations remain explicit source functions, with tested accuracy coverage rather than universal certified error bounds. See [numerical and UTF-8 primitives](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/numeric-text-primitives.md).
+
 See [numerical state](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/numerical-state.md) and [local collections](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/local-collections.md) for detailed boundaries.
 
 ## 4 Functions
@@ -358,7 +360,7 @@ A unified editable store for code, schemas and state, unrestricted incremental c
 
 The compiler checks source and selected evidence before target emission. Backends emit the accepted computation literally and report unsupported capabilities. The independent reference evaluator remains in core.
 
-Core versions describe actual operations and contracts. Current programs may use versions through V10; the checker derives the required marker and rejects a mismatched one. V7 fixes binary32 arithmetic behaviour; V8 binds the expanded value operations, V9 binds bulk owned-buffer ranges, and V10 binds source specifications and invariants. Generic templates elaborate into concrete checked programs before encoding. Older programs retain their applicable version.
+Core versions describe actual operations and contracts. Current programs may use versions through V11; the checker derives the required marker and rejects a mismatched one. V7 fixes binary32 arithmetic behaviour; V8 binds the expanded value operations, V9 binds bulk owned-buffer ranges, V10 binds source specifications and invariants, and V11 binds the numerical and UTF-8 primitives. Generic templates elaborate into concrete checked programs before encoding. Older programs retain their applicable version.
 
 `ink-runtime` assembles artifacts and supplies host orchestration. `ink-abi` defines shared transport and decisions; `ink-native-support` supplies emitted value/storage primitives. A browser application can run precompiled code without shipping the optimiser or proof search.
 
