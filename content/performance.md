@@ -74,11 +74,15 @@ Current planner safeguards include:
 
 ## Research under evaluation
 
-Recent private-value-layout probes reduce retained memory in isolated carrier experiments, but they do not execute compiled actions or transactions. The proposed layouts are not currently admitted or selected by the compiler. They should not be compared directly with the complete Frontier lifecycle measurements above.
+A checked physical plan can now remove single-field record wrappers in compiled JavaScript. In three fresh-process cohorts, the selected 4,096-row state retains 2.33 MB versus ordinary Ink’s 3.24 MB: 28.3% less heap. Replacement takes 2.32 µs versus 2.85 µs, an 18.4% reduction. Frontier still wins at approximately 0.7 µs and 0.84 MB. Public JSON trees keep their logical format and do not gain this memory reduction.
+
+Selecting the layout across the whole module makes logical JSON calls slower because they convert inputs and reconstruct outputs. Detached edits take 328 µs with elision versus 37 µs with ordinary Ink and 101 µs with Frontier. The previous Ink release rerun also takes about 36 µs, so the older 53-to-37 µs comparison does not establish a new compiler speedup. These are explicit alternatives, not an unconditional default. Private captured-value and wire boundaries remain integration work.
+
+Earlier flattened-sum, tagged-word and dictionary probes remain isolated carrier experiments. They do not establish compiled action or transaction performance. The measured modules precede the concurrent JavaScript object-adapter addition; reports retain their exact bytes and scope.
 
 The native proof-authoring path now offers an explicit `shared-v2` Boolean circuit encoding alongside the unchanged default `literal-v1`. A representative obligation shrinks from 78,828 clauses to 1,763. This reduces proof construction costs; it does not establish a compiled-program speedup or authorise a new datatype layout. The report also records two baseline hardening-test failures that remain open.
 
-[Private-layout experiments and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#private-value-layout-probes-and-proof-infrastructure) · [Shared circuits, trust scope and open tests](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/shared-bit-circuits.md)
+[Compiled layouts, experiments and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#compiled-record-elision-217237) · [Shared circuits, trust scope and open tests](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/shared-bit-circuits.md)
 
 ## Measure your application
 
