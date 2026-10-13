@@ -13,3 +13,5 @@ public/build-info.json
 public/json-demo.mjs
 public/json-demo.mjs.manifest.json
 public/json-demo.mjs.plan.json
+
+preview*.png

@@ -185,7 +185,7 @@ fn total(xs: List<u32>) -> u32 {
 
 Owned buffers/maps support temporary mutation through consuming operations and rebinding. The checker rejects reuse after a move and captured owners consumed by repeated callbacks. `parallel_map` preserves result order; worker scheduling and grain size affect cost, not that order. Scoped `split_at` partitions share disjoint ranges; adjacent rejoining can reuse storage. Partial-range growth detaches before overlap. The consuming `fill_range(start, count, value)` clips writes to a buffer range; `copy_within(start, count, destination)` uses snapshot-copy semantics with clipped ranges. Range arithmetic does not wrap. These mechanisms do not expose mutable references or a general borrow syntax.
 
-See [checked recursion and ordered parallel work](https://github.com/siliconjungle/ink-lang/blob/970378ff154d3e02ab059320e62bd2e6ecd6b59d/docs/parallel-execution.md).
+See [checked recursion and ordered parallel work](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/parallel-execution.md).
 
 ## 5 State and changes
 
@@ -394,7 +394,13 @@ Pure functions are exported through `functions.name(...args)` and dynamic `call(
 
 Generated JavaScript modules also export `ValueCodec`, `JsonCodec`, `TypedJsonCodec`, `valueCodecs` and `callBinary(name, bytes)`. The schema-bound `ink-value-wire-v1` format transports ordinary declared values as binary buffers, preserving exact Int/word values and raw f32 bits. JSON conversion is a separate, fallible boundary. Native C/Rust expose `State::call_binary`; the optional C/Wasm export is `lang_call_binary`, with `StateInstance.pureBinary` on Wasm hosts. Rust borrowed validation can inspect and relay bytes without building a document tree. Structural validation alone does not establish a source precondition. [JSON and portable values](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/json-and-portable-values.md) defines schemas, limits, number policies and the trust boundary.
 
-`choose`, Boolean short-circuiting and `at_or` have lazy branches. Option/Result argument evaluation follows each operation's contract; for example, action `ok_or` evaluates its fallback eagerly. See [JavaScript](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/javascript-backend.md), [target parity](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/lowering-parity.md), [binary32 semantics](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/numerical-state.md) and [ordered work](https://github.com/siliconjungle/ink-lang/blob/970378ff154d3e02ab059320e62bd2e6ecd6b59d/docs/parallel-execution.md).
+JavaScript `valueCodec.compact()` creates an `ink-value-session-v1` codec, and `callCompact(name, bytes)` invokes the same pure function and preconditions. Both peers must agree on its exact schema identity and format outside the message. It omits per-message schema hashes and node frames, while retaining type, Unicode, count, byte/node/depth checks and owned results. Portable v1 messages and state checkpoints are unchanged. Native targets do not yet expose direct compact calls.
+
+`state.prepare(name, args)` captures owned inputs once and returns a private token; `state.invokePrepared(token)` still enforces preconditions, transaction outcomes and detached replies on every call. Tokens belong to one state instance. Pure `f32` execution uses native Numbers internally where the emitted plan supports them, with exact exceptional tags; public values and binary transport retain the documented raw-bit contract.
+
+Checked source-state plans can maintain U64 or Bool folds using database definitions and eight checked factorisation/group/cell obligations. Dense U32/U64 prefixes have an exact map fallback for other keys. These capabilities are currently JavaScript-only. Restore rebuilds auxiliary folds from validated rows; rollback, events, versions and checkpoint bytes retain their source contract. General single-cell and fresh-result facts also support lean action emission. See [maintained folds](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/maintained-folds.md) for admission, producer limits and host transaction/subscription contracts.
+
+`choose`, Boolean short-circuiting and `at_or` have lazy branches. Option/Result argument evaluation follows each operation's contract; for example, action `ok_or` evaluates its fallback eagerly. See [JavaScript](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/javascript-backend.md), [target parity](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/lowering-parity.md), [binary32 semantics](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/numerical-state.md) and [ordered work](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/parallel-execution.md).
 
 ## 19 Modules and commands
 
@@ -461,6 +467,8 @@ The reports retain both gains and regressions. Beating a rescan does not establi
 The [proof-growth study](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/proof-growth-epoch3.md) holds the compiler fixed while adding reusable law families. Its chosen kernels gain on some targets and regress on others; total entry count does not predict arbitrary-program speed.
 
 See [benchmark evidence](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/BENCHMARKS.md) and [measurement methodology](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/benchmark-methodology.md) for recorded revisions, workloads and boundaries.
+
+The [Frontier state/JSON comparison](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md) reports gains for mixed state, a supplied checked read-heavy alternative and JSON edits retained in compiled form. Ordinary row replacement and JSON conversion remain slower; startup and peak-memory rankings are missing. Compact messages have a different protocol contract. The reports do not establish all-metrics superiority.
 
 ## 22 Building Ink
 
