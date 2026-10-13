@@ -250,3 +250,10 @@ const logical = compiledValues.mark_received.result.materialize(result);
 ```
 
 Capture and decoding costs belong in the workload profile. Private outputs, detached public outputs and encoded outputs have different costs. State actions retain their separate capture and transaction APIs.
+
+The JavaScript planner can also propose private layouts that flatten nested sums.
+Knowledge supplies ordinary proofs in both directions; core checks the exact
+source codecs, and the backend preserves logical values, validation limits,
+ownership and checkpoint bytes. These layouts apply to general immutable values,
+including recursive trees and exact numbers. They require comparable lifecycle
+evidence for selection. See the [layout contract](https://github.com/siliconjungle/ink-lang/blob/9ebcf86315ce882aae4f3d48019d5e42dca97931/docs/private-sum-layouts.md).
