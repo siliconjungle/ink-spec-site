@@ -33,6 +33,26 @@ try {
       ++checked;
       const modulePath = join(directory, `example-${checked}.mjs`);
       await writeFile(modulePath, reply.ok.javascript);
+      if (source.startsWith('module documents;')) {
+        const {JsonCodec, valueCodecs, compiledValues, callCompiled} = await import(pathToFileURL(modulePath).href);
+        const documents = new JsonCodec(valueCodecs.identity.result);
+        const entry = compiledValues.mark_received;
+        const input = documents.parseCompiled(entry.params[0], '{"title":"hello","unknown":1e10000}');
+        for (const compact of [false,true]) {
+          const bytes = compact ? entry.params[0].encodeCompact(input) : entry.params[0].encode(input);
+          const saved = bytes.slice();
+          const restored = compact ? entry.params[0].decodeCompactFused(bytes) : entry.params[0].decodeFused(bytes);
+          assert.deepEqual(entry.params[0].materialize(restored), entry.params[0].materialize(input));
+          assert.deepEqual(bytes, saved);
+          const bad = saved.subarray(0, saved.length-1);
+          assert.throws(() => compact ? entry.params[0].decodeCompactFused(bad) : entry.params[0].decodeFused(bad));
+        }
+        const output = callCompiled('mark_received', [input]);
+        assert.equal(documents.stringifyCompiled(entry.result, output, {unwrapResult:true}), '{"received":true,"title":"hello","unknown":1e10000}');
+        assert.throws(() => documents.parseCompiled(entry.params[0], '{"x":1,"x":2}'), /duplicate/);
+        const failed = callCompiled('mark_received', [documents.parseCompiled(entry.params[0], 'null')]);
+        assert.throws(() => documents.stringifyCompiled(entry.result, failed, {unwrapResult:true}), /result is Err/);
+      }
       if (file === 'guide.md' && source.startsWith('module profiles;')) {
         const {functions, valueCodecs, callOwned, callBinary} = await import(pathToFileURL(modulePath).href);
         const profile = {name:'Ada', scores:[3,5], visits:2n};

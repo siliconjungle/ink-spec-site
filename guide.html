@@ -67,7 +67,7 @@ const input = {title: 'hello', unknown: {items: [true, null, 3]}};
 const result = callOwned('mark_received', [documents.fromJS(input)]);
 if (Object.hasOwn(result, 'Ok')) console.log(documents.toJS(result.Ok));
 // {received: true, title: 'hello', unknown: {items: [true, null, 3]}}</code></pre></div><p>These adapters run only when a JavaScript host calls them. Native Rust/C/Wasm execution, source types and wire formats are unchanged; existing calls acquire no implicit conversion. Containers are detached. Cycles, getters, undefined, functions, class instances and sparse arrays reject rather than being silently coerced. Inputs must be stable plain data; Proxy traps are not sandboxed.</p>
-<p>Finite Numbers and BigInts can enter this boundary. On return, the default Number policy rejects overflow or decimal precision loss. Use <code>toJS(value, {numbers: &#39;bigint&#39;})</code> for exact integers, or <code>{numbers: &#39;string&#39;}</code> to retain every numeric token as a string. JSON has no separate BigInt tag, and ordinary JavaScript objects need not preserve JSON member order or number spelling. The <a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/docs/json-and-portable-values.md#plain-objects-at-the-javascript-boundary">complete boundary contract</a> covers accepted properties and resource limits.</p>
+<p>Finite Numbers and BigInts can enter this boundary. On return, the default Number policy rejects overflow or decimal precision loss. Use <code>toJS(value, {numbers: &#39;bigint&#39;})</code> for exact integers, or <code>{numbers: &#39;string&#39;}</code> to retain every numeric token as a string. JSON has no separate BigInt tag, and ordinary JavaScript objects need not preserve JSON member order or number spelling. The <a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/docs/json-and-portable-values.md#plain-objects-at-the-javascript-boundary">complete boundary contract</a> covers accepted properties and resource limits.</p>
 <p>Text remains a separate entry point when the input really is JSON. <code>JsonCodec.parse</code> preserves exact numeric tokens; schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-8">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-8">import {JsonCodec, valueCodecs, callBinary} from './documents.mjs';
 
@@ -77,7 +77,23 @@ const request = valueCodecs.mark_received.arguments.encode({document});
 // An external network layer can carry request and reply unchanged.
 const reply = callBinary('mark_received', request);
 const result = valueCodecs.mark_received.result.decode(reply);
-console.log(documents.stringify(result.Ok));</code></pre></div><p>The portable binary format binds a declared schema and validates lengths, types and resource bounds. JavaScript binds validation and visitation operations to the immutable schema once, while retaining complete checks. Compiler-derived codecs can then materialize validated bytes with literal typed readers; runtime-defined schemas keep the generic decoder. Rust also offers borrowed validation without constructing a document tree. Networking stays outside Ink. Compiled calls currently materialize target values, and Wasm boundaries copy buffers; this is not a zero-copy or speedup claim. Dynamic JSON runs on CPU hosts.</p>
+console.log(documents.stringify(result.Ok));</code></pre></div><p>In a JavaScript process, opaque handles can keep values in the selected compiled
+representation between calls. Parse directly into a handle, run the compiled
+function, and render the reply when text is needed:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-9">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-9">import {JsonCodec, valueCodecs, compiledValues, callCompiled} from './documents.mjs';
+
+const documents = new JsonCodec(valueCodecs.identity.result);
+const input = documents.parseCompiled(
+  compiledValues.mark_received.params[0], '{&quot;title&quot;:&quot;hello&quot;,&quot;unknown&quot;:1e10000}');
+const reply = callCompiled('mark_received', [input]);
+console.log(documents.stringifyCompiled(
+  compiledValues.mark_received.result, reply, {unwrapResult: true}));</code></pre></div><p>The renderer preserves exact numeric tokens and member order, rejects an Err
+reply, and checks JSON validity and resource limits. Encode a handle with its
+compiled codec for network transport; receiving peers decode through their own
+codec. A JavaScript handle belongs to its module and cannot itself cross the
+network. These explicit APIs avoid intermediate logical trees, but their complete
+lifecycle costs still need measurement for the application.</p>
+<p>The portable binary format binds a declared schema and validates lengths, types and resource bounds. JavaScript binds validation and visitation operations to the immutable schema once, while retaining complete checks. Compiler-derived codecs can then materialize validated bytes with literal typed readers; runtime-defined schemas keep the generic decoder. Rust also offers borrowed validation without constructing a document tree. Networking stays outside Ink. Compiled calls currently materialize target values, and Wasm boundaries copy buffers; this is not a zero-copy or speedup claim. Dynamic JSON runs on CPU hosts.</p>
 <p>JavaScript <code>callOwned</code> returns a detached logical result for callers using the same stable, well-typed inputs as a plain pure call. <code>ValueCodec.capture</code> validates and owns external logical values in one pass; <code>ValueCodec.copy</code> requires already valid values. Resource bounds apply to copying, and ordinary pure calls keep their existing sharing contract.</p>
 <p>JavaScript also supplies <code>valueCodec.compact()</code> and <code>callCompact</code>. This optional transport omits the per-message schema hash and node frame lengths when both peers have already agreed on the exact schema identity and format. Type, Unicode, count and resource checks remain. Portable messages and state checkpoints retain their existing formats. The demo lets you try both transports.</p>
 <p><code>JsonCodec.parseCompact</code> and <code>TypedJsonCodec.parseCompact</code> can emit agreed-schema
@@ -86,33 +102,33 @@ compact schema validator checks the result. This is an explicit construction
 alternative: paired tests improve the 512-field numeric fixture by about 18%,
 while small and Unicode fixtures regress. Choose the boundary using comparable
 workload measurements.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-9">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-9">import {JsonCodec, valueCodecs, callCompact} from './documents.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-10">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-10">import {JsonCodec, valueCodecs, callCompact} from './documents.mjs';
 const documents = new JsonCodec(valueCodecs.identity.result);
 const document = documents.parseCompact('{&quot;title&quot;:&quot;hello&quot;}');
 const requests = valueCodecs.mark_received.arguments.compact();
 const request = requests.encodeWith(w =&gt; w.frame(() =&gt; w.bytes(document.subarray(1))));
 // Both peers negotiate the exact schema identity and transport format first.
-const reply = callCompact('mark_received', request);</code></pre></div><p><a href="./json.html">Try the compiled JSON flow</a> · <a href="./documents.ink">Download the source</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/docs/json-and-portable-values.md">JSON and portable value contracts</a></p>
+const reply = callCompact('mark_received', request);</code></pre></div><p><a href="./json.html">Try the compiled JSON flow</a> · <a href="./documents.ink">Download the source</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/docs/json-and-portable-values.md">JSON and portable value contracts</a></p>
 </div></section>
 <section class="chapter" id="teach-ink-a-better-way" aria-labelledby="title-teach-ink-a-better-way"><h2 id="title-teach-ink-a-better-way">Teach Ink a better way</h2><div class="prose"><p>Algorithms, storage layouts and transformation laws live in a separate knowledge database. Ink checks a proposed optimisation&#39;s proofs against the actual program. Measurements choose among valid alternatives.</p>
 <p>Knowledge can remove intermediate collections, maintain derived results, introduce indexes, select layouts or reuse immutable values. It can also supply a new typed helper algorithm that was absent from the source: for example, replace a filtered list followed by a count with a proved ordered counting loop. The helper passes ordinary type, ownership and termination checks, and an equality proof must justify its use.</p>
 <p>A new optimisation can improve the same source when rebuilt. The compiler supplies general checking and execution machinery; the database accumulates reusable ways to use it.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/docs/database-executable-extensions.md">How database-authored algorithms work</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/docs/database-executable-extensions.md">How database-authored algorithms work</a></p>
 </div></section>
 <section class="chapter" id="plan-before-the-application-runs" aria-labelledby="title-plan-before-the-application-runs"><h2 id="title-plan-before-the-application-runs">Plan before the application runs</h2><div class="prose"><p>Search can compose a query rewrite, maintained representation, physical layout and execution route, revisiting layers while there is useful work and budget. Every step has its own checked obligations. The emitted application executes the selected plan without carrying a proof search engine.</p>
 <p>With an installed knowledge checkout:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-10">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-10">ink compile prices.ink --optimise knowledge --target rust \
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-11">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-11">ink compile prices.ink --optimise knowledge --target rust \
   --search-budget 16384 --state-limit 4096 --planning-seconds 3600 -o prices.rs
 ink compile prices.ink --plan prices.rs.planning.json --target rust -o replayed.rs</code></pre></div><p>The first command records the selected chain and search receipt. Frozen replay checks the proof packet without rediscovering it. More search can find better alternatives; it does not guarantee a global optimum. Ordinary selection retains the baseline without comparable lifecycle evidence. An explicitly supplied experimental work model can predict pure-call gains, subject to its separate guards.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/docs/database-planning.md">Search, planning and physical strategies</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/docs/database-planning.md">Search, planning and physical strategies</a></p>
 </div></section>
 <section class="chapter" id="learn-from-real-usage" aria-labelledby="title-learn-from-real-usage"><h2 id="title-learn-from-real-usage">Learn from real usage</h2><div class="prose"><p>Optional recording captures call frequencies, input shapes, concurrency and lifecycle phases without storing input values. Publish those immutable observations, then compile again: planning discovers compatible recordings and uses measured complete-session costs across the observed cohorts. You do not have to invent query/update weights.</p>
 <p>Proofs establish correctness. Profiles guide profitability. A past observation cannot establish a type invariant or predict every future request. Compiled resource plans can choose capacity reservations, checked final-use releases and admission credits. Runtime credit checks still handle future overload, rejecting with <code>INK_BACKPRESSURE</code> while preserving accepted-call order.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/docs/proved-usage-planning.md">Observed usage, proved properties and resources</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/docs/proved-usage-planning.md">Observed usage, proved properties and resources</a></p>
 </div></section>
 <section class="chapter" id="split-the-work-across-targets" aria-labelledby="title-split-the-work-across-targets"><h2 id="title-split-the-work-across-targets">Split the work across targets</h2><div class="prose"><p>Eligible pure pipelines can combine <strong>JavaScript, WebAssembly and WebGPU</strong>. Saved target-bound cost profiles account for startup, data transfers and repeated use. Consecutive GPU stages can keep intermediates on the device. Stateful transactions execute on the host.</p>
 <p><a href="./environment/">Try a three-stage pipeline in the editor</a>: compile, run, then explicitly profile targets to see this browser&#39;s eligible placement. Ordinary Run does not perform profitability experiments. The editor&#39;s local placement profiles and the offline compiler&#39;s knowledge search are separate capabilities.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/docs/adaptive-execution.md">How placement works</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/docs/adaptive-execution.md">How placement works</a></p>
 </div></section>
 <section class="chapter" id="see-what-growing-knowledge-changes" aria-labelledby="title-see-what-growing-knowledge-changes"><h2 id="title-see-what-growing-knowledge-changes">See what growing knowledge changes</h2><div class="prose"><p>Two different improvements matter: finding a better algorithm and executing the chosen algorithm with less overhead. Ink measures them separately.</p>
 <p><img src="./proof-growth.svg" alt="Execution gains and regressions as reusable proof families grow"></p>
@@ -126,7 +142,7 @@ are not selected compiler implementations and do not establish an overall speed
 win. An explicit shared Boolean-circuit mode now reduces proof-generation cost;
 48 bounded tagged-word equations replay through the normal checker. Existing
 certificates retain their original circuit mode and bytes.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/docs/shared-bit-circuits.md">Versioned circuit scope, evidence and limits</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/docs/shared-bit-circuits.md">Versioned circuit scope, evidence and limits</a></p>
 </div></section>
 <section class="chapter" id="what-runs-today" aria-labelledby="title-what-runs-today"><h2 id="title-what-runs-today">What runs today</h2><div class="prose"><p>Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include C, Rust, JavaScript and both Wasm paths, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
@@ -155,19 +171,39 @@ certificates retain their original circuit mode and bytes.</p>
 </tbody></table>
 </div><p>Ink remains a working prototype. Broad performance on unfamiliar applications, automatic live strategy switching and schema evolution are open work. The checker, codecs, lowerers and host toolchains are trusted implementations; accepted rewrite proofs do not establish end-to-end compiler correctness.</p>
 <p>The standalone <a href="https://github.com/siliconjungle/ink-environment">editor repository</a> contains the real browser compiler and execution environment. It supports single-file programs and explicit local target profiling. Linked imports, automatic external knowledge search and native Rust execution are outside that editor&#39;s current scope. Its exact compiler and package versions are linked below; language support, proof coverage and target eligibility remain distinct.</p>
-<p><a href="./reference.html">Language reference</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/STATUS.md">Implementation status</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/BENCHMARKS.md">Benchmark evidence</a></p>
+<p><a href="./reference.html">Language reference</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/STATUS.md">Implementation status</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/BENCHMARKS.md">Benchmark evidence</a></p>
 </div></section>
 <section class="chapter" id="open-source" aria-labelledby="title-open-source"><h2 id="title-open-source">Open source</h2><div class="prose"><p>Ink&#39;s compiler, optimisation knowledge, planner, lowerers, runtime, ABI, native support, editor, documentation site and Lean exporter are MIT licensed. Bundled dependencies, fonts and research data retain their own licences and notices.</p>
-<p><a href="./ink-license.txt">MIT license</a> · <a href="https://github.com/siliconjungle/ink-lang">Language repository</a> · <a href="https://github.com/siliconjungle/ink-environment">Editor repository</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/392e8a1f95a32f65dc13402acd86bc3afadf6688/docs/vision.md">Design and ambitions</a></p>
+<p><a href="./ink-license.txt">MIT license</a> · <a href="https://github.com/siliconjungle/ink-lang">Language repository</a> · <a href="https://github.com/siliconjungle/ink-environment">Editor repository</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/docs/vision.md">Design and ambitions</a></p>
 </div></section>
 <section class="chapter" id="keep-values-in-compiled-storage" aria-labelledby="title-keep-values-in-compiled-storage"><h2 id="title-keep-values-in-compiled-storage">Keep values in compiled storage</h2><div class="prose"><p>A compiled JavaScript module exposes typed opaque values. Capture a logical input once or decode an agreed-schema binary value, call functions with the handle, and encode the result directly for transport. The handle owns its private data and rejects foreign or mismatched types. Public materialization returns detached mutable containers.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-11">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-11"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
+<p>The module can retain checked type facts with its private immutable handles. This allows repeated calls to avoid equivalent type-only guards; semantic <code>requires</code> clauses remain active. These facts do not prove arbitrary JSON number grammar or unique object members. The JSON boundary keeps those validations.</p>
+<p>For repeated Unicode rendering, an optional <code>createJsonQuoter()</code> from the same generated module can be passed as <code>{quoter}</code> to <code>JsonCodec.stringifyCompiled</code>. It reuses escaped strings and exact UTF-8 lengths while charging output budgets on every call. It adds retained memory and can slow cold or short sessions; choose it using comparable lifecycle measurements. <code>clear()</code> releases its entries. Binary transport and ordinary calls do not require this option.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-12">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-12"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
 const json <span class="tok-operator">=</span> new <span class="tok-type">JsonCodec</span>(valueCodecs.identity.<span class="tok-keyword">result</span>);
 const input <span class="tok-operator">=</span> compiledValues.mark_received.params[<span class="tok-number">0</span>];
 const document <span class="tok-operator">=</span> input.<span class="tok-function">decodeCompact</span>(json.<span class="tok-function">parseCompact</span>(text));
 const <span class="tok-keyword">result</span> <span class="tok-operator">=</span> <span class="tok-function">callCompiled</span>('mark_received', [document]);
 const bytes <span class="tok-operator">=</span> compiledValues.mark_received.<span class="tok-keyword">result</span>.<span class="tok-function">encodeCompact</span>(<span class="tok-keyword">result</span>);
 const logical <span class="tok-operator">=</span> compiledValues.mark_received.<span class="tok-keyword">result</span>.<span class="tok-function">materialize</span>(<span class="tok-keyword">result</span>);</code></pre></div><p>Capture and decoding costs belong in the workload profile. Private outputs, detached public outputs and encoded outputs have different costs. State actions retain their separate capture and transaction APIs.</p>
+<p>The JavaScript planner can also propose private layouts that flatten nested sums.
+Knowledge supplies ordinary proofs in both directions; core checks the exact
+source codecs, and the backend preserves logical values, validation limits,
+ownership and checkpoint bytes. These layouts apply to general immutable values,
+including recursive trees and exact numbers. They require comparable lifecycle
+evidence for selection. See the <a href="https://github.com/siliconjungle/ink-lang/blob/9ebcf86315ce882aae4f3d48019d5e42dca97931/docs/private-sum-layouts.md">layout contract</a>.</p>
+<h3>Checked reader alternatives</h3>
+<p>Opaque-value codecs expose decodeFused and decodeCompactFused alternatives that
+validate while constructing private values. They preserve typed transport
+constraints, owned results and validation diagnostics. Their profitability
+depends on the complete workload; decoding alone can improve while edit and
+encoding become slower.</p>
+<p>A checked physical plan can select these readers for a source function and
+transport format. The optimisation database proposes the choices, and automatic
+planning compares logical, portable and compact call lifecycles. Runtime
+execution follows the selected plan. The general synthetic profile is a starting
+model; observed usage profiles take precedence.</p>
+<p><a href="./performance.html#checked-wire-readers-and-automatic-boundary-planning">Measured trade-offs</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/936098ce9d1cd34738e6edb246c7c49b94840f01/docs/checked-physical-capabilities.md">Physical plan contract</a></p>
 </div></section></div>
-<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/392e8a1f95a32f65dc13402acd86bc3afadf6688">Language 392e8a1</a><a href="https://github.com/siliconjungle/ink-environment/tree/d6be7081e4d20a3a03d929b1b3d272380cd8b53e">Editor d6be708</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
+<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/936098ce9d1cd34738e6edb246c7c49b94840f01">Language 936098c</a><a href="https://github.com/siliconjungle/ink-environment/tree/4a7c1d8cf5f8080f8a32db4cdbd478f0983b65d1">Editor 4a7c1d8</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

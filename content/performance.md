@@ -59,7 +59,7 @@ Imports, construction, first use, retained buffers and process peak memory are r
 
 ## Selection policy
 
-Proof admission, target eligibility and profitability are separate gates. An implementation must preserve the required meaning and be executable on the target before cost evidence can select it. Missing comparable lifecycle evidence keeps ordinary selection on the baseline.
+Proof admission, target eligibility and profitability are separate gates. An implementation must preserve the required meaning and be executable on the target before cost evidence can select it. Missing comparable lifecycle evidence normally keeps selection on the baseline. When no profile, measurement or work model decides, a target-eligible plan consisting only of checked maintained folds may instead be selected from its asymptotic work bound. This does not establish a universal lifetime gain: construction, constant factors and retained memory still need measurement.
 
 The work-model path is an explicit experimental option in the Python compiled planner. Supply both `--work-model` and `--work-workload` to enable it. It can predict gains when ordinary selection lacks comparable evidence; it does not override a timing-based decision. Its current held-out study selected one of ten programs, with a 1.53× gain for that program. The reference-fuel model was rejected. This is narrow evidence, not established general prediction.
 
@@ -88,9 +88,9 @@ The native proof-authoring path now offers an explicit `shared-v2` Boolean circu
 
 The compiled JavaScript module now offers typed opaque handles through `compiledValues` and `callCompiled`. Capture validates and owns the input once; subsequent calls retain the private representation. Materialize an owned public value only when needed, or encode the handle directly for transport. Binary calls also use literal private readers and writers. These boundaries apply to general first-order Ink values.
 
-The latest paired cohort compares exact previous and fused-capture modules with the same source, physical plan, ABI and benchmark. Three fresh processes per implementation alternate on the shared Node 26.1 / Apple M2 host.
+The archived fused-capture cohort compares exact previous and fused-capture modules with the same source, physical plan, ABI and benchmark. Three fresh processes per implementation alternate on the shared Node 26.1 / Apple M2 host. These figures do not represent a fresh run of every later compiler revision.
 
-| Boundary | Previous Ink µs | Current Ink µs | Paired Frontier µs |
+| Boundary | Previous Ink µs | Fused-capture Ink µs | Paired Frontier µs |
 | --- | ---: | ---: | ---: |
 | Warm capture of three typed arguments | 580.693 | 89.770 | 23.159 (document clone only) |
 | Capture, edit and detached owned output | 616.112 | 124.542 | 126.854 |
@@ -100,9 +100,44 @@ Literal validation, ownership and private conversion now run in one traversal, m
 
 Cold codec construction takes 571 → 418 µs; first capture after construction takes 2,660 → 1,619 µs. Cold import takes 11.1 → 11.9 ms with additional literal helper code. These are separate single observations per process, aggregated across three processes. Earlier initial-capture figures included lazy codec construction and should not be pooled with this split. Private-only or encoded outputs remain different boundaries, with no matched Frontier win claimed.
 
-The selected layout’s full binary text pipeline remains 797.950 µs, and its logical text pipeline 830.311 µs. The end-to-end Frontier goal remains open. Workload profiles must account for setup, reuse, retained memory and the chosen output boundary.
+That archived layout measured a full binary text pipeline of 797.950 µs and a logical text pipeline of 830.311 µs. Later cohorts below use different output paths and controls; absolute timings across epochs do not establish causal speedups. The end-to-end Frontier goal remains open. Workload profiles must account for setup, reuse, retained memory and the chosen output boundary.
 
 The frozen ten-program quick corpus compiles all programs and admits alternatives for seven, but selects none at the default evidence gates. Quick budgets defer the new layout family. Interleaving recipe stages and allowing the balanced budget discovers two record-layout proposals and admits them on the unchanged `compact-set` program; this proves discovery and admission, not profitability.
+
+## Recent matched state controls
+
+Three fresh processes and nine rotated rounds compare 4,096-row replacements with complete replies, versions, ordered events, acknowledgement and exact Ink checkpoints. The ordinary protocol control retains the same admitted record/sum layouts and preflight actions. Values below are medians of process medians, in microseconds per call.
+
+| Boundary | Ink | Frontier main | Interpretation |
+| --- | ---: | ---: | --- |
+| Ordinary replacement | 2.817 | 1.224 | Ink takes about 2.3× longer |
+| Prepared replacement | 0.919 | 0.940 | Near parity; individual processes are mixed |
+
+Adding compact commit metadata and column event retention to this acknowledgement-heavy fixture produces mixed gains and regressions. It is not promoted as a default. Longer retained-event windows can benefit from a different storage choice; those are separate workloads. Shared-host variation is substantial, and these results do not establish universal latency or memory bounds.
+
+[Exact plans, samples and conformance](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/current-kernels-339-341/README.md)
+
+The newer package closure was measured again in processes 361–363. Ordinary replacement takes **2.585 µs versus Frontier 1.047 µs**, and prepared replacement **0.555 µs versus 0.575 µs**, using medians of process medians. Prepared Ink wins two processes and loses one. Against the previous Ink control ordinary calls improve 4–10%, while prepared calls regress 4–29%; the graph contains several independent changes, so these results are not attributed to the compact reader. Complete outcomes and exact snapshots pass. Unrelated compilation was active on the shared host.
+
+[Newer graph and all process results](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/current-main-state-361-363/README.md)
+
+## Fixed and adaptive execution
+
+The complete-session adaptive comparisons include capture, queueing, recording and migrations. At 128 numeric rows, adaptive Ink loses to both scanning Frontier and an explicitly maintained Frontier sum in all six tested histories. Fixed cached Ink's read-only session takes 6.16 ms versus scanning Frontier's 12.48 ms; Frontier's maintained sum takes 2.98 ms. The efficient fixed representation matters as much as the controller.
+
+A separate 4,096-row lifetime study measures 65,536 reads at 12.86 ms for fixed cached Ink, 279.19 ms for adaptive Ink and 356.44 ms for scanning Frontier. The adaptive controller eventually amortizes its cost here; shorter sessions and writes still lose. This is not evidence that adaptation is always beneficial or always harmful. These studies use supplied checked alternatives, not the best conceivable aggregate implementation.
+
+[Matched complete-session controls](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/adaptive-frontier-main-2026-10-14/README.md) · [Longer sessions and crossover evidence](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/adaptive-frontier-2026-10-14/README.md)
+
+## Optional JSON quotation reuse
+
+The JSON boundary can explicitly reuse immutable quoted strings and their exact UTF-8 lengths. It retains grammar, Unicode, duplicate, member-order, source-resource and output-byte checks. Cache entry counts and estimated payload bytes are capped; no default enables the cache.
+
+For 512-member Unicode/escape-heavy documents, three fresh processes measure about 25% less time for warm prepared rendering and 6–8% less for full text/edit/UTF-8 output. Independent 256-render sessions include cache creation, first fill, every compiled edit and full output consumption: all three take 21–24% less time than their paired uncached controls. Numeric and short-session results are mixed; cold renders are 38–40% slower on the Unicode fixture. Frontier still wins the complete text pipeline.
+
+A separate forced-GC diagnostic measures about 106 KB retained per filled cache, with 1,024 entries and about 37 KB of estimated string payload. Clearing releases the observed retained allocation. This is a speed/memory tradeoff, not a heap reduction or peak-memory guarantee. The initial runtime prototype was later matched byte-for-byte by fresh compiler emission; all losing samples remain in the report.
+
+[Cache contracts, source, lifecycle timings and memory diagnostic](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/json-quote-reuse-343-354/README.md)
 
 [Captured-value APIs and trust scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/private-record-layouts.md#captured-private-value-boundaries) · [Bound benchmarks and corpus receipts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#fused-external-capture-254259)
 
@@ -116,6 +151,34 @@ A separate planning-engine study on an Apple M4 Pro retains selective database q
 
 [Rejected state experiments and ownership controls](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/README.md#state-controller-controls-260271) · [Planning engine protocol and tradeoffs](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/pipeline-work-2026-10-14/README.md)
 
+## Direct compiled JSON rendering
+
+Generic typed reducers now let the JSON adapter render an opaque compiled handle
+without rebuilding the logical tagged tree. Three fresh processes retain exact
+outputs, source layouts, malformed-value checks and every timing lane. The table
+shows medians of process medians, in microseconds:
+
+| Fields | Prepared ordinary output | Prepared direct output | Ink direct text/edit/text | Frontier text/edit/text |
+|---:|---:|---:|---:|---:|
+| 4 | 6.050 | 2.859 | 13.269 | 0.839 |
+| 64 | 34.533 | 19.058 | 70.361 | 4.241 |
+| 512 | 220.497 | 122.717 | 451.177 | 99.612 |
+
+At 512 fields, prepared rendering improves 1.58–1.80× within each process.
+Medium and large complete pipelines improve in all three processes, but one
+small-document run regresses. Input conversion and validation remain substantial
+costs. Frontier uses native JSON on the shared finite-integer/Unicode domain;
+Ink additionally preserves exact tokens/member order and enforces its source
+resource bounds. These contracts differ, and the shared host had other builds
+running. This is an opt-in API, with no universal default or all-metrics win.
+
+The dictionary recipe's pinned database evaluation compiles all ten frozen
+programs, discovers alternatives for six and selects alternatives for four. Its
+coverage audit finds no unhandled entry roles. This establishes discovery and
+admission scope; it does not prove that every optimisation is profitable.
+
+[Rendering measurements and retained controls](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/typed-reduction.md) · [Frozen corpus and planning gates](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/dictionary-layouts-published-2026-10-14/corpus/report.md)
+
 ## Measure your application
 
 Start with the unchanged source and a baseline built by the same compiler. Keep development inputs separate from evaluation inputs. Check returned values, errors, events and snapshots before timing; consume the complete output during timing.
@@ -123,3 +186,46 @@ Start with the unchanged source and a baseline built by the same compiler. Keep 
 Include the phases your application pays for: compilation, startup, construction, calls, copying, transfers, migration, retained memory and teardown. Repeat in fresh processes and retain losing results. A faster warm query may not repay an index's setup and write costs, and a faster GPU kernel may lose once transfers are included.
 
 [Benchmark inventory](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/BENCHMARKS.md) · [Current implementation status](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/STATUS.md)
+
+## Checked wire readers and automatic boundary planning
+
+The JavaScript ABI can validate and construct an opaque compiled value in one
+traversal. The reader checks source frames, node/depth limits, scalar widths,
+tags, Unicode, canonical numeric/ID/enum text and compact counts. Invalid reads
+retain the generic validator's diagnostics. JSON number grammar and object-name
+uniqueness remain separate checks.
+
+Three fresh paired processes compare the same source and private layout:
+
+| 512-field boundary | Previous decoder µs | Fused reader µs | Per-process result |
+| --- | --- | --- | --- |
+| Compact decode | 264.192 / 345.267 / 207.442 | 103.505 / 122.053 / 86.109 | 2.41–2.83× faster |
+| Complete compact decode, edit and encode | 704.841 / 823.601 / 554.333 | 504.420 / 769.757 / 449.394 | 1.07–1.40× faster |
+
+The 64-field complete compact pipeline regresses in every process by about
+8–16%. Small inputs and portable decoding have mixed results. These measurements
+therefore do not justify a global default or a Frontier win. Exact modules,
+complete outputs, unchanged inputs and portable/compact bytes accompany the
+reports. Cleanup archive work was paused; other shared-host work remained active.
+
+The database now proposes reader choices per source function and format.
+Automatic JavaScript calibration exercises trusted, portable and compact call
+boundaries, measuring validation, execution, reply encoding and consumption of
+every output byte. Source checking remains independent of the cost decision.
+
+One automatic packet-copy compilation admitted four plans, generated 72 calls
+and selected both readers under the paired uncertainty guard. Its estimated
+candidate/baseline ratio was 0.881 with an upper bound of 0.930. Fresh proof replay
+and 48 new encoded input checks passed. This single-process synthetic selection
+result is not heldout performance evidence or a general usage forecast. Observed
+profiles take precedence; missing comparable gains retains the baseline.
+
+[Wire-reader measurements and losses](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/fused-wire-reader.md) · [Automatic selection, raw receipt and scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/reader-planning-2026-10-14/REPORT.md)
+
+## Compact reader specialization
+
+The checked compact reader now tracks depth with a counter. Portable values keep their frame-end stack; compact values still check complete-buffer bounds, node/depth limits, canonical counts, tags, Unicode and full consumption. Invalid inputs replay the independent validator for established diagnostics.
+
+Three paired fresh processes measure 11–14% less time for complete fused compact decoding and re-encoding of a 512-member document. This is an Ink-versus-Ink result, not a new Frontier ranking. The initial module used exact support substitution; fresh compiler emission later verified the identical ABI support, and its newer emitter passed full JavaScript tests and 422 additional malformed-input/resource/value checks. Complete modules differ because JavaScript main advanced independently.
+
+[Exact reader cohorts and provenance](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/compact-reader-355-360/README.md)

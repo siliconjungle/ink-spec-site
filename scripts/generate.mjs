@@ -132,7 +132,7 @@ const referenceBody = `<h1 class="reference-title">ink <span>/ reference</span><
 await writeFile(new URL("../reference.html", import.meta.url), page("ink — language reference", referenceBody, "specification"));
 codeIndex = 0;
 const performanceBody = `<h1 class="reference-title">ink <span>/ performance</span></h1>
-<div class="intro"><p>Less work, measured at the boundary that matters.</p><p>Published results include wins, regressions and the cost of getting started. A checked optimisation preserves meaning within its admitted domain; its speed still depends on the program, inputs and target.</p><p class="status-note">Evidence acquired 13 October 2026. The current planner fixes are correctness and selection-policy changes, not a new timing study.</p></div>
+<div class="intro"><p>Less work, measured at the boundary that matters.</p><p>Published results include wins, regressions and the cost of getting started. A checked optimisation preserves meaning within its admitted domain; its speed still depends on the program, inputs and target.</p><p class="status-note">Evidence acquired 13–14 October 2026. Each study binds its source revisions, workload and output boundary; later updates do not rerun earlier measurements.</p></div>
 <nav class="reading-links" aria-label="Performance topics"><a href="%BASE_URL%">Introduction</a><a href="#compiler-and-planner">Compiler and planner</a><a href="#json-and-state">JSON and state</a><a href="#selection-policy">Selection policy</a><a href="%BASE_URL%reference.html">Reference</a></nav>
 <div id="performance" class="chapters">${sections(performance)}</div>`;
 await writeFile(new URL('../performance.html', import.meta.url), page('ink — performance evidence', performanceBody, 'performance'));

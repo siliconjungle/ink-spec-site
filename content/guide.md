@@ -123,6 +123,28 @@ const result = valueCodecs.mark_received.result.decode(reply);
 console.log(documents.stringify(result.Ok));
 ```
 
+In a JavaScript process, opaque handles can keep values in the selected compiled
+representation between calls. Parse directly into a handle, run the compiled
+function, and render the reply when text is needed:
+
+```js
+import {JsonCodec, valueCodecs, compiledValues, callCompiled} from './documents.mjs';
+
+const documents = new JsonCodec(valueCodecs.identity.result);
+const input = documents.parseCompiled(
+  compiledValues.mark_received.params[0], '{"title":"hello","unknown":1e10000}');
+const reply = callCompiled('mark_received', [input]);
+console.log(documents.stringifyCompiled(
+  compiledValues.mark_received.result, reply, {unwrapResult: true}));
+```
+
+The renderer preserves exact numeric tokens and member order, rejects an Err
+reply, and checks JSON validity and resource limits. Encode a handle with its
+compiled codec for network transport; receiving peers decode through their own
+codec. A JavaScript handle belongs to its module and cannot itself cross the
+network. These explicit APIs avoid intermediate logical trees, but their complete
+lifecycle costs still need measurement for the application.
+
 The portable binary format binds a declared schema and validates lengths, types and resource bounds. JavaScript binds validation and visitation operations to the immutable schema once, while retaining complete checks. Compiler-derived codecs can then materialize validated bytes with literal typed readers; runtime-defined schemas keep the generic decoder. Rust also offers borrowed validation without constructing a document tree. Networking stays outside Ink. Compiled calls currently materialize target values, and Wasm boundaries copy buffers; this is not a zero-copy or speedup claim. Dynamic JSON runs on CPU hosts.
 
 JavaScript `callOwned` returns a detached logical result for callers using the same stable, well-typed inputs as a plain pure call. `ValueCodec.capture` validates and owns external logical values in one pass; `ValueCodec.copy` requires already valid values. Resource bounds apply to copying, and ordinary pure calls keep their existing sharing contract.
@@ -239,6 +261,10 @@ Ink's compiler, optimisation knowledge, planner, lowerers, runtime, ABI, native 
 
 A compiled JavaScript module exposes typed opaque values. Capture a logical input once or decode an agreed-schema binary value, call functions with the handle, and encode the result directly for transport. The handle owns its private data and rejects foreign or mismatched types. Public materialization returns detached mutable containers.
 
+The module can retain checked type facts with its private immutable handles. This allows repeated calls to avoid equivalent type-only guards; semantic `requires` clauses remain active. These facts do not prove arbitrary JSON number grammar or unique object members. The JSON boundary keeps those validations.
+
+For repeated Unicode rendering, an optional `createJsonQuoter()` from the same generated module can be passed as `{quoter}` to `JsonCodec.stringifyCompiled`. It reuses escaped strings and exact UTF-8 lengths while charging output budgets on every call. It adds retained memory and can slow cold or short sessions; choose it using comparable lifecycle measurements. `clear()` releases its entries. Binary transport and ordinary calls do not require this option.
+
 ```javascript
 import {compiledValues, callCompiled, JsonCodec, valueCodecs} from './documents.mjs';
 const json = new JsonCodec(valueCodecs.identity.result);
@@ -257,3 +283,19 @@ source codecs, and the backend preserves logical values, validation limits,
 ownership and checkpoint bytes. These layouts apply to general immutable values,
 including recursive trees and exact numbers. They require comparable lifecycle
 evidence for selection. See the [layout contract](https://github.com/siliconjungle/ink-lang/blob/9ebcf86315ce882aae4f3d48019d5e42dca97931/docs/private-sum-layouts.md).
+
+### Checked reader alternatives
+
+Opaque-value codecs expose decodeFused and decodeCompactFused alternatives that
+validate while constructing private values. They preserve typed transport
+constraints, owned results and validation diagnostics. Their profitability
+depends on the complete workload; decoding alone can improve while edit and
+encoding become slower.
+
+A checked physical plan can select these readers for a source function and
+transport format. The optimisation database proposes the choices, and automatic
+planning compares logical, portable and compact call lifecycles. Runtime
+execution follows the selected plan. The general synthetic profile is a starting
+model; observed usage profiles take precedence.
+
+[Measured trade-offs](./performance.html#checked-wire-readers-and-automatic-boundary-planning) · [Physical plan contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/checked-physical-capabilities.md)
