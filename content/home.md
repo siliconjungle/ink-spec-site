@@ -48,7 +48,7 @@ setPrice(2n, 60n);
 console.log(total()); // 100n
 ```
 
-Ink also targets native C, Rust and WebAssembly, with WebGPU for eligible pure computation. Use it for a focused piece of state or computation; keep the rest of your app where it is.
+Ink also targets native Rust and Rust/Wasm, with WebGPU for eligible pure computation. Use it for a focused piece of state or computation; keep the rest of your app where it is.
 
 ## Explore Ink
 

@@ -105,7 +105,7 @@ if (Object.hasOwn(result, 'Ok')) console.log(documents.toJS(result.Ok));
 // {received: true, title: 'hello', unknown: {items: [true, null, 3]}}
 ```
 
-These adapters run only when a JavaScript host calls them. Native Rust/C/Wasm execution, source types and wire formats are unchanged; existing calls acquire no implicit conversion. Containers are detached. Cycles, getters, undefined, functions, class instances and sparse arrays reject rather than being silently coerced. Inputs must be stable plain data; Proxy traps are not sandboxed.
+These adapters run only when a JavaScript host calls them. Native Rust and Rust/Wasm execution, source types and wire formats are unchanged; existing calls acquire no implicit conversion. Containers are detached. Cycles, getters, undefined, functions, class instances and sparse arrays reject rather than being silently coerced. Inputs must be stable plain data; Proxy traps are not sandboxed.
 
 Finite Numbers and BigInts can enter this boundary. On return, the default Number policy rejects overflow or decimal precision loss. Use `toJS(value, {numbers: 'bigint'})` for exact integers, or `{numbers: 'string'}` to retain every numeric token as a string. JSON has no separate BigInt tag, and ordinary JavaScript objects need not preserve JSON member order or number spelling. The [complete boundary contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/json-and-portable-values.md#plain-objects-at-the-javascript-boundary) covers accepted properties and resource limits.
 
@@ -208,7 +208,7 @@ Proofs establish correctness. Profiles guide profitability. A past observation c
 
 Eligible pure pipelines can combine **JavaScript, WebAssembly and WebGPU**. Saved target-bound cost profiles account for startup, data transfers and repeated use. Consecutive GPU stages can keep intermediates on the device. Stateful transactions execute on the host.
 
-[Try a three-stage pipeline in the editor](./environment/): compile, run, then explicitly profile targets to see this browser's eligible placement. Ordinary Run does not perform profitability experiments. The editor's local placement profiles and the offline compiler's knowledge search are separate capabilities.
+[Try a three-stage pipeline in the editor](./environment/): compile and choose JavaScript or eligible WebGPU execution. The editor exports Rust source; Rust/Wasm builds and adaptive profiles use the native Ink toolchain. The checker runs in Wasm, while browser execution uses fixed target selection. Run does not perform profitability experiments.
 
 [How placement works](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/adaptive-execution.md)
 
@@ -236,7 +236,7 @@ certificates retain their original circuit mode and bytes.
 
 ## What runs today
 
-Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include C, Rust, JavaScript and both Wasm paths, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.
+Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include Rust, JavaScript and Rust/Wasm, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.
 
 | Use | Current boundary |
 | --- | --- |

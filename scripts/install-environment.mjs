@@ -1,4 +1,4 @@
-import {readFile,writeFile,cp,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,cp,mkdir,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 const [sourcePath,targetPath]=process.argv.slice(2);
@@ -11,7 +11,8 @@ if(environment.revision!==expected.revision||info.distribution!==expected.distri
   throw Error('Built editor or language revision differs from the documentation pins.');
 const hash=createHash('sha256').update(await readFile(`${source}/ink-compiler.wasm`)).digest('hex');
 if(info.sha256!==hash)throw Error('Browser compiler hash does not match its manifest.');
-for(const name of ['index.html','environment-sw.js','runtime/assets.json','clang/clang.wasm','clang/lld.wasm'])await readFile(`${source}/${name}`);
+for(const name of ['index.html','environment-sw.js','runtime/assets.json'])await readFile(`${source}/${name}`);
+await rm(`${target}/clang`,{recursive:true,force:true});
 await mkdir(target,{recursive:true});await cp(source,target,{recursive:true});
 await writeFile(`${target}/environment-info.json`,JSON.stringify(environment,null,2)+'\n');
 console.log('Installed checked browser environment at '+target);
