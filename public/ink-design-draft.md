@@ -6,14 +6,14 @@ This language describes data, permitted changes, and required results. Its compi
 
 The performance ambition is to compete with expert implementations on specified workloads and hardware, then extend that coverage. No language can promise to be the fastest on every program. The engineering objective is to remove avoidable work, approach hardware limits on the remaining work, and make improvements reusable.
 
-This is the full design draft for Ink. The compiler implements the subset described in [STATUS.md](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/STATUS.md); the draft is not a claim that every feature below exists. [Philosophy and ambitions](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/vision.md) explains the organising ideas and current research direction. The executable core contract below describes the current shared representation. The `ink` command is primary; `lang` remains a compatibility command for archived experiments.
+This is the full design draft for Ink. The compiler implements the subset described in [STATUS.md](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/STATUS.md); the draft is not a claim that every feature below exists. [Philosophy and ambitions](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/vision.md) explains the organising ideas and current research direction. The executable core contract below describes the current shared representation. The `ink` command is primary; `lang` remains a compatibility command for archived experiments.
 
 ## Implemented architecture
 
 Source specifications now have an implemented, proof-carrying subset:
 `spec fn/query/change`, static `requires` and `ensures`, `before` observations,
 committed-state invariants, private value state, named implementations and finite
-multiset/uniqueness predicates. See [the executable syntax and trust boundaries](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/source-contracts.md).
+multiset/uniqueness predicates. See [the executable syntax and trust boundaries](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/source-contracts.md).
 The planner discovers checked refinements through the independent knowledge
 registry; all CPU lowerings use the same admitted core. This does not implement
 every prospective proof form described later in this draft.
@@ -27,7 +27,7 @@ execution and general evidence checking. It builds independently. The
 | [ink-knowledge](https://github.com/siliconjungle/ink-knowledge) | Immutable entries, authenticated snapshots, typed discovery and performance observations |
 | [ink-planner](https://github.com/siliconjungle/ink-planner) | Bounded compositional search, applicability proofs and plan selection |
 | [ink-runtime](https://github.com/siliconjungle/ink-runtime) | Checked-graph execution, host ABIs, scheduling, profiling, bundle assembly and pure fallback |
-| [Lowerings](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/backend-packages.md) | C/Rust/Wasm/JavaScript target emission and WGSL/WebGPU/wgpu device operations |
+| [Lowerings](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/backend-packages.md) | Rust/Wasm/JavaScript target emission and WGSL/WebGPU/wgpu device operations |
 
 Each canonical knowledge entry has a content identity, kind, semantics version,
 exact dependencies, typed interface and payload. SQLite is a rebuildable
@@ -52,27 +52,27 @@ now have source-bound admission paths for a restricted transition domain. The
 representation path checks every action and supports explicit checked migration,
 with literal physical-definition execution currently in Rust. Broader domains,
 keep/exact-Int correspondence, other physical executors and general live adaptation
-remain unfinished. See [whole-action transitions](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/action-transitions.md),
-[physical representations](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/database-representations.md) and [status](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/STATUS.md).
+remain unfinished. See [whole-action transitions](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/action-transitions.md),
+[physical representations](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/database-representations.md) and [status](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/STATUS.md).
 
-C, Rust, JavaScript and Wasm implement the currently executable pure and stateful
+Rust, JavaScript and Rust/Wasm implement the currently executable pure and stateful
 language, including exact values, tables, transactions, ordered events, keeps and
 portable snapshots. JavaScript emits literal ES modules with explicit wrapping
-and binary32 operation order. Complete C emission uses a shared Rust primitive
-runtime. Browser selection compares eligible JavaScript, Wasm and WebGPU pure
-execution costs; per-stage adaptive placement remains unfinished. See the
-[parity contract](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/lowering-parity.md) and [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/javascript-backend.md).
+and binary32 operation order. Rust emission uses the shared native support primitives. The browser editor
+executes JavaScript and eligible WebGPU computation with fixed placement;
+native toolchains build emitted Rust and Rust/Wasm projects. See the
+[parity contract](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/lowering-parity.md) and [JavaScript target](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/javascript-backend.md).
 
-C/Rust toolchains produce native machine code and Wasm. The GPU package emits
+Rust toolchains produce native machine code and Wasm. The GPU package emits
 WGSL and operates WebGPU/wgpu devices; runtime assembles artifacts with compiled
 CPU fallback and owns browser/native scheduling. Supported host pipelines retain
 GPU arrays across steps and iterations. Checked pure source graphs mix CPU/GPU
 stages, but general proved resident-buffer routing is unfinished.
 
 The proof checker is written in Rust; Lean is separate research tooling.
-The checker, correspondence bridges, emitted C/Rust/JavaScript/WGSL, toolchains, runtime
+The checker, correspondence bridges, emitted Rust/JavaScript/WGSL, toolchains, runtime
 adapters and GPU drivers remain trusted implementations. This draft does not
-claim end-to-end verified machine code. See [the repository contract](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/repository-architecture.md).
+claim end-to-end verified machine code. See [the repository contract](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/repository-architecture.md).
 
 ## Executable core versions
 
@@ -80,7 +80,7 @@ Legacy programs use `ink-executable-core-v1` and retain their canonical identiti
 Pure compute extensions use `ink-executable-core-v2`; the checker determines the
 version from the actual types and operations and rejects a falsely tagged input.
 Owned temporary buffers/maps and runtime-bounded stopping iteration use
-`ink-executable-core-v3`; see [the implemented local contract](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/local-collections.md).
+`ink-executable-core-v3`; see [the implemented local contract](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/local-collections.md).
 All use the same bounded typed AST. This is separate from the full design below.
 
 `ink-executable-core-v1` fixes the first checked program format. Its declarations
@@ -121,7 +121,7 @@ The executable semantic commitments are:
 | Arithmetic | Ordinary u32/u64/i32 `+ - *` wraps at the declared width; i32 comparisons are signed. Int arithmetic is exact. CPU f32 rounds each operation to binary32; scalar comparisons use IEEE semantics and aggregate action equality uses raw contained float bits. `checked_add/sub/mul` returns Result with Overflow on failure. Pure word literals use an expected word type and otherwise default to u64; stateful literal operands use their expected integer type. Out-of-range fixed-width literals are rejected. |
 | Evaluation | Operands/arguments evaluate in source order. `&&`, `||` and pure `choose` evaluate only the selected continuation. There is no permission to reorder effects merely because final values agree. |
 | Pure collections | Ordered map and filter preserve element order; sum uses the checked modular u32/u64 element width, count returns u64, and foldr visits the finite list right-to-left. Pure calls are acyclic; escaping first-class closures/general recursion are not supported. |
-| Stateful tables and keeps | Tables are logical keyed collections. Current methods include ordered keys, shared/intersected keys, upsert, bulk upsert/removal, and direct sum/predicate-count scans; see [scalable state](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/scalable-state.md). Reads inside a change observe earlier tentative writes. Derived values must match recomputation. Physical storage and caches are not logical state. |
+| Stateful tables and keeps | Tables are logical keyed collections. Current methods include ordered keys, shared/intersected keys, upsert, bulk upsert/removal, and direct sum/predicate-count scans; see [scalable state](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/scalable-state.md). Reads inside a change observe earlier tentative writes. Derived values must match recomputation. Physical storage and caches are not logical state. |
 | Changes | An outer successful change returning Ok commits once, including an otherwise empty change. Err, `?`, nested failed changes and host execution errors roll back tentative writes and discard transaction events. Nested failure poisons its enclosing change even if the Result is ignored. |
 | Queries | Declared reads only; queries publish no events and do not advance the committed version. |
 | Table resources | In the executable subset, `Table<K,V>` is a declared root capability. It cannot occur as an ordinary parameter, return, field, event, keep or nested table value. Literal root methods produce ordinary values; root escapes reject during checking. |
@@ -138,20 +138,20 @@ or diagnosed; this contract does not silently claim the full draft's coverage.
 Their Rust implementations have not been formally verified. Numerical action domains
 use the explicit typed-actions V2 marker; stored floats preserve raw payloads,
 while GPU floats retain the separate WGSL contract. See
-[the numerical boundary contract](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/numerical-state.md).
+[the numerical boundary contract](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/numerical-state.md).
 
 Reference and generated stateful execution share the fixed change-boundary
 primitives in `core/src/transaction.rs`. Canonical database decision laws can be
 bound to a checked source change through exact definition checking. This covers
 the commit decision, with explicit domain-error precedence and word exhaustion;
 it does not certify the action body or physical rollback and enables no shortcut.
-See [the boundary and remaining correspondence work](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/change-boundary-correspondence.md).
+See [the boundary and remaining correspondence work](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/change-boundary-correspondence.md).
 
 Pure mathematical replacement proofs preserve total values. They exclude host
 resource exhaustion, allocation/OOM and native trap traces. Stateful replacement
 admission must separately cover return values/errors, future state, tentative
 reads, aborts, versions, event order and snapshots; pure equality cannot authorise
-it. Code generation, allocation primitives, generated C/Rust, LLVM and host ABIs
+it. Code generation, allocation primitives, generated Rust, LLVM and host ABIs
 remain explicit trusted components. Lean research is external to core admission.
 
 ```sh
@@ -162,7 +162,7 @@ ink emit-state core.json --core -o generated-state
 ```
 
 The richer type system, general ownership/arenas, foreign effects, concurrency,
-generic stateful replacement and migration in the design below remain subsequent milestones. Runtime filesystem/IndexedDB adapters now provide a documented native C/Rust and compiled-JavaScript/Wasm durability baseline; they replace whole snapshots rather than implementing the draft's incremental-log protocol. See `docs/durable-host.md`.
+generic stateful replacement and migration in the design below remain subsequent milestones. Runtime filesystem/IndexedDB adapters now provide a documented native Rust and compiled-JavaScript/Wasm durability baseline; they replace whole snapshots rather than implementing the draft's incremental-log protocol. See `docs/durable-host.md`.
 A new executable operation or changed meaning requires an explicit core-version
 and correspondence decision; a new equivalent implementation belongs in knowledge.
 
@@ -173,7 +173,7 @@ bindings, multiple array inputs and array outputs. Safe indexed reads use
 `at_or`; `repeat` has a literal bound no greater than 65,536. Map, indexed map,
 zip, filter, ordered reductions and integer scan/sort have reference and compiled
 implementations. Typed host pipelines can keep GPU arrays resident across steps
-and iterations. See [the compute contract](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/gpu-compute.md) for exact operations,
+and iterations. See [the compute contract](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/gpu-compute.md) for exact operations,
 packed ABI, capability limits, fallback and reproduction.
 
 Portable GPU f32 follows WGSL-permitted evaluation behaviour, including rounding,
@@ -188,7 +188,7 @@ knowledge production may share identical calls and rank complete-cost plans;
 the core checks typed source equality and knows no target or cost model. Browser
 and native backends can execute admitted v1 CPU/GPU graphs with scalar host
 results. The explicit v2 resident pipeline API has a separate host contract;
-it is not yet a proved source replacement. See [source routing](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/source-routing.md).
+it is not yet a proved source replacement. See [source routing](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/source-routing.md).
 
 ## 1 Design commitments
 
@@ -703,7 +703,7 @@ Every accepted high-level transformation records its premises and proof dependen
 
 LLVM supplies initial code generation for native targets and WebAssembly. A custom backend is justified only by demonstrated limitations. MLIR may later support structured loop and vector transformations; it is not required to validate the first prototype.
 
-The executable implementation currently emits C or Rust through the independent
+The executable implementation currently emits Rust through the independent
 backend packages and invokes existing toolchains. Its core format is a bounded
 typed AST, not the complete semantic graph, ownership system or proof-authoring
 surface shown in this proposed pipeline.
@@ -1043,4 +1043,4 @@ This interface makes the architecture implementable in stages without claiming t
 
 The executable-core V5 extension adds ordered parallel mapping, affine buffer
 partitions/rejoining and guarded unsigned/list self recursion. Exact semantics
-and target limits are specified in [the extension](https://github.com/siliconjungle/ink-lang/blob/331406c2a47e41f2d79b5584ff567e7f982f7afd/docs/parallel-execution.md).
+and target limits are specified in [the extension](https://github.com/siliconjungle/ink-lang/blob/2f688461d219c013668de16bcb2ac4f7fa8d1d4f/docs/parallel-execution.md).
