@@ -208,12 +208,13 @@ open. <a href="https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae
 <section class="chapter" id="authored-code-with-explicit-learning" aria-labelledby="title-authored-code-with-explicit-learning"><h2 id="title-authored-code-with-explicit-learning">Authored code with explicit learning</h2><div class="prose"><p>The current CLI accepts <code>trainable state</code>, <code>adaptive fn</code> / <code>adaptive query</code> and
 <code>learn change</code>. Ordinary code can use a contextual model, then pass its suggestion
 to fixed layout, simulation or generator code. Learning actions update only the
-designated trainable state; regular changes cannot write it. Queries stay readonly.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-13">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-13">trainable state Model:Table&lt;u32,Weights&gt; = Table.empty();
+designated trainable state; regular changes cannot write it. Queries stay readonly.
+Value state uses ordinary reads and assignments, such as <code>let w=Model; Model=next;</code>.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-13">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-13">trainable state Model:Weights = initial();
 adaptive fn score(context:Context,weights:Weights)-&gt;f32 { /* pure model */ }
 adaptive query suggest(context:Context)-&gt;f32 reads(Model) { /* readonly */ }
 learn change observe(context:Context,target:f32,rate:f32)
-    -&gt;Result&lt;f32,String&gt; reads(Model) writes(Model) { /* explicit update */ }</code></pre></div><p>These signatures illustrate the new forms; the <a href="https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/examples/adaptive-layout.ink">complete runnable example</a>
+    -&gt;Result&lt;f32,String&gt; reads(Model) writes(Model) { /* explicit update */ }</code></pre></div><p>These signatures illustrate the new forms; the <a href="https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/examples/adaptive-layout.ink">complete runnable example</a>
 learns width × document-length interactions with an authored squared-error update.
 It keeps legal output bounds in fixed code. <code>ink train SOURCE TRACE.json -o model.snapshot</code>
 can fit before compilation/deployment and exports a portable checkpoint plus a
@@ -221,7 +222,7 @@ receipt. Runtime feedback invokes the same explicit learning action. The model
 checkpoint loads as data at startup; weights are not yet baked into generated code.</p>
 <p>The new CLI is ahead of this page&#39;s pinned playground distribution. Automatic
 differentiation, general neural libraries and frozen-weight specialization remain
-open. The markers grant no approximation or optimisation authority. <a href="https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/docs/adaptive-learning.md">Training syntax,
+open. The markers grant no approximation or optimisation authority. <a href="https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md">Training syntax,
 constraints and tested scope</a>.</p>
 <p>Initial numeric preparation also shares invariant tables inside one invocation.
 The large measured case wins substantially; a small case loses. Neither this nor

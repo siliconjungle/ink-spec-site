@@ -291,16 +291,17 @@ The current CLI accepts `trainable state`, `adaptive fn` / `adaptive query` and
 `learn change`. Ordinary code can use a contextual model, then pass its suggestion
 to fixed layout, simulation or generator code. Learning actions update only the
 designated trainable state; regular changes cannot write it. Queries stay readonly.
+Value state uses ordinary reads and assignments, such as `let w=Model; Model=next;`.
 
 ```text
-trainable state Model:Table<u32,Weights> = Table.empty();
+trainable state Model:Weights = initial();
 adaptive fn score(context:Context,weights:Weights)->f32 { /* pure model */ }
 adaptive query suggest(context:Context)->f32 reads(Model) { /* readonly */ }
 learn change observe(context:Context,target:f32,rate:f32)
     ->Result<f32,String> reads(Model) writes(Model) { /* explicit update */ }
 ```
 
-These signatures illustrate the new forms; the [complete runnable example](https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/examples/adaptive-layout.ink)
+These signatures illustrate the new forms; the [complete runnable example](https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/examples/adaptive-layout.ink)
 learns width × document-length interactions with an authored squared-error update.
 It keeps legal output bounds in fixed code. `ink train SOURCE TRACE.json -o model.snapshot`
 can fit before compilation/deployment and exports a portable checkpoint plus a
@@ -310,7 +311,7 @@ checkpoint loads as data at startup; weights are not yet baked into generated co
 The new CLI is ahead of this page's pinned playground distribution. Automatic
 differentiation, general neural libraries and frozen-weight specialization remain
 open. The markers grant no approximation or optimisation authority. [Training syntax,
-constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/docs/adaptive-learning.md).
+constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md).
 
 Initial numeric preparation also shares invariant tables inside one invocation.
 The large measured case wins substantially; a small case loses. Neither this nor
