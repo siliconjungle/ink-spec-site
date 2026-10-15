@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "documented_distribution": "d8005a095fe0e560b51df127610991b0980b89e4",
+  "playground_distribution": "ede1da12f4adefbb89ea5c91bc13670745d50027",
+  "environment": "ec5319f2772fa78fe96803cadfa406bde31a4951",
+  "commands": [
+    {
+      "command": "npm run build:pages",
+      "result": "passed; TypeScript; Freerange 4/4 functions fully analyzed, zero findings; Vite Pages build"
+    },
+    {
+      "command": "npm run check:reference -- ../ink-environment/compiler/target/debug/ink-browser-check ../ink-lang/target/debug/ink",
+      "result": "passed; 15 complete examples; JavaScript assertions and checkpoint/restore"
+    }
+  ],
+  "evidence": "https://github.com/siliconjungle/ink-lang/blob/d8005a095fe0e560b51df127610991b0980b89e4/reports/batched-differentiation-2026-10-15/README.md",
+  "scope": "Published documentation for CLI features ahead of the separately pinned playground. Warm complete-call measurements for one polynomial workload; two specific source correspondence laws; local validation does not establish CI/deployment success or broad neural performance."
+}

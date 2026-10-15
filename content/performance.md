@@ -52,27 +52,43 @@ Freerange-inspired inference; Pretext-inspired gains remain open.
 
 ## Automatic derivatives and prepared context
 
-Whole-objective gradients now execute through pure helper functions, structured
-numeric state and bounded rollouts. The initial implementation uses one forward
-pass per parameter coordinate. Preparing immutable context once per gradient can
-help large requests while adding overhead for small ones.
+Whole-objective gradients execute through pure helper functions, structured
+numeric state and bounded rollouts. Full gradients now carry all basis directions
+through one primal pass. Tangent work still scales with parameter count. Generic
+JavaScript local scalar-record storage and F32 carrier bookkeeping reduce overhead
+without reassociation, discarded zero-times-infinity arithmetic or approximation.
 
-| Complete warm JavaScript gradient | Prepared context | Repeated JVP requests | Handwritten derivative |
-| --- | ---: | ---: | ---: |
-| 16 context values | 10.420 µs | 7.938 µs | 0.683 µs |
-| 32768 context values | 19.967 ms | 22.568 ms | 0.969 ms |
+| Warm complete JavaScript call | Previous full gradient | Batched gradient | Repeated JVPs | Handwritten |
+| --- | ---: | ---: | ---: | ---: |
+| 0 context values | 5.218 µs | 2.784 µs | 1.815 µs | 0.579 µs |
+| 16 context values | 7.246 µs | 4.542 µs | 8.330 µs | 0.663 µs |
+| 4096 context values | 1.356 ms | 0.780 ms | 1.556 ms | 0.109 ms |
+| 32768 context values | 18.779 ms | 8.985 ms | 22.297 ms | 1.000 ms |
 
-These held-out medians use three fresh processes, eleven interleaved samples per
-process, an independent polynomial derivative oracle and complete output
-consumption. No context survives across calls. The handwritten control exposes
-substantial remaining AD overhead. This is not Handwired training-performance
-parity, a first-call measurement, or evidence of GPU training speed. [Raw receipts,
-source and procedure](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/bench/differentiable-preparation/README.md).
+These held-out medians use three fresh processes, eleven randomly interleaved
+samples per process, an independent polynomial derivative oracle and complete
+output consumption. Both compiler versions run on identical inputs in each process
+on an Apple M4 Pro with Node 22.22.1. Preparation is included; no context survives
+across calls. The previous emitted module is frozen from the earlier delivery.
+[Raw samples, modules, source and reproduction](https://github.com/siliconjungle/ink-lang/blob/d8005a095fe0e560b51df127610991b0980b89e4/bench/batched-differentiation/README.md).
 
-Separate conformance compares 25 values/outcomes and exact snapshots across Rust,
-JavaScript and Wasm. The GPU host confirms two numeric dispatches, including a
-batched twelve-step trajectory gradient. Stateful training remains on the host.
-[Training acceptance and trust scope](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/reports/whole-computation-learning-2026-10-15).
+This improves the large gradient 2.09×. Separate JVPs remain cheaper for empty
+input, and the authored derivative remains about 9× faster at the largest size.
+It is one designed workload, not broad neural-training performance, Handwired
+parity, first-call latency, peak-memory evidence or GPU-training speed. The
+[initial preparation comparison](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/bench/differentiable-preparation/README.md)
+retains the earlier small-input regressions.
+
+Two ordinary database equations universally compare batched and separate-direction
+results for specific polynomial/nonlinear kernels in their exact definition
+contexts. Source application rejects stale contexts even after a source-hash
+refresh. These compare generated implementations; they do not prove the general
+AD formulas, checker or backends correct.
+
+Local acceptance covers 105 cross-target values/outcomes and exact snapshots,
+including five actual GPU calls across four scenarios. Those include a twelve-step
+trajectory gradient and an implementation selected using the new proof. Stateful
+learning remains on the host. [Acceptance receipts and scope](https://github.com/siliconjungle/ink-lang/blob/d8005a095fe0e560b51df127610991b0980b89e4/reports/batched-differentiation-2026-10-15/README.md).
 
 ## Prepared numeric tables
 

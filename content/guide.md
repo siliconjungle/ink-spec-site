@@ -345,11 +345,15 @@ behaviour. Training observations grant no optimization proof authority.
 Supported arithmetic keeps its authored forward path; generated F32 derivative
 formulas describe a real arithmetic lift, not derivatives of IEEE rounding. Hard
 collisions, discrete switches and singularities need explicit policies and can
-still give unhelpful gradients. [Interfaces, contracts and limits](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/docs/differentiable-computation.md).
+still give unhelpful gradients. [Interfaces, contracts and limits](https://github.com/siliconjungle/ink-lang/blob/d8005a095fe0e560b51df127610991b0980b89e4/docs/differentiable-computation.md).
 
-This first implementation uses directional forward mode. Preparation shares
-immutable context across a complete gradient request, but a handwritten derivative
-is still much faster in the retained comparison. [Performance controls](./performance.html#automatic-derivatives-and-prepared-context).
+Full gradients now carry all basis directions through one primal execution.
+Each tangent lane keeps its scalar operation order. Generic JavaScript local
+scalar-record storage and native F32 carrier bookkeeping reduce temporary work
+without changing arithmetic. The large held-out polynomial gradient improves
+2.09×; an authored derivative remains about 9× faster. Two source-bound database
+equations compare batched and separate directions on specific nonlinear kernels.
+They strengthen concrete checks without proving the whole AD transform or backend. [Performance controls](./performance.html#automatic-derivatives-and-prepared-context).
 
 Unsigned inference now also crosses bounded helper-call graphs. Two new database
 laws replay exact definition contexts and bit-vector proofs; changed callees
