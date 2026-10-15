@@ -45,10 +45,29 @@ Independent complete-output checks cover both large corpora and size controls.
 Separate conformance checks cover 128 library cases across reference, Rust,
 JavaScript and Rust-Wasm, including 48 actual eligible wgpu calls. Eight scalar
 proofs establish components, rather than correctness of the entire matcher or
-compiler. Freerange- and Pretext-inspired compiler gains have not yet been
-measured.
+compiler. The separate conditional-fact experiment below measures initial
+Freerange-inspired inference; Pretext-inspired gains remain open.
 
 [Raw samples, reproducer, controls and limits](https://github.com/siliconjungle/ink-lang/blob/a0a4fa0ff7f24e74ab99a6f98b6b86f31458e702/reports/handwired-packed-circuits-2026-10-15/README.md) · [Broader contracts and preparation work](./guide.html#infer-facts-and-prepare-repeated-work)
+
+## Conditional unsigned facts
+
+The first Freerange-inspired addition extends Ink's existing unsigned analyser
+with excluded values and relational range refinement. Offline acquisition proves
+four complete source equalities before publishing them into the normal database
+catalogue. Independent value tests and 88 compiled conformance cases include one
+actual eligible GPU call.
+
+On an Apple M4 Pro with Node 22.22.1, the held-out boundary-distribution batch of
+65,536 relational-mask calls takes 0.788 ms before and 0.459 ms after the proved
+replacement. Two U64 guard batches take about 1.11 ms before and 0.40 ms after.
+The mapped-list case changes from 0.165 to 0.155 ms. Three fresh processes per
+cohort retain eleven paired samples each, full output checks and every consumed
+result. Other distributions show smaller changes, and unchanged controls include
+small regressions. These are designed mechanism workloads; proof acquisition and
+compilation are excluded, and broad application gains remain unestablished.
+
+[Raw samples, source, proof receipts and limits](https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae00ff66986cc98dcc27a80a/reports/conditional-facts-2026-10-15/README.md)
 
 ## Compiler and planner
 

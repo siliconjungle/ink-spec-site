@@ -276,7 +276,13 @@ change a line break. The proposed direction is a faithful F64 baseline followed
 by checked narrower implementations or guarded fallbacks where profitable. That
 F64 extension and adaptive precision are not implemented yet.
 
-[Three-project delivery checklist and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/1ed77ac1c3a04b2e463dc05916996825a07a6cb5/docs/chenglou-optimisation-programme.md#delivery-checklist) · [Measured search scope](./performance.html#matched-handwired-searches)
+Initial Freerange-inspired inference now discovers conditional unsigned
+equalities from excluded values and comparisons between ranges. Each proposed
+replacement receives an independently checked proof before database publication.
+General call summaries, backward requirements and floating-point inference remain
+open. [Implementation and measured scope](https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae00ff66986cc98dcc27a80a/docs/conditional-word-facts.md).
+
+[Three-project delivery checklist and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae00ff66986cc98dcc27a80a/docs/chenglou-optimisation-programme.md#delivery-checklist) · [Measured search scope](./performance.html#matched-handwired-searches)
 
 ## See what growing knowledge changes
 
