@@ -42,6 +42,24 @@ Train before deployment, adapt to runtime feedback, or keep learning while the
 software runs. Save, resume and ship the learned state with your application.
 The goal can concern behaviour, decisions or performance—whatever you author.
 
+```text
+trainable state Gain: f32 = 1.0;
+
+adaptive query predict(x: f32) -> f32 reads(Gain) {
+    return Gain * x;
+}
+
+learn change feedback(x: f32, target: f32) -> Result<Unit, String>
+    reads(Gain) writes(Gain) {
+    let error = Gain * x - target;
+    Gain = Gain - 0.01 * error * x;
+    return Ok(());
+}
+```
+
+Here, feedback adjusts the prediction toward the supplied target. Your application
+defines the learning rule and when it runs. [Complete example](./adaptive-gain.ink).
+
 [Explore adaptive Ink](./guide.html#authored-code-with-explicit-learning) ·
 [Training through application logic](./guide.html#train-through-authored-computation)
 
