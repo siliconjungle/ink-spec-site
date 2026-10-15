@@ -400,11 +400,23 @@ learning actions apply them. These controls should compose across phases.
 Training must span the lifecycle: fitting before compilation, an explicit training
 stage during builds, adaptation on runtime feedback, and continuous learning while
 serving. The current CLI supplies offline replay and explicit online updates.
-Integrated build-stage packaging and a continuous service—with observation queues,
-budgets, atomic model publication, cancellation and exact recovery—remain required
-work. These phases share the full objective and optimizer lineage; continuous
-learning is not considered complete merely because a host can repeat an update.
-[Lifecycle contract and implementation status](https://github.com/siliconjungle/ink-lang/blob/e47ad29de8ea2161d984e78e80a3aeaa1a054c28/docs/learning-lifecycle.md).
+A model/observation-generic session now adds bounded feedback, serving/candidate
+separation, work budgets, publication cadence and stale-version rejection. The
+compiled JavaScript service serves predictions between cooperative training turns
+and durably recovers queued/candidate progress, including an offline CLI bootstrap.
+Build-stage packaging/freezing, parallel worker promotion and device training
+remain open. These phases share the full objective and optimizer lineage.
+[Lifecycle contract and implementation status](https://github.com/siliconjungle/ink-lang/blob/652b497446c83a77674a8cb1479ed6bfb3b98353/docs/learning-lifecycle.md).
+
+A continuous learner remains ordinary source logic. The application can pause a
+session, change its budget or cadence, advance a candidate, publish it, cancel it
+without dropping observations, or explicitly discard bad feedback. Candidate
+promotion checks its source model version and ticket before replacing the serving
+model. Tests compare 39 lifecycle cases across targets and four compiled durable
+histories against exact reference checkpoints, including storage failures before
+and after publication. This is a cooperative CPU-host service; one synchronous
+work turn still blocks its event loop until it returns.
+[Runnable service, contracts and limitations](https://github.com/siliconjungle/ink-lang/blob/652b497446c83a77674a8cb1479ed6bfb3b98353/docs/continuous-learning.md).
 
 ## See what growing knowledge changes
 

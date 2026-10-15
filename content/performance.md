@@ -387,3 +387,11 @@ The matched speed target and device reverse execution remain open.
 Full-target validation separately compares values/errors/events/exact snapshots,
 including backtracking and failed updates. An unrelated eligible numeric kernel
 confirms one actual GPU dispatch; it does not establish GPU training.
+
+
+Continuous learning now has separate lifecycle validation: 39 cross-target cases
+and four compiled durable histories check queue/progress, serving versions,
+cancellation, offline bootstrap and storage failure recovery. These checks establish
+neither a training-throughput ranking nor a latency guarantee. The model training
+and Handwired comparison above still run on CPU hosts.
+[Continuous service scope](https://github.com/siliconjungle/ink-lang/blob/652b497446c83a77674a8cb1479ed6bfb3b98353/docs/continuous-learning.md).

@@ -87,3 +87,10 @@ Ink also targets native Rust and Rust/Wasm, with WebGPU for eligible pure comput
 Ink is an open-source working prototype, not a production-ready promise. The language, compiler and knowledge library are evolving together.
 
 [Try the editor](./environment/) · [Read the guide](./guide.html) · [Language reference](./reference.html) · [Performance results](./performance.html)
+
+
+Prepared learning can also stay within that stack: ordinary source sessions queue
+feedback, train a candidate while serving an accepted version, validate publication
+and retain exact progress through durable recovery. The current continuous service
+uses cooperative compiled JavaScript on CPU hosts; parallel/device training and
+build-stage freezing remain work in progress.
