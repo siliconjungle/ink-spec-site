@@ -50,6 +50,30 @@ Freerange-inspired inference; Pretext-inspired gains remain open.
 
 [Raw samples, reproducer, controls and limits](https://github.com/siliconjungle/ink-lang/blob/a0a4fa0ff7f24e74ab99a6f98b6b86f31458e702/reports/handwired-packed-circuits-2026-10-15/README.md) · [Broader contracts and preparation work](./guide.html#infer-facts-and-prepare-repeated-work)
 
+## Automatic derivatives and prepared context
+
+Whole-objective gradients now execute through pure helper functions, structured
+numeric state and bounded rollouts. The initial implementation uses one forward
+pass per parameter coordinate. Preparing immutable context once per gradient can
+help large requests while adding overhead for small ones.
+
+| Complete warm JavaScript gradient | Prepared context | Repeated JVP requests | Handwritten derivative |
+| --- | ---: | ---: | ---: |
+| 16 context values | 10.420 µs | 7.938 µs | 0.683 µs |
+| 32768 context values | 19.967 ms | 22.568 ms | 0.969 ms |
+
+These held-out medians use three fresh processes, eleven interleaved samples per
+process, an independent polynomial derivative oracle and complete output
+consumption. No context survives across calls. The handwritten control exposes
+substantial remaining AD overhead. This is not Handwired training-performance
+parity, a first-call measurement, or evidence of GPU training speed. [Raw receipts,
+source and procedure](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/bench/differentiable-preparation/README.md).
+
+Separate conformance compares 25 values/outcomes and exact snapshots across Rust,
+JavaScript and Wasm. The GPU host confirms two numeric dispatches, including a
+batched twelve-step trajectory gradient. Stateful training remains on the host.
+[Training acceptance and trust scope](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/reports/whole-computation-learning-2026-10-15).
+
 ## Prepared numeric tables
 
 A Pretext-inspired proposal prepares a numeric table once outside a map when it

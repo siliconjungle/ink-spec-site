@@ -309,13 +309,51 @@ receipt. Runtime feedback invokes the same explicit learning action. The model
 checkpoint loads as data at startup; weights are not yet baked into generated code.
 
 The new CLI is ahead of this page's pinned playground distribution. Automatic
-differentiation, general neural libraries and frozen-weight specialization remain
-open. The markers grant no approximation or optimisation authority. [Training syntax,
+differentiation now propagates through supported pure helpers, structured state
+and bounded loops. Broader neural libraries, reverse mode and frozen-weight
+specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
 constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md).
 
 Initial numeric preparation also shares invariant tables inside one invocation.
 The large measured case wins substantially; a small case loses. Neither this nor
 the learning example establishes broad application speedups. [Preparation evidence](./performance.html#prepared-numeric-tables).
+
+## Train through authored computation
+
+A trainable field identifies what learning may change. The objective can run that
+model through authored simulation, layout or generation code and measure the final
+outcome. Ink now generates gradients through the admitted pure computation:
+
+```text
+let derivatives = gradient(objective, parameters, context);
+let sensitivity = jvp(objective, parameters, direction, context);
+```
+
+The [world/controller example](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/examples/differentiable-world.ink)
+propagates gradients through twelve feedback-controlled physics steps. Two training
+contexts improve from loss 1 to about .039 after 200 updates; a held-out context
+improves from .378 to .015. These are designed capability checks, not a claim of
+arbitrary-task generalization. A batched trajectory-gradient computation also has
+confirmed execution on the GPU. Learning actions themselves execute on the host.
+
+This extends Ink's existing degrees of freedom. `trainable state` and `learn change`
+limit mutable parameters; `requires` / `ensures` enforce legal updates and rollback;
+`gradient_piecewise` explicitly chooses an executed-branch derivative convention.
+Existing specifications and approximation bounds still govern permitted replacement
+behaviour. Training observations grant no optimization proof authority.
+
+Supported arithmetic keeps its authored forward path; generated F32 derivative
+formulas describe a real arithmetic lift, not derivatives of IEEE rounding. Hard
+collisions, discrete switches and singularities need explicit policies and can
+still give unhelpful gradients. [Interfaces, contracts and limits](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/docs/differentiable-computation.md).
+
+This first implementation uses directional forward mode. Preparation shares
+immutable context across a complete gradient request, but a handwritten derivative
+is still much faster in the retained comparison. [Performance controls](./performance.html#automatic-derivatives-and-prepared-context).
+
+Unsigned inference now also crosses bounded helper-call graphs. Two new database
+laws replay exact definition contexts and bit-vector proofs; changed callees
+invalidate their summaries. [Source-bound call facts](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/docs/interprocedural-word-facts.md).
 
 ## See what growing knowledge changes
 

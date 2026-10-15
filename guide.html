@@ -221,12 +221,39 @@ can fit before compilation/deployment and exports a portable checkpoint plus a
 receipt. Runtime feedback invokes the same explicit learning action. The model
 checkpoint loads as data at startup; weights are not yet baked into generated code.</p>
 <p>The new CLI is ahead of this page&#39;s pinned playground distribution. Automatic
-differentiation, general neural libraries and frozen-weight specialization remain
-open. The markers grant no approximation or optimisation authority. <a href="https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md">Training syntax,
+differentiation now propagates through supported pure helpers, structured state
+and bounded loops. Broader neural libraries, reverse mode and frozen-weight
+specialization remain open. The markers grant no approximation or optimisation authority. <a href="https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md">Training syntax,
 constraints and tested scope</a>.</p>
 <p>Initial numeric preparation also shares invariant tables inside one invocation.
 The large measured case wins substantially; a small case loses. Neither this nor
 the learning example establishes broad application speedups. <a href="./performance.html#prepared-numeric-tables">Preparation evidence</a>.</p>
+</div></section>
+<section class="chapter" id="train-through-authored-computation" aria-labelledby="title-train-through-authored-computation"><h2 id="title-train-through-authored-computation">Train through authored computation</h2><div class="prose"><p>A trainable field identifies what learning may change. The objective can run that
+model through authored simulation, layout or generation code and measure the final
+outcome. Ink now generates gradients through the admitted pure computation:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-14">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-14">let derivatives = gradient(objective, parameters, context);
+let sensitivity = jvp(objective, parameters, direction, context);</code></pre></div><p>The <a href="https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/examples/differentiable-world.ink">world/controller example</a>
+propagates gradients through twelve feedback-controlled physics steps. Two training
+contexts improve from loss 1 to about .039 after 200 updates; a held-out context
+improves from .378 to .015. These are designed capability checks, not a claim of
+arbitrary-task generalization. A batched trajectory-gradient computation also has
+confirmed execution on the GPU. Learning actions themselves execute on the host.</p>
+<p>This extends Ink&#39;s existing degrees of freedom. <code>trainable state</code> and <code>learn change</code>
+limit mutable parameters; <code>requires</code> / <code>ensures</code> enforce legal updates and rollback;
+<code>gradient_piecewise</code> explicitly chooses an executed-branch derivative convention.
+Existing specifications and approximation bounds still govern permitted replacement
+behaviour. Training observations grant no optimization proof authority.</p>
+<p>Supported arithmetic keeps its authored forward path; generated F32 derivative
+formulas describe a real arithmetic lift, not derivatives of IEEE rounding. Hard
+collisions, discrete switches and singularities need explicit policies and can
+still give unhelpful gradients. <a href="https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/docs/differentiable-computation.md">Interfaces, contracts and limits</a>.</p>
+<p>This first implementation uses directional forward mode. Preparation shares
+immutable context across a complete gradient request, but a handwritten derivative
+is still much faster in the retained comparison. <a href="./performance.html#automatic-derivatives-and-prepared-context">Performance controls</a>.</p>
+<p>Unsigned inference now also crosses bounded helper-call graphs. Two new database
+laws replay exact definition contexts and bit-vector proofs; changed callees
+invalidate their summaries. <a href="https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/docs/interprocedural-word-facts.md">Source-bound call facts</a>.</p>
 </div></section>
 <section class="chapter" id="see-what-growing-knowledge-changes" aria-labelledby="title-see-what-growing-knowledge-changes"><h2 id="title-see-what-growing-knowledge-changes">See what growing knowledge changes</h2><div class="prose"><p>Two different improvements matter: finding a better algorithm and executing the chosen algorithm with less overhead. Ink measures them separately.</p>
 <p><img src="./proof-growth.svg" alt="Execution gains and regressions as reusable proof families grow"></p>
@@ -277,7 +304,7 @@ certificates retain their original circuit mode and bytes.</p>
 <section class="chapter" id="keep-values-in-compiled-storage" aria-labelledby="title-keep-values-in-compiled-storage"><h2 id="title-keep-values-in-compiled-storage">Keep values in compiled storage</h2><div class="prose"><p>A compiled JavaScript module exposes typed opaque values. Capture a logical input once or decode an agreed-schema binary value, call functions with the handle, and encode the result directly for transport. The handle owns its private data and rejects foreign or mismatched types. Public materialization returns detached mutable containers.</p>
 <p>The module can retain checked type facts with its private immutable handles. This allows repeated calls to avoid equivalent type-only guards; semantic <code>requires</code> clauses remain active. These facts do not prove arbitrary JSON number grammar or unique object members. The JSON boundary keeps those validations.</p>
 <p>For repeated Unicode rendering, an optional <code>createJsonQuoter()</code> from the same generated module can be passed as <code>{quoter}</code> to <code>JsonCodec.stringifyCompiled</code>. It reuses escaped strings and exact UTF-8 lengths while charging output budgets on every call. It adds retained memory and can slow cold or short sessions; choose it using comparable lifecycle measurements. <code>clear()</code> releases its entries. Binary transport and ordinary calls do not require this option.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-14">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-14"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-15">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-15"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
 const json <span class="tok-operator">=</span> new <span class="tok-type">JsonCodec</span>(valueCodecs.identity.<span class="tok-keyword">result</span>);
 const input <span class="tok-operator">=</span> compiledValues.mark_received.params[<span class="tok-number">0</span>];
 const document <span class="tok-operator">=</span> input.<span class="tok-function">decodeCompact</span>(json.<span class="tok-function">parseCompact</span>(text));

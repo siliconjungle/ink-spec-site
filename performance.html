@@ -79,6 +79,43 @@ compiler. The separate conditional-fact experiment below measures initial
 Freerange-inspired inference; Pretext-inspired gains remain open.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/a0a4fa0ff7f24e74ab99a6f98b6b86f31458e702/reports/handwired-packed-circuits-2026-10-15/README.md">Raw samples, reproducer, controls and limits</a> · <a href="./guide.html#infer-facts-and-prepare-repeated-work">Broader contracts and preparation work</a></p>
 </div></section>
+<section class="chapter" id="automatic-derivatives-and-prepared-context" aria-labelledby="title-automatic-derivatives-and-prepared-context"><h2 id="title-automatic-derivatives-and-prepared-context">Automatic derivatives and prepared context</h2><div class="prose"><p>Whole-objective gradients now execute through pure helper functions, structured
+numeric state and bounded rollouts. The initial implementation uses one forward
+pass per parameter coordinate. Preparing immutable context once per gradient can
+help large requests while adding overhead for small ones.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Complete warm JavaScript gradient</th>
+<th align="right">Prepared context</th>
+<th align="right">Repeated JVP requests</th>
+<th align="right">Handwritten derivative</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>16 context values</td>
+<td align="right">10.420 µs</td>
+<td align="right">7.938 µs</td>
+<td align="right">0.683 µs</td>
+</tr>
+<tr>
+<td>32768 context values</td>
+<td align="right">19.967 ms</td>
+<td align="right">22.568 ms</td>
+<td align="right">0.969 ms</td>
+</tr>
+</tbody></table>
+</div><p>These held-out medians use three fresh processes, eleven interleaved samples per
+process, an independent polynomial derivative oracle and complete output
+consumption. No context survives across calls. The handwritten control exposes
+substantial remaining AD overhead. This is not Handwired training-performance
+parity, a first-call measurement, or evidence of GPU training speed. <a href="https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/bench/differentiable-preparation/README.md">Raw receipts,
+source and procedure</a>.</p>
+<p>Separate conformance compares 25 values/outcomes and exact snapshots across Rust,
+JavaScript and Wasm. The GPU host confirms two numeric dispatches, including a
+batched twelve-step trajectory gradient. Stateful training remains on the host.
+<a href="https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/reports/whole-computation-learning-2026-10-15">Training acceptance and trust scope</a>.</p>
+</div></section>
 <section class="chapter" id="prepared-numeric-tables" aria-labelledby="title-prepared-numeric-tables"><h2 id="title-prepared-numeric-tables">Prepared numeric tables</h2><div class="prose"><p>A Pretext-inspired proposal prepares a numeric table once outside a map when it
 does not depend on the current item. Whole-function equality proofs, including an
 empty-input guard, are checked before selection. This is a preparation mechanism;
