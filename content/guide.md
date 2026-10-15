@@ -292,7 +292,7 @@ The current CLI accepts `trainable state`, `adaptive fn` / `adaptive query` and
 to fixed layout, simulation or generator code. Learning actions update only the
 designated trainable state; regular changes cannot write it. Queries stay readonly.
 
-```ink
+```text
 trainable state Model:Table<u32,Weights> = Table.empty();
 adaptive fn score(context:Context,weights:Weights)->f32 { /* pure model */ }
 adaptive query suggest(context:Context)->f32 reads(Model) { /* readonly */ }
