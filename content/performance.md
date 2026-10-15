@@ -609,3 +609,22 @@ about twelve times on the large counter.
 The standalone backend suite passes 50 tests, including 2,210 raw-bit cases across
 pure, compiled, prepared and action execution. Binary64 and text target histories
 also pass. [Exact artifacts, raw samples, exploratory profile and validation](https://github.com/siliconjungle/ink-lang/blob/8a041d45f25bfcd1d3e8e860f9529365eeb377ba/reports/binary64-literals-2026-10-16/README.md).
+
+## Immutable bindings and generated size
+
+The current CLI avoids redundant JavaScript aliases for immutable values while
+retaining snapshots of mutable loop, branch and recursive-call state. Emitted
+modules shrink 2.12% for the prepared text counter, 2.95% for the neural model and
+0.54% for the collection workloads, using identical checked-core inputs.
+
+This is code-size progress. Execution timings are mixed: the short three-process
+text diagnostic improves the 512-segment prepared counter by about 5%, leaves the
+64-segment case roughly unchanged and regresses the 8-segment case. Pretext still
+leads substantially. Neural and collection observations also contain wins and
+losses; none establishes a broad speedup or closes the three-project target.
+
+The standalone JavaScript suite passes 51 tests, including 2,160 new exact-bit
+alias/snapshot cases. Required-target histories and browser replay preserve
+results, events and checkpoints, with separate actual GPU kernels. Source tapes
+still execute on CPU hosts. [Complete observations, controls, package pins and
+validation](https://github.com/siliconjungle/ink-lang/blob/66a2c4c6896a5f961e5fa3a3232ad21af8fdedc3/reports/immutable-bindings-2026-10-16/README.md).

@@ -283,7 +283,7 @@ replacement receives an independently checked proof before database publication.
 General call summaries, backward requirements and floating-point inference remain
 open. [Implementation and measured scope](https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae00ff66986cc98dcc27a80a/docs/conditional-word-facts.md).
 
-[Three-project delivery checklist and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae00ff66986cc98dcc27a80a/docs/chenglou-optimisation-programme.md#delivery-checklist) · [Measured search scope](./performance.html#matched-handwired-searches)
+[Three-project delivery checklist and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/66a2c4c6896a5f961e5fa3a3232ad21af8fdedc3/docs/chenglou-optimisation-programme.md#delivery-checklist) · [Measured search scope](./performance.html#matched-handwired-searches)
 
 ## Authored code with explicit learning
 
