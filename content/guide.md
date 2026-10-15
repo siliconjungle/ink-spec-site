@@ -433,6 +433,19 @@ and after publication. This is a cooperative CPU-host service; one synchronous
 work turn still blocks its event loop until it returns.
 [Runnable service, contracts and limitations](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/continuous-learning.md).
 
+The application author owns the goal, reward, relevant context, permitted changes
+and invariants. Ink has no built-in engagement or other product objective.
+Differentiable objectives use source gradients or prepared reverse graphs;
+`std:policy_gradient` adds categorical choice scores, allowed-choice masks,
+reward-to-go and trajectory gradients for authored discrete policies. Random
+inputs and feedback are explicit. The runnable example uses source AD and full
+Adam state, retains pending delayed feedback, checks policy versions and supports
+transactional rollback. Its two designed training contexts reach about 98.7%
+preferred-action probability; this establishes neither generalization nor a runtime
+speedup. Sampling and score arithmetic have explicit F32 limits; policy training
+runs on CPU hosts.
+[Authored rewards, contracts and evidence](https://github.com/siliconjungle/ink-lang/blob/d6f209ab822814c4c95bd410b86fd1809abe9914/docs/policy-learning.md).
+
 ## See what growing knowledge changes
 
 Two different improvements matter: finding a better algorithm and executing the chosen algorithm with less overhead. Ink measures them separately.

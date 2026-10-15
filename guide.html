@@ -315,6 +315,18 @@ histories against exact reference checkpoints, including storage failures before
 and after publication. This is a cooperative CPU-host service; one synchronous
 work turn still blocks its event loop until it returns.
 <a href="https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/continuous-learning.md">Runnable service, contracts and limitations</a>.</p>
+<p>The application author owns the goal, reward, relevant context, permitted changes
+and invariants. Ink has no built-in engagement or other product objective.
+Differentiable objectives use source gradients or prepared reverse graphs;
+<code>std:policy_gradient</code> adds categorical choice scores, allowed-choice masks,
+reward-to-go and trajectory gradients for authored discrete policies. Random
+inputs and feedback are explicit. The runnable example uses source AD and full
+Adam state, retains pending delayed feedback, checks policy versions and supports
+transactional rollback. Its two designed training contexts reach about 98.7%
+preferred-action probability; this establishes neither generalization nor a runtime
+speedup. Sampling and score arithmetic have explicit F32 limits; policy training
+runs on CPU hosts.
+<a href="https://github.com/siliconjungle/ink-lang/blob/d6f209ab822814c4c95bd410b86fd1809abe9914/docs/policy-learning.md">Authored rewards, contracts and evidence</a>.</p>
 </div></section>
 <section class="chapter" id="see-what-growing-knowledge-changes" aria-labelledby="title-see-what-growing-knowledge-changes"><h2 id="title-see-what-growing-knowledge-changes">See what growing knowledge changes</h2><div class="prose"><p>Two different improvements matter: finding a better algorithm and executing the chosen algorithm with less overhead. Ink measures them separately.</p>
 <p><img src="./proof-growth.svg" alt="Execution gains and regressions as reusable proof families grow"></p>
