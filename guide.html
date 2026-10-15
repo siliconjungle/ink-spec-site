@@ -182,6 +182,23 @@ ink compile prices.ink --plan prices.rs.planning.json --target rust -o replayed.
 <p>Queries must not acquire permission to change ordering, float behavior, errors, events or transaction visibility merely because another placement is faster. A GPU scan also pays for upload, dispatch and readback; an indexed CPU lookup can be cheaper. Keeping intermediates resident can change that balance. Passing a device conformance test establishes tested agreement, while profitability needs separate measurements.</p>
 <p><a href="./environment/?example=queries">Try the query example</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/query-expressions.md">Exact query contract</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/optimisation-language-programme.md">Implementation programme</a></p>
 </div></section>
+<section class="chapter" id="infer-facts-and-prepare-repeated-work" aria-labelledby="title-infer-facts-and-prepare-repeated-work"><h2 id="title-infer-facts-and-prepare-repeated-work">Infer facts and prepare repeated work</h2><div class="prose"><p>Three complementary investigations guide further optimisation: Handwired&#39;s compact
+exact circuits, Freerange&#39;s inferred numeric requirements and Pretext&#39;s separation
+of measurement from repeated layout. The shared opportunity is to discover useful
+facts, prepare stable inputs once and compute only the outputs a caller needs.
+These mechanisms can apply to queries, rendering, parsing and numeric computation.</p>
+<p>Ink already has staging parameters, checked physical layouts, maintained state
+and resident GPU sessions. A new ordinary bit-state library has measured search
+gains. General inferred facts, automatic preparation and projection-sensitive
+lowering remain work in progress. Exact effects and observable errors still
+constrain which work may be skipped.</p>
+<p>Precision is part of the contract. JavaScript text-layout calculations use F64;
+Ink currently provides F32. Porting a calculation by rounding its inputs can
+change a line break. The proposed direction is a faithful F64 baseline followed
+by checked narrower implementations or guarded fallbacks where profitable. That
+F64 extension and adaptive precision are not implemented yet.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/a0a4fa0ff7f24e74ab99a6f98b6b86f31458e702/docs/chenglou-optimisation-programme.md">Mechanisms, source revisions and acceptance criteria</a> · <a href="./performance.html#matched-handwired-searches">Measured search scope</a></p>
+</div></section>
 <section class="chapter" id="see-what-growing-knowledge-changes" aria-labelledby="title-see-what-growing-knowledge-changes"><h2 id="title-see-what-growing-knowledge-changes">See what growing knowledge changes</h2><div class="prose"><p>Two different improvements matter: finding a better algorithm and executing the chosen algorithm with less overhead. Ink measures them separately.</p>
 <p><img src="./proof-growth.svg" alt="Execution gains and regressions as reusable proof families grow"></p>
 <p>With the compiler fixed, the 16-family proof-growth study reports 2.17× on designed JavaScript inputs and 2.39× on its actual AST/mesh cohorts. The fused GPU alternative regresses on average. A separate ten-program study combines compiler improvements and measured planning for a 1.73× geometric-mean gain over the previous default; selection alone contributes 1.29× against the updated compiler&#39;s baseline.</p>
