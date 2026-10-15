@@ -272,10 +272,10 @@ remain work in progress. Exact effects and observable errors still
 constrain which work may be skipped.
 
 Precision is part of the contract. JavaScript text-layout calculations use F64;
-Ink currently provides F32. Porting a calculation by rounding its inputs can
-change a line break. The proposed direction is a faithful F64 baseline followed
-by checked narrower implementations or guarded fallbacks where profitable. That
-F64 extension and adaptive precision are not implemented yet.
+rounding their inputs can change a line break. The current CLI now supports F64
+across CPU targets, with a prepared simple-walker baseline checked against upstream
+geometry. Complete complex text preparation and checked narrower implementations
+or guarded fallbacks still need work. Source derivatives remain F32.
 
 Initial Freerange-inspired inference now discovers conditional unsigned
 equalities from excluded values and comparisons between ranges. Each proposed
@@ -311,7 +311,9 @@ checkpoint loads as data at startup; weights are not yet baked into generated co
 The new CLI is ahead of this page's pinned playground distribution. Automatic
 differentiation now propagates through supported pure helpers, structured state
 and bounded loops. Authored reverse graphs and neural libraries are also available;
-general source reverse AD and automatic frozen-weight arithmetic specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
+source reverse differentiation now supports dynamic parameter lists and structured
+context. Broader source/contract transport, device tape training and automatic
+frozen-weight arithmetic specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
 constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md).
 
 Initial numeric preparation also shares invariant tables inside one invocation.
@@ -326,9 +328,9 @@ pure computation, or use authored rewards to learn from outcomes of a
 nondifferentiable environment. It does not automatically differentiate an
 arbitrary running application across transactions, database operations, I/O and
 GPU execution. Relevant state enters through explicit arguments; the author
-chooses which parameters may change and which constraints must hold. Source full
-gradients currently support up to 32 F32 coordinates; explicit reverse graphs
-support larger models. [Current interfaces and scope](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/docs/differentiable-computation.md).
+chooses which parameters may change and which constraints must hold. Forward full
+gradients support up to 32 F32 coordinates. Source reverse differentiation supports
+larger dynamic F32 parameter lists, and explicit reverse graphs remain available. [Current interfaces and scope](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/docs/differentiable-computation.md).
 
 A trainable field identifies what learning may change. The objective can run that
 model through authored simulation, layout or generation code and measure the final
@@ -338,6 +340,22 @@ outcome. Ink now generates gradients through the admitted pure computation:
 let derivatives = gradient(objective, parameters, context);
 let sensitivity = jvp(objective, parameters, direction, context);
 ```
+
+For larger parameter shapes, the current CLI can record one bounded forward tape
+and traverse it backward:
+
+```ink-cli
+let derivatives = reverse_gradient(objective, parameters, 4096, true, context)?;
+```
+
+The objective can call ordinary helpers, zip/map lists, use optional/result context
+and run bounded loops. `4096` limits tape nodes; `true` explicitly skips zero
+cotangents. The result preserves the parameter shape or returns an error.
+`reverse_linearize` also returns the primal value. A 64-parameter learner matches
+results, events and exact checkpoints across compiled targets and browser hosts;
+its tape runs on the CPU. This is a capability check, with measured speed and device
+training still to do. [Complete CLI example](./source-reverse-learning.ink) ·
+[Interfaces, ownership and assurance scope](https://github.com/siliconjungle/ink-lang/blob/411cd0a456d9d267058b30cbf0ff95700ee401d6/docs/source-reverse-differentiation.md).
 
 The [world/controller example](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/examples/differentiable-world.ink)
 propagates gradients through twelve feedback-controlled physics steps. Two training
