@@ -320,6 +320,16 @@ the learning example establishes broad application speedups. [Preparation eviden
 
 ## Train through authored computation
 
+An application-wide objective can use the complete explicit context and evaluate
+the final result of supported computation. Ink can differentiate through that
+pure computation, or use authored rewards to learn from outcomes of a
+nondifferentiable environment. It does not automatically differentiate an
+arbitrary running application across transactions, database operations, I/O and
+GPU execution. Relevant state enters through explicit arguments; the author
+chooses which parameters may change and which constraints must hold. Source full
+gradients currently support up to 32 F32 coordinates; explicit reverse graphs
+support larger models. [Current interfaces and scope](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/docs/differentiable-computation.md).
+
 A trainable field identifies what learning may change. The objective can run that
 model through authored simulation, layout or generation code and measure the final
 outcome. Ink now generates gradients through the admitted pure computation:
@@ -548,6 +558,37 @@ win. An explicit shared Boolean-circuit mode now reduces proof-generation cost;
 certificates retain their original circuit mode and bytes.
 
 [Versioned circuit scope, evidence and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/shared-bit-circuits.md)
+
+## Binary64 across compiled boundaries
+
+The current CLI supports explicit `f64` computation, ordinary/trainable state,
+events, keeps and portable checkpoints across Rust, JavaScript and Rust-Wasm.
+This preserves JavaScript measurement precision instead of silently narrowing
+text-layout inputs to F32.
+
+```text
+module precise_measurement;
+fn scale(width:f64,ratio:f64)->f64 {
+    return width*ratio;
+}
+fn measured()->f64 {
+    return 1.0000000000000002f64;
+}
+```
+
+Unsuffixed decimal literals retain their F32 meaning. Cross-width conversions
+are explicit. Scalar equality follows IEEE rules; stored structural equality and
+snapshots preserve raw float bits. Exact nonfinite values can cross JSON through
+`{"F64Bits":"unsigned decimal u64"}` tags. The same typed value can pass between
+compiled language/runtime boundaries without a separate lower-precision model.
+
+Binary64 functions retain CPU execution in mixed GPU bundles. F64 proof terms
+currently fail closed, and source AD/neural/Adam libraries remain F32. This is
+precision groundwork for Pretext, not complete text preparation/shaping, GPU
+binary64, automatic application-wide differentiation or a speedup claim. This
+CLI feature is ahead of the browser editor's separately pinned compiler.
+
+[Syntax, semantics and limits](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/docs/binary64.md) · [Retained sources and validation](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/reports/binary64-2026-10-16/README.md).
 
 ## What runs today
 

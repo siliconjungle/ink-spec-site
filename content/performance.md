@@ -516,3 +516,21 @@ whole-session optimizer, native prepared-call or frozen graph-speed claim follow
 Full-source reverse AD and graph/arithmetic specialization remain separate work.
 
 [Raw samples, exact bindings, faster controls and validation](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/reports/prepared-helpers-2026-10-16/README.md) · [Reproduction](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/bench/prepared-helpers/README.md).
+
+
+## Binary64 precision foundation
+
+Explicit `f64` now preserves measurement precision across compiled CPU values,
+state, events and portable checkpoints. The retained 65-case history compares
+values/errors/events across reference, Rust, JavaScript, Wasm and the native GPU
+host. CPU targets compare every checkpoint; the GPU host additionally compares
+its exact final checkpoint. A separate frozen-state history checks rebinding and
+changed-row rejection. Both histories require an actual F32 GPU dispatch; F64
+computation stays on the CPU.
+
+This is a conformance and interoperability milestone. It supplies no new timing
+claim, F64 AD, binary64 proof domain or complete Pretext port. The source-pinned
+F32 measurements above remain historical results for their named emitters, not
+performance claims for every later compiler revision.
+
+[Exact sources, isolated core/package checks and target receipts](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/reports/binary64-2026-10-16/README.md).

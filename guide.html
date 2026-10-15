@@ -229,7 +229,16 @@ constraints and tested scope</a>.</p>
 The large measured case wins substantially; a small case loses. Neither this nor
 the learning example establishes broad application speedups. <a href="./performance.html#prepared-numeric-tables">Preparation evidence</a>.</p>
 </div></section>
-<section class="chapter" id="train-through-authored-computation" aria-labelledby="title-train-through-authored-computation"><h2 id="title-train-through-authored-computation">Train through authored computation</h2><div class="prose"><p>A trainable field identifies what learning may change. The objective can run that
+<section class="chapter" id="train-through-authored-computation" aria-labelledby="title-train-through-authored-computation"><h2 id="title-train-through-authored-computation">Train through authored computation</h2><div class="prose"><p>An application-wide objective can use the complete explicit context and evaluate
+the final result of supported computation. Ink can differentiate through that
+pure computation, or use authored rewards to learn from outcomes of a
+nondifferentiable environment. It does not automatically differentiate an
+arbitrary running application across transactions, database operations, I/O and
+GPU execution. Relevant state enters through explicit arguments; the author
+chooses which parameters may change and which constraints must hold. Source full
+gradients currently support up to 32 F32 coordinates; explicit reverse graphs
+support larger models. <a href="https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/docs/differentiable-computation.md">Current interfaces and scope</a>.</p>
+<p>A trainable field identifies what learning may change. The objective can run that
 model through authored simulation, layout or generation code and measure the final
 outcome. Ink now generates gradients through the admitted pure computation:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-14">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-14">let derivatives = gradient(objective, parameters, context);
@@ -403,6 +412,28 @@ win. An explicit shared Boolean-circuit mode now reduces proof-generation cost;
 certificates retain their original circuit mode and bytes.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/shared-bit-circuits.md">Versioned circuit scope, evidence and limits</a></p>
 </div></section>
+<section class="chapter" id="binary64-across-compiled-boundaries" aria-labelledby="title-binary64-across-compiled-boundaries"><h2 id="title-binary64-across-compiled-boundaries">Binary64 across compiled boundaries</h2><div class="prose"><p>The current CLI supports explicit <code>f64</code> computation, ordinary/trainable state,
+events, keeps and portable checkpoints across Rust, JavaScript and Rust-Wasm.
+This preserves JavaScript measurement precision instead of silently narrowing
+text-layout inputs to F32.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-19">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-19">module precise_measurement;
+fn scale(width:f64,ratio:f64)-&gt;f64 {
+    return width*ratio;
+}
+fn measured()-&gt;f64 {
+    return 1.0000000000000002f64;
+}</code></pre></div><p>Unsuffixed decimal literals retain their F32 meaning. Cross-width conversions
+are explicit. Scalar equality follows IEEE rules; stored structural equality and
+snapshots preserve raw float bits. Exact nonfinite values can cross JSON through
+<code>{&quot;F64Bits&quot;:&quot;unsigned decimal u64&quot;}</code> tags. The same typed value can pass between
+compiled language/runtime boundaries without a separate lower-precision model.</p>
+<p>Binary64 functions retain CPU execution in mixed GPU bundles. F64 proof terms
+currently fail closed, and source AD/neural/Adam libraries remain F32. This is
+precision groundwork for Pretext, not complete text preparation/shaping, GPU
+binary64, automatic application-wide differentiation or a speedup claim. This
+CLI feature is ahead of the browser editor&#39;s separately pinned compiler.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/docs/binary64.md">Syntax, semantics and limits</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/reports/binary64-2026-10-16/README.md">Retained sources and validation</a>.</p>
+</div></section>
 <section class="chapter" id="what-runs-today" aria-labelledby="title-what-runs-today"><h2 id="title-what-runs-today">What runs today</h2><div class="prose"><p>Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include Rust, JavaScript and Rust/Wasm, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
 <thead>
@@ -438,7 +469,7 @@ certificates retain their original circuit mode and bytes.</p>
 <section class="chapter" id="keep-values-in-compiled-storage" aria-labelledby="title-keep-values-in-compiled-storage"><h2 id="title-keep-values-in-compiled-storage">Keep values in compiled storage</h2><div class="prose"><p>A compiled JavaScript module exposes typed opaque values. Capture a logical input once or decode an agreed-schema binary value, call functions with the handle, and encode the result directly for transport. The handle owns its private data and rejects foreign or mismatched types. Public materialization returns detached mutable containers.</p>
 <p>The module can retain checked type facts with its private immutable handles. This allows repeated calls to avoid equivalent type-only guards; semantic <code>requires</code> clauses remain active. These facts do not prove arbitrary JSON number grammar or unique object members. The JSON boundary keeps those validations.</p>
 <p>For repeated Unicode rendering, an optional <code>createJsonQuoter()</code> from the same generated module can be passed as <code>{quoter}</code> to <code>JsonCodec.stringifyCompiled</code>. It reuses escaped strings and exact UTF-8 lengths while charging output budgets on every call. It adds retained memory and can slow cold or short sessions; choose it using comparable lifecycle measurements. <code>clear()</code> releases its entries. Binary transport and ordinary calls do not require this option.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-19">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-19"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-20">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-20"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
 const json <span class="tok-operator">=</span> new <span class="tok-type">JsonCodec</span>(valueCodecs.identity.<span class="tok-keyword">result</span>);
 const input <span class="tok-operator">=</span> compiledValues.mark_received.params[<span class="tok-number">0</span>];
 const document <span class="tok-operator">=</span> input.<span class="tok-function">decodeCompact</span>(json.<span class="tok-function">parseCompact</span>(text));
