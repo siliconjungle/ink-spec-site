@@ -259,10 +259,34 @@ They strengthen concrete checks without proving the whole AD transform or backen
 laws replay exact definition contexts and bit-vector proofs; changed callees
 invalidate their summaries. <a href="https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/docs/interprocedural-word-facts.md">Source-bound call facts</a>.</p>
 </div></section>
+<section class="chapter" id="reuse-prepared-computation" aria-labelledby="title-reuse-prepared-computation"><h2 id="title-reuse-prepared-computation">Reuse prepared computation</h2><div class="prose"><p>A <code>keep</code> can describe a derived structure as well as a scalar. The current CLI
+retains immutable records, lists, strings and recursive values on JavaScript,
+Rust and Rust/Wasm hosts. Checked state dependencies determine invalidation:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-15">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-15"><span class="tok-keyword">module</span> prepared_points;
+<span class="tok-keyword">record</span> <span class="tok-type">Point</span> { x:<span class="tok-type">f32</span>, y:<span class="tok-type">f32</span>, }
+<span class="tok-keyword">state</span> <span class="tok-type">Points</span>:<span class="tok-type">Table</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span>,<span class="tok-type">Point</span><span class="tok-operator">&gt;=</span><span class="tok-type">Table</span>.<span class="tok-function">empty</span>();
+<span class="tok-keyword">keep</span> <span class="tok-type">Powers</span>:<span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">f32</span><span class="tok-operator">&gt;=</span><span class="tok-type">Points</span>.<span class="tok-function">values</span>().<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(p)<span class="tok-operator">=&gt;</span>p.x<span class="tok-operator">*</span>p.x<span class="tok-operator">+</span>p.y<span class="tok-operator">*</span>p.y);
+<span class="tok-keyword">query</span> <span class="tok-function">total</span>()<span class="tok-operator">-&gt;</span><span class="tok-type">f32</span> <span class="tok-keyword">reads</span>(<span class="tok-type">Powers</span>){<span class="tok-keyword">return</span> <span class="tok-function">sum</span>(<span class="tok-type">Powers</span>);}
+<span class="tok-keyword">change</span> <span class="tok-function">put</span>(key:<span class="tok-type">u32</span>,point:<span class="tok-type">Point</span>)<span class="tok-operator">-&gt;</span><span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>,<span class="tok-type">String</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Points</span>){
+    <span class="tok-type">Points</span>.<span class="tok-function">put</span>(key,point);<span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(());
+}</code></pre></div><p><code>Powers</code> is computed on its first observation and reused until <code>Points</code> changes.
+An unrelated state write preserves it. Public results are detached; rollback and
+restore preserve source behavior. Derived caches are excluded from portable
+checkpoints. Owned Buffer/Map descendants remain ineligible.</p>
+<p>The prepared neural example uses the same mechanism to retain an architecture
+while weights, Adam moments and training controls change. It preserves the
+original learning results and full logical state. Held-out JavaScript prediction
+calls improve about 3.45× on one host. Cold setup, memory and frequent invalidation
+can lose; the measured training-only workload regresses about 24%. An explicit
+keep does not guarantee a profitable lifecycle. Automatic cost-aware staging,
+graph specialization and GPU training remain open. The pinned playground can
+compile the syntax above but predates this structured retention implementation.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/docs/structured-preparation.md">Mechanism and ownership</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/examples/prepared-neural.ink">Runnable neural example</a> · <a href="./performance.html#structured-preparation-lifecycle">Gains and regressions</a>.</p>
+</div></section>
 <section class="chapter" id="prepare-a-model-and-learn-through-it" aria-labelledby="title-prepare-a-model-and-learn-through-it"><h2 id="title-prepare-a-model-and-learn-through-it">Prepare a model and learn through it</h2><div class="prose"><p>The CLI now includes ordinary <code>std:autodiff</code>, <code>std:neural</code> and <code>std:learning</code>
 libraries. A ReGLU network can be prepared once, then evaluated and differentiated
 with changing weights and complete explicit context:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-15">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-15">let model = nn.network(10, [6,6], 4, 10000)?;
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-16">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-16">let model = nn.network(10, [6,6], 4, 10000)?;
 let update = nn.mse_gradient(model, weights, context, target)?;</code></pre></div><p>The complete example learns 244 parameters, with all derivatives checked against
 an independent dense-network oracle. Preparation keeps the selected graph roots;
 fused affine/ReGLU nodes express the authored arithmetic. It fits Ink&#39;s broader
@@ -298,7 +322,7 @@ explicitly freezes selected roots and withdraws their writers. Automatic arithme
 specialization, trained implementation selection, parallel worker promotion
 and device training remain open. These phases share the full objective and optimizer lineage.
 <a href="https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/learning-lifecycle.md">Lifecycle contract and implementation status</a>.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-16">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-16">ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-17">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-17">ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
     --target javascript -o build/fitted-layout
 ink verify-model build/fitted-layout --replay</code></pre></div><p>The build captures the checked source and explicit trace, executes authored learning
 actions, then compiles a startup factory from the complete fitted checkpoint. Targets
@@ -308,7 +332,7 @@ the package&#39;s inputs and files, with optional reference training replay. It 
 neither artifact authenticity nor compiler correctness.
 <a href="https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/trained-builds.md">Build-stage training, startup interfaces and limits</a>.</p>
 <p>Freeze only when the application wants to remove those degrees of freedom:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-17">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-17">ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-18">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-18">ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
     --freeze --target javascript -o build/frozen-layout
 # Or freeze named roots while retaining other learners:
 ink build-model SOURCE TRACE.json --freeze-roots First,Prepared \
@@ -390,7 +414,7 @@ certificates retain their original circuit mode and bytes.</p>
 <section class="chapter" id="keep-values-in-compiled-storage" aria-labelledby="title-keep-values-in-compiled-storage"><h2 id="title-keep-values-in-compiled-storage">Keep values in compiled storage</h2><div class="prose"><p>A compiled JavaScript module exposes typed opaque values. Capture a logical input once or decode an agreed-schema binary value, call functions with the handle, and encode the result directly for transport. The handle owns its private data and rejects foreign or mismatched types. Public materialization returns detached mutable containers.</p>
 <p>The module can retain checked type facts with its private immutable handles. This allows repeated calls to avoid equivalent type-only guards; semantic <code>requires</code> clauses remain active. These facts do not prove arbitrary JSON number grammar or unique object members. The JSON boundary keeps those validations.</p>
 <p>For repeated Unicode rendering, an optional <code>createJsonQuoter()</code> from the same generated module can be passed as <code>{quoter}</code> to <code>JsonCodec.stringifyCompiled</code>. It reuses escaped strings and exact UTF-8 lengths while charging output budgets on every call. It adds retained memory and can slow cold or short sessions; choose it using comparable lifecycle measurements. <code>clear()</code> releases its entries. Binary transport and ordinary calls do not require this option.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-18">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-18"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-19">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-19"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
 const json <span class="tok-operator">=</span> new <span class="tok-type">JsonCodec</span>(valueCodecs.identity.<span class="tok-keyword">result</span>);
 const input <span class="tok-operator">=</span> compiledValues.mark_received.params[<span class="tok-number">0</span>];
 const document <span class="tok-operator">=</span> input.<span class="tok-function">decodeCompact</span>(json.<span class="tok-function">parseCompact</span>(text));

@@ -404,3 +404,33 @@ continue through the cooperative service to exact expected checkpoints. This is
 adaptive deployment, with CPU-host training; it adds no throughput or memory claim
 to the comparison above.
 [Retained package and validation evidence](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/reports/trained-builds-2026-10-15/README.md).
+
+
+## Structured preparation lifecycle
+
+On M4 Pro / Node 25.3.0, the same checked source and trained checkpoint under the
+old and current JavaScript emitters produce these held-out medians:
+
+| Complete workload | Previous | Structured retention | Ratio (previous/current) |
+| --- | ---: | ---: | ---: |
+| Neural prediction | 39.06 µs | 11.33 µs | 3.45× |
+| Read selected names, 4096 rows | 637.94 µs | 210.19 µs | 3.04× |
+| Return whole structure, 4096 rows | 5325.58 µs | 5243 µs | 1.02× |
+| Update + one read, 128 rows | 31.75 µs | 65.10 µs | 0.49× |
+| Update + sixteen reads, 128 rows | 325.85 µs | 175.60 µs | 1.86× |
+| Training turn, no predictions | 310.93 µs | 386.17 µs | 0.81× |
+| Training turn + sixteen predictions | 1510.68 µs | 730.13 µs | 2.07× |
+
+Six fresh processes separate development and holdout inputs, with eleven
+interleaved samples per cell and complete output consumption. Training feedback
+and exact checkpoints agree. The prepared prediction remains about 31× slower
+than a separate dense numeric kernel that excludes state/ABI overhead; these
+measurements do not establish parity with Handwired's different workloads.
+
+Cold and memory costs matter. The first 4096-row names read increases from 0.70
+to 1.77 ms. A separate 16,384-row process retains about 1.7 MB more heap. Native
+performance, automatic lifecycle selection and device training are not measured
+here. These observations support stable-input reuse and retain the cases where
+it loses; they grant no automatic profitability authority.
+
+[Retained samples, controls and validation](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/reports/structured-preparation-2026-10-16/README.md) · [Reproduction](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/bench/structured-preparation/README.md).

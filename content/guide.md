@@ -359,6 +359,39 @@ Unsigned inference now also crosses bounded helper-call graphs. Two new database
 laws replay exact definition contexts and bit-vector proofs; changed callees
 invalidate their summaries. [Source-bound call facts](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/docs/interprocedural-word-facts.md).
 
+## Reuse prepared computation
+
+A `keep` can describe a derived structure as well as a scalar. The current CLI
+retains immutable records, lists, strings and recursive values on JavaScript,
+Rust and Rust/Wasm hosts. Checked state dependencies determine invalidation:
+
+```ink
+module prepared_points;
+record Point { x:f32, y:f32, }
+state Points:Table<u32,Point>=Table.empty();
+keep Powers:List<f32>=Points.values().map(fn(p)=>p.x*p.x+p.y*p.y);
+query total()->f32 reads(Powers){return sum(Powers);}
+change put(key:u32,point:Point)->Result<Unit,String> writes(Points){
+    Points.put(key,point);return Ok(());
+}
+```
+
+`Powers` is computed on its first observation and reused until `Points` changes.
+An unrelated state write preserves it. Public results are detached; rollback and
+restore preserve source behavior. Derived caches are excluded from portable
+checkpoints. Owned Buffer/Map descendants remain ineligible.
+
+The prepared neural example uses the same mechanism to retain an architecture
+while weights, Adam moments and training controls change. It preserves the
+original learning results and full logical state. Held-out JavaScript prediction
+calls improve about 3.45× on one host. Cold setup, memory and frequent invalidation
+can lose; the measured training-only workload regresses about 24%. An explicit
+keep does not guarantee a profitable lifecycle. Automatic cost-aware staging,
+graph specialization and GPU training remain open. The pinned playground can
+compile the syntax above but predates this structured retention implementation.
+
+[Mechanism and ownership](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/docs/structured-preparation.md) · [Runnable neural example](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/examples/prepared-neural.ink) · [Gains and regressions](./performance.html#structured-preparation-lifecycle).
+
 ## Prepare a model and learn through it
 
 The CLI now includes ordinary `std:autodiff`, `std:neural` and `std:learning`

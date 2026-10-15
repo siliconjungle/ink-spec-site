@@ -549,6 +549,72 @@ continue through the cooperative service to exact expected checkpoints. This is
 adaptive deployment, with CPU-host training; it adds no throughput or memory claim
 to the comparison above.
 <a href="https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/reports/trained-builds-2026-10-15/README.md">Retained package and validation evidence</a>.</p>
+</div></section>
+<section class="chapter" id="structured-preparation-lifecycle" aria-labelledby="title-structured-preparation-lifecycle"><h2 id="title-structured-preparation-lifecycle">Structured preparation lifecycle</h2><div class="prose"><p>On M4 Pro / Node 25.3.0, the same checked source and trained checkpoint under the
+old and current JavaScript emitters produce these held-out medians:</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Complete workload</th>
+<th align="right">Previous</th>
+<th align="right">Structured retention</th>
+<th align="right">Ratio (previous/current)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Neural prediction</td>
+<td align="right">39.06 µs</td>
+<td align="right">11.33 µs</td>
+<td align="right">3.45×</td>
+</tr>
+<tr>
+<td>Read selected names, 4096 rows</td>
+<td align="right">637.94 µs</td>
+<td align="right">210.19 µs</td>
+<td align="right">3.04×</td>
+</tr>
+<tr>
+<td>Return whole structure, 4096 rows</td>
+<td align="right">5325.58 µs</td>
+<td align="right">5243 µs</td>
+<td align="right">1.02×</td>
+</tr>
+<tr>
+<td>Update + one read, 128 rows</td>
+<td align="right">31.75 µs</td>
+<td align="right">65.10 µs</td>
+<td align="right">0.49×</td>
+</tr>
+<tr>
+<td>Update + sixteen reads, 128 rows</td>
+<td align="right">325.85 µs</td>
+<td align="right">175.60 µs</td>
+<td align="right">1.86×</td>
+</tr>
+<tr>
+<td>Training turn, no predictions</td>
+<td align="right">310.93 µs</td>
+<td align="right">386.17 µs</td>
+<td align="right">0.81×</td>
+</tr>
+<tr>
+<td>Training turn + sixteen predictions</td>
+<td align="right">1510.68 µs</td>
+<td align="right">730.13 µs</td>
+<td align="right">2.07×</td>
+</tr>
+</tbody></table>
+</div><p>Six fresh processes separate development and holdout inputs, with eleven
+interleaved samples per cell and complete output consumption. Training feedback
+and exact checkpoints agree. The prepared prediction remains about 31× slower
+than a separate dense numeric kernel that excludes state/ABI overhead; these
+measurements do not establish parity with Handwired&#39;s different workloads.</p>
+<p>Cold and memory costs matter. The first 4096-row names read increases from 0.70
+to 1.77 ms. A separate 16,384-row process retains about 1.7 MB more heap. Native
+performance, automatic lifecycle selection and device training are not measured
+here. These observations support stable-input reuse and retain the cases where
+it loses; they grant no automatic profitability authority.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/reports/structured-preparation-2026-10-16/README.md">Retained samples, controls and validation</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/bench/structured-preparation/README.md">Reproduction</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

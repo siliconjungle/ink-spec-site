@@ -60,6 +60,12 @@ state with normal rollback and recovery. The CLI now includes prepared reverse
 graphs and a 244-parameter ReGLU example; model training currently runs on CPU
 hosts. [Learning through authored computation](./guide.html#prepare-a-model-and-learn-through-it).
 
+The current CLI can also retain a structured `keep`: prepare a model architecture or
+derived collection once, then reuse it while its checked inputs stay unchanged.
+Training may continue to change the weights. This connects ordinary derived state
+to prepared computation, with automatic invalidation and explicit recovery.
+[Reuse and its costs](./guide.html#reuse-prepared-computation).
+
 Today, ordered list queries and eligible GPU execution work; external database pushdown, out-of-core query execution and an Ink-native storage engine remain future work. List queries preserve order and duplicates. A query alone does not guarantee a speedup.
 
 [Try this query](./environment/?example=queries) · [How the pieces fit together](./guide.html#one-computation-across-the-stack) · [Query measurements](./performance.html#ordered-query-expressions)
