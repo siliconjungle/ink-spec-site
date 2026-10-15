@@ -23,6 +23,33 @@ Cross-target conformance separately checks 113 values, outcomes and exact snapsh
 
 [Exact source, controls, raw samples and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/ordered-query-expressions-2026-10-15/README.md)
 
+## Matched Handwired searches
+
+On an Apple M4 Pro with Chrome 155, an explicitly authored packed Ink literal
+matcher returns complete counts for 100,000 documents in 3.6–3.8 ms in warm
+resident-GPU calls. Handwired's public search API takes 12.4–13.5 ms for the same
+three literals across development and held-out corpora: a 3.3–3.6× difference.
+The earlier Ink DFA takes 4.5–5.1 ms under the same protocol, so packing itself
+accounts for a smaller 1.2–1.3× improvement. Parameters, dispatch, readback and
+complete output consumption are timed; initial encoding and setup are separate.
+
+This is a specialized literal algorithm compared with a richer regex engine,
+not a general regex or neural-execution win. Three page loads per large corpus
+share one browser process. Paused GPU requests are slower, small inputs favor
+CPU execution, and a comparable end-to-end first-call result remains open.
+Allocation-free UTF-8 reads improve this Ink JavaScript pipeline by 5.9–8.7×,
+while it still loses to native JavaScript search. The owning native Rust API
+also remains slower than the handwritten borrowed control.
+
+Independent complete-output checks cover both large corpora and size controls.
+Separate conformance checks cover 128 library cases across reference, Rust,
+JavaScript and Rust-Wasm, including 48 actual eligible wgpu calls. Eight scalar
+proofs establish components, rather than correctness of the entire matcher or
+compiler. Freerange- and Pretext-inspired compiler gains have not yet been
+measured.
+
+[Raw samples, reproducer, controls and limits](https://github.com/siliconjungle/ink-lang/blob/a0a4fa0ff7f24e74ab99a6f98b6b86f31458e702/reports/handwired-packed-circuits-2026-10-15/README.md) · [Broader contracts and preparation work](./guide.html#infer-facts-and-prepare-repeated-work)
+
 ## Compiler and planner
 
 The frozen planning corpus contains ten programs. Selection uses development inputs; evaluation uses 24 separate inputs per program spanning sizes and distributions. The JavaScript harness uses paired, interleaved timing and checks the outputs.

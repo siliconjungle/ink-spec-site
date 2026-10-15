@@ -256,6 +256,28 @@ Queries must not acquire permission to change ordering, float behavior, errors, 
 
 [Try the query example](./environment/?example=queries) · [Exact query contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/query-expressions.md) · [Implementation programme](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/optimisation-language-programme.md)
 
+## Infer facts and prepare repeated work
+
+Three complementary investigations guide further optimisation: Handwired's compact
+exact circuits, Freerange's inferred numeric requirements and Pretext's separation
+of measurement from repeated layout. The shared opportunity is to discover useful
+facts, prepare stable inputs once and compute only the outputs a caller needs.
+These mechanisms can apply to queries, rendering, parsing and numeric computation.
+
+Ink already has staging parameters, checked physical layouts, maintained state
+and resident GPU sessions. A new ordinary bit-state library has measured search
+gains. General inferred facts, automatic preparation and projection-sensitive
+lowering remain work in progress. Exact effects and observable errors still
+constrain which work may be skipped.
+
+Precision is part of the contract. JavaScript text-layout calculations use F64;
+Ink currently provides F32. Porting a calculation by rounding its inputs can
+change a line break. The proposed direction is a faithful F64 baseline followed
+by checked narrower implementations or guarded fallbacks where profitable. That
+F64 extension and adaptive precision are not implemented yet.
+
+[Mechanisms, source revisions and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/a0a4fa0ff7f24e74ab99a6f98b6b86f31458e702/docs/chenglou-optimisation-programme.md) · [Measured search scope](./performance.html#matched-handwired-searches)
+
 ## See what growing knowledge changes
 
 Two different improvements matter: finding a better algorithm and executing the chosen algorithm with less overhead. Ink measures them separately.
