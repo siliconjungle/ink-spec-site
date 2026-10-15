@@ -81,3 +81,10 @@ npm run check:reference -- /path/to/ink-environment/compiler/target/debug/ink-br
 ```
 
 This site and its project-authored content are [MIT licensed](LICENSE). Font and third-party runtime notices are shipped separately in `third-party-notices.txt`. The independently maintained [editor repository](https://github.com/siliconjungle/ink-environment) is also MIT licensed. Build manifests identify the exact site, language and editor revisions.
+
+The docs generator imports Ink/JSON highlighting and whitespace/lossless formatting
+from the environment package's `syntax` export. Its exact Git dependency must match
+`content/environment.json`'s editor revision; generation enforces this binding.
+This keeps documentation examples and editable source/data on the same lexer.
+Illustrative snippets retain their labels even when colored; highlighting does not
+claim that the separately pinned compiler accepts every draft or newer CLI form.

@@ -7,87 +7,100 @@
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-1"><span class="tok-keyword">module</span> prices;
 
 <span class="tok-keyword">state</span> <span class="tok-type">Prices</span>: <span class="tok-type">Table</span><span class="tok-operator">&lt;</span><span class="tok-type">u64</span>, <span class="tok-type">u64</span><span class="tok-operator">&gt;</span> <span class="tok-operator">=</span> <span class="tok-type">Table</span>.<span class="tok-function">empty</span>();
-<span class="tok-keyword">keep</span> total_price: <span class="tok-type">u64</span> <span class="tok-operator">=</span> <span class="tok-function">sum</span>(<span class="tok-type">Prices</span>.<span class="tok-function">values</span>());
 
-<span class="tok-keyword">change</span> <span class="tok-function">set_price</span>(item: <span class="tok-type">u64</span>, price: <span class="tok-type">u64</span>)
-    <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">String</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Prices</span>)
-{
+<span class="tok-keyword">keep</span> <span class="tok-property">total_price</span>: <span class="tok-type">u64</span> <span class="tok-operator">=</span> <span class="tok-function">sum</span>(<span class="tok-type">Prices</span>.<span class="tok-function">values</span>());
+
+<span class="tok-keyword">change</span> <span class="tok-function">set_price</span>(<span class="tok-property">item</span>: <span class="tok-type">u64</span>, <span class="tok-property">price</span>: <span class="tok-type">u64</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">String</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Prices</span>) {
     <span class="tok-type">Prices</span>.<span class="tok-function">put</span>(item, price);
-    <span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(());
+    <span class="tok-keyword">return</span> <span class="tok-constant">Ok</span>(());
 }
 
 <span class="tok-keyword">query</span> <span class="tok-function">total</span>() <span class="tok-operator">-&gt;</span> <span class="tok-type">u64</span> <span class="tok-keyword">reads</span>(total_price) {
     <span class="tok-keyword">return</span> total_price;
-}</code></pre></div><p><code>keep</code> defines a relationship: the total must agree with the table. <code>change</code> declares which state it can update and commits atomically. <code>put</code> inserts or replaces a row.</p>
+}
+</code></pre></div><p><code>keep</code> defines a relationship: the total must agree with the table. <code>change</code> declares which state it can update and commits atomically. <code>put</code> inserts or replaces a row.</p>
 <p>Set prices to 40 and 60: the total is 100. Change 40 to 45: it becomes 105. The JavaScript backend can retain an unchanged scalar total; a relevant write may require a scan. A separately proved implementation could maintain it with <code>100 - 40 + 45</code>. Measurements decide whether that extra maintenance pays for itself.</p>
 <p><a href="./environment/?example=prices">Run this example in the editor</a> · <a href="./prices.ink">Download this program</a></p>
 </div></section>
 <section class="chapter" id="bring-it-into-your-app" aria-labelledby="title-bring-it-into-your-app"><h2 id="title-bring-it-into-your-app">Bring it into your app</h2><div class="prose"><p>Compile to a JavaScript module:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-2">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-2">ink build prices.ink --target javascript -o prices.mjs</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-3">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-3">import { createState } from './prices.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-2">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-2">ink build prices.ink --target javascript -o prices.mjs</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-3">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-3"><span class="tok-keyword">import</span> { createState } <span class="tok-keyword">from</span> <span class="tok-string">'./prices.mjs'</span>;
 
-const prices = createState();
-const setPrice = prices.bind('set_price');
-const total = prices.bind('total', { resultOnly: true });
+<span class="tok-keyword">const</span> prices <span class="tok-operator">=</span> <span class="tok-function">createState</span>();
+<span class="tok-keyword">const</span> setPrice <span class="tok-operator">=</span> prices.<span class="tok-function">bind</span>(<span class="tok-string">'set_price'</span>);
+<span class="tok-keyword">const</span> total <span class="tok-operator">=</span> prices.<span class="tok-function">bind</span>(<span class="tok-string">'total'</span>, { <span class="tok-property">resultOnly</span>: <span class="tok-constant">true</span> });
 
-setPrice(1n, 40n);
-setPrice(2n, 60n);
-console.log(total()); // 100n
-setPrice(1n, 45n);
-console.log(total()); // 105n</code></pre></div><p>Your app supplies inputs and reads results. Ink owns typed state and its computation. Typed bound calls resolve an entry once; scalar arguments must use the correct carrier, including BigInt for <code>u64</code>. Ordinary <code>invoke(name, args)</code> remains available with its checked input and full result envelope. Returning only a result still preserves rollback, versions and committed events.</p>
+<span class="tok-function">setPrice</span>(<span class="tok-number">1n</span>, <span class="tok-number">40n</span>);
+<span class="tok-function">setPrice</span>(<span class="tok-number">2n</span>, <span class="tok-number">60n</span>);
+console.<span class="tok-function">log</span>(<span class="tok-function">total</span>()); <span class="tok-comment">// 100n</span>
+<span class="tok-function">setPrice</span>(<span class="tok-number">1n</span>, <span class="tok-number">45n</span>);
+console.<span class="tok-function">log</span>(<span class="tok-function">total</span>()); <span class="tok-comment">// 105n</span></code></pre></div><p>Your app supplies inputs and reads results. Ink owns typed state and its computation. Typed bound calls resolve an entry once; scalar arguments must use the correct carrier, including BigInt for <code>u64</code>. Ordinary <code>invoke(name, args)</code> remains available with its checked input and full result envelope. Returning only a result still preserves rollback, versions and committed events.</p>
 </div></section>
 <section class="chapter" id="javascript-values-without-json" aria-labelledby="title-javascript-values-without-json"><h2 id="title-javascript-values-without-json">JavaScript values, without JSON</h2><div class="prose"><p>JSON text is optional. A declared Ink record accepts a matching JavaScript object; lists use arrays, strings and booleans use their usual JavaScript values, and <code>u64</code> uses BigInt. Supported typed arrays can also supply list inputs. These values can be called directly or encoded as binary without <code>JSON.stringify</code> or <code>JSON.parse</code>.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-4">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-4"><span class="tok-keyword">module</span> profiles;
 
-<span class="tok-keyword">record</span> <span class="tok-type">Profile</span> { name: <span class="tok-type">String</span>, scores: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, visits: <span class="tok-type">u64</span>, }
-<span class="tok-keyword">fn</span> <span class="tok-function">identity</span>(profile: <span class="tok-type">Profile</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Profile</span> { <span class="tok-keyword">return</span> profile; }</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-5">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-5">import {functions, valueCodecs, callOwned, callBinary} from './profiles.mjs';
+<span class="tok-keyword">record</span> <span class="tok-type">Profile</span> {
+    <span class="tok-property">name</span>: <span class="tok-type">String</span>,
+    <span class="tok-property">scores</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>,
+    <span class="tok-property">visits</span>: <span class="tok-type">u64</span>,
+}
 
-const profile = {name: 'Ada', scores: [3, 5], visits: 2n};
-const borrowed = functions.identity(profile); // may share the input object
-const checked = valueCodecs.identity.arguments.capture({profile});
-const owned = callOwned('identity', [checked.profile]); // detached result
+<span class="tok-keyword">fn</span> <span class="tok-function">identity</span>(<span class="tok-property">profile</span>: <span class="tok-type">Profile</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Profile</span> {
+    <span class="tok-keyword">return</span> profile;
+}
+</code></pre></div><div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-5">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-5"><span class="tok-keyword">import</span> {functions, valueCodecs, callOwned, callBinary} <span class="tok-keyword">from</span> <span class="tok-string">'./profiles.mjs'</span>;
 
-// Binary transport accepts the same typed JavaScript data directly.
-const request = valueCodecs.identity.arguments.encode({profile});
-const reply = callBinary('identity', request);
-const received = valueCodecs.identity.result.decode(reply);</code></pre></div><p>Direct pure functions trust stable, correctly typed inputs; they do not validate arbitrary external data. <code>capture</code> validates and owns an external logical value, and binary calls validate their byte input. <code>callOwned</code> detaches the result but does not add input validation by itself.</p>
+<span class="tok-keyword">const</span> profile <span class="tok-operator">=</span> {<span class="tok-property">name</span>: <span class="tok-string">'Ada'</span>, <span class="tok-property">scores</span>: [<span class="tok-number">3</span>, <span class="tok-number">5</span>], <span class="tok-property">visits</span>: <span class="tok-number">2n</span>};
+<span class="tok-keyword">const</span> borrowed <span class="tok-operator">=</span> functions.<span class="tok-function">identity</span>(profile); <span class="tok-comment">// may share the input object</span>
+<span class="tok-keyword">const</span> checked <span class="tok-operator">=</span> valueCodecs.identity.arguments.<span class="tok-function">capture</span>({profile});
+<span class="tok-keyword">const</span> owned <span class="tok-operator">=</span> <span class="tok-function">callOwned</span>(<span class="tok-string">'identity'</span>, [checked.profile]); <span class="tok-comment">// detached result</span>
+
+<span class="tok-comment">// Binary transport accepts the same typed JavaScript data directly.</span>
+<span class="tok-keyword">const</span> request <span class="tok-operator">=</span> valueCodecs.identity.arguments.<span class="tok-function">encode</span>({profile});
+<span class="tok-keyword">const</span> reply <span class="tok-operator">=</span> <span class="tok-function">callBinary</span>(<span class="tok-string">'identity'</span>, request);
+<span class="tok-keyword">const</span> received <span class="tok-operator">=</span> valueCodecs.identity.result.<span class="tok-function">decode</span>(reply);</code></pre></div><p>Direct pure functions trust stable, correctly typed inputs; they do not validate arbitrary external data. <code>capture</code> validates and owns an external logical value, and binary calls validate their byte input. <code>callOwned</code> detaches the result but does not add input validation by itself.</p>
 <p>This is typed data interchange, not serialization of arbitrary JavaScript objects. Functions, symbols, <code>undefined</code>, cyclic graphs and class behavior have no general wire representation. Prototypes, methods and shared-object identity are not preserved; <code>Date</code>, <code>Map</code> and <code>Set</code> need an explicit representation in supported Ink types.</p>
 </div></section>
 <section class="chapter" id="json-across-boundaries" aria-labelledby="title-json-across-boundaries"><h2 id="title-json-across-boundaries">JSON across boundaries</h2><div class="prose"><p>JSON can enter Ink, become a compiled value, change, and travel as binary bytes. A server can validate and forward those bytes; conversion back to JSON is needed only at a consumer that wants JSON.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-6">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-6"><span class="tok-keyword">module</span> documents;
-<span class="tok-keyword">import</span> <span class="tok-string">&quot;std:json&quot;</span> as json;
 
-<span class="tok-keyword">fn</span> <span class="tok-function">mark_received</span>(document: json.<span class="tok-type">Json</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span>json.<span class="tok-type">Json</span>, json.<span class="tok-type">JsonError</span><span class="tok-operator">&gt;</span> {
+<span class="tok-keyword">import</span> <span class="tok-string">&quot;std:json&quot;</span> <span class="tok-keyword">as</span> json;
+
+<span class="tok-keyword">fn</span> <span class="tok-function">mark_received</span>(<span class="tok-property">document</span>: json.<span class="tok-type">Json</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span>json.<span class="tok-type">Json</span>, json.<span class="tok-type">JsonError</span><span class="tok-operator">&gt;</span> {
     <span class="tok-keyword">return</span> json.<span class="tok-function">set</span>(document, <span class="tok-string">&quot;received&quot;</span>, json.<span class="tok-function">boolean</span>(<span class="tok-constant">true</span>));
 }
-<span class="tok-keyword">fn</span> <span class="tok-function">identity</span>(document: json.<span class="tok-type">Json</span>) <span class="tok-operator">-&gt;</span> json.<span class="tok-type">Json</span> { <span class="tok-keyword">return</span> document; }</code></pre></div><p><code>Json</code> is an ordinary recursive datatype from the pinned knowledge library. It supports arbitrary nested objects and arrays, exact numeric tokens, missing-versus-null lookup, updates and projection. JavaScript apps can supply plain objects through the explicit <code>fromJS</code> boundary and get plain objects back with <code>toJS</code>. No JSON text round trip or record declaration for each object shape is needed:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-7">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-7">import {JsonCodec, valueCodecs, callOwned} from './documents.mjs';
 
-const documents = new JsonCodec(valueCodecs.identity.result);
-const input = {title: 'hello', unknown: {items: [true, null, 3]}};
-const result = callOwned('mark_received', [documents.fromJS(input)]);
-if (Object.hasOwn(result, 'Ok')) console.log(documents.toJS(result.Ok));
-// {received: true, title: 'hello', unknown: {items: [true, null, 3]}}</code></pre></div><p>These adapters run only when a JavaScript host calls them. Native Rust and Rust/Wasm execution, source types and wire formats are unchanged; existing calls acquire no implicit conversion. Containers are detached. Cycles, getters, undefined, functions, class instances and sparse arrays reject rather than being silently coerced. Inputs must be stable plain data; Proxy traps are not sandboxed.</p>
+<span class="tok-keyword">fn</span> <span class="tok-function">identity</span>(<span class="tok-property">document</span>: json.<span class="tok-type">Json</span>) <span class="tok-operator">-&gt;</span> json.<span class="tok-type">Json</span> {
+    <span class="tok-keyword">return</span> document;
+}
+</code></pre></div><p><code>Json</code> is an ordinary recursive datatype from the pinned knowledge library. It supports arbitrary nested objects and arrays, exact numeric tokens, missing-versus-null lookup, updates and projection. JavaScript apps can supply plain objects through the explicit <code>fromJS</code> boundary and get plain objects back with <code>toJS</code>. No JSON text round trip or record declaration for each object shape is needed:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-7">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-7"><span class="tok-keyword">import</span> {<span class="tok-type">JsonCodec</span>, valueCodecs, callOwned} <span class="tok-keyword">from</span> <span class="tok-string">'./documents.mjs'</span>;
+
+<span class="tok-keyword">const</span> documents <span class="tok-operator">=</span> <span class="tok-keyword">new</span> <span class="tok-type">JsonCodec</span>(valueCodecs.identity.result);
+<span class="tok-keyword">const</span> input <span class="tok-operator">=</span> {<span class="tok-property">title</span>: <span class="tok-string">'hello'</span>, <span class="tok-property">unknown</span>: {<span class="tok-property">items</span>: [<span class="tok-constant">true</span>, <span class="tok-constant">null</span>, <span class="tok-number">3</span>]}};
+<span class="tok-keyword">const</span> result <span class="tok-operator">=</span> <span class="tok-function">callOwned</span>(<span class="tok-string">'mark_received'</span>, [documents.<span class="tok-function">fromJS</span>(input)]);
+<span class="tok-keyword">if</span> (<span class="tok-type">Object</span>.<span class="tok-function">hasOwn</span>(result, <span class="tok-string">'Ok'</span>)) console.<span class="tok-function">log</span>(documents.<span class="tok-function">toJS</span>(result.<span class="tok-constant">Ok</span>));
+<span class="tok-comment">// {received: true, title: 'hello', unknown: {items: [true, null, 3]}}</span></code></pre></div><p>These adapters run only when a JavaScript host calls them. Native Rust and Rust/Wasm execution, source types and wire formats are unchanged; existing calls acquire no implicit conversion. Containers are detached. Cycles, getters, undefined, functions, class instances and sparse arrays reject rather than being silently coerced. Inputs must be stable plain data; Proxy traps are not sandboxed.</p>
 <p>Finite Numbers and BigInts can enter this boundary. On return, the default Number policy rejects overflow or decimal precision loss. Use <code>toJS(value, {numbers: &#39;bigint&#39;})</code> for exact integers, or <code>{numbers: &#39;string&#39;}</code> to retain every numeric token as a string. JSON has no separate BigInt tag, and ordinary JavaScript objects need not preserve JSON member order or number spelling. The <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/json-and-portable-values.md#plain-objects-at-the-javascript-boundary">complete boundary contract</a> covers accepted properties and resource limits.</p>
 <p>Text remains a separate entry point when the input really is JSON. <code>JsonCodec.parse</code> preserves exact numeric tokens; schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-8">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-8">import {JsonCodec, valueCodecs, callBinary} from './documents.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-8">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-8"><span class="tok-keyword">import</span> {<span class="tok-type">JsonCodec</span>, valueCodecs, callBinary} <span class="tok-keyword">from</span> <span class="tok-string">'./documents.mjs'</span>;
 
-const documents = new JsonCodec(valueCodecs.identity.result);
-const document = documents.parse('{&quot;title&quot;:&quot;hello&quot;,&quot;unknown&quot;:1e10000}');
-const request = valueCodecs.mark_received.arguments.encode({document});
-// An external network layer can carry request and reply unchanged.
-const reply = callBinary('mark_received', request);
-const result = valueCodecs.mark_received.result.decode(reply);
-console.log(documents.stringify(result.Ok));</code></pre></div><p>In a JavaScript process, opaque handles can keep values in the selected compiled
+<span class="tok-keyword">const</span> documents <span class="tok-operator">=</span> <span class="tok-keyword">new</span> <span class="tok-type">JsonCodec</span>(valueCodecs.identity.result);
+<span class="tok-keyword">const</span> document <span class="tok-operator">=</span> documents.<span class="tok-function">parse</span>(<span class="tok-string">'{&quot;title&quot;:&quot;hello&quot;,&quot;unknown&quot;:1e10000}'</span>);
+<span class="tok-keyword">const</span> request <span class="tok-operator">=</span> valueCodecs.mark_received.arguments.<span class="tok-function">encode</span>({document});
+<span class="tok-comment">// An external network layer can carry request and reply unchanged.</span>
+<span class="tok-keyword">const</span> reply <span class="tok-operator">=</span> <span class="tok-function">callBinary</span>(<span class="tok-string">'mark_received'</span>, request);
+<span class="tok-keyword">const</span> result <span class="tok-operator">=</span> valueCodecs.mark_received.result.<span class="tok-function">decode</span>(reply);
+console.<span class="tok-function">log</span>(documents.<span class="tok-function">stringify</span>(result.<span class="tok-constant">Ok</span>));</code></pre></div><p>In a JavaScript process, opaque handles can keep values in the selected compiled
 representation between calls. Parse directly into a handle, run the compiled
 function, and render the reply when text is needed:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-9">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-9">import {JsonCodec, valueCodecs, compiledValues, callCompiled} from './documents.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-9">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-9"><span class="tok-keyword">import</span> {<span class="tok-type">JsonCodec</span>, valueCodecs, compiledValues, callCompiled} <span class="tok-keyword">from</span> <span class="tok-string">'./documents.mjs'</span>;
 
-const documents = new JsonCodec(valueCodecs.identity.result);
-const input = documents.parseCompiled(
-  compiledValues.mark_received.params[0], '{&quot;title&quot;:&quot;hello&quot;,&quot;unknown&quot;:1e10000}');
-const reply = callCompiled('mark_received', [input]);
-console.log(documents.stringifyCompiled(
-  compiledValues.mark_received.result, reply, {unwrapResult: true}));</code></pre></div><p>The renderer preserves exact numeric tokens and member order, rejects an Err
+<span class="tok-keyword">const</span> documents <span class="tok-operator">=</span> <span class="tok-keyword">new</span> <span class="tok-type">JsonCodec</span>(valueCodecs.identity.result);
+<span class="tok-keyword">const</span> input <span class="tok-operator">=</span> documents.<span class="tok-function">parseCompiled</span>(
+  compiledValues.mark_received.params[<span class="tok-number">0</span>], <span class="tok-string">'{&quot;title&quot;:&quot;hello&quot;,&quot;unknown&quot;:1e10000}'</span>);
+<span class="tok-keyword">const</span> reply <span class="tok-operator">=</span> <span class="tok-function">callCompiled</span>(<span class="tok-string">'mark_received'</span>, [input]);
+console.<span class="tok-function">log</span>(documents.<span class="tok-function">stringifyCompiled</span>(
+  compiledValues.mark_received.result, reply, {<span class="tok-property">unwrapResult</span>: <span class="tok-constant">true</span>}));</code></pre></div><p>The renderer preserves exact numeric tokens and member order, rejects an Err
 reply, and checks JSON validity and resource limits. Encode a handle with its
 compiled codec for network transport; receiving peers decode through their own
 codec. A JavaScript handle belongs to its module and cannot itself cross the
@@ -102,13 +115,13 @@ compact schema validator checks the result. This is an explicit construction
 alternative: paired tests improve the 512-field numeric fixture by about 18%,
 while small and Unicode fixtures regress. Choose the boundary using comparable
 workload measurements.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-10">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-10">import {JsonCodec, valueCodecs, callCompact} from './documents.mjs';
-const documents = new JsonCodec(valueCodecs.identity.result);
-const document = documents.parseCompact('{&quot;title&quot;:&quot;hello&quot;}');
-const requests = valueCodecs.mark_received.arguments.compact();
-const request = requests.encodeWith(w =&gt; w.frame(() =&gt; w.bytes(document.subarray(1))));
-// Both peers negotiate the exact schema identity and transport format first.
-const reply = callCompact('mark_received', request);</code></pre></div><p><a href="./json.html">Try the compiled JSON flow</a> · <a href="./documents.ink">Download the source</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/json-and-portable-values.md">JSON and portable value contracts</a></p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-10">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-10"><span class="tok-keyword">import</span> {<span class="tok-type">JsonCodec</span>, valueCodecs, callCompact} <span class="tok-keyword">from</span> <span class="tok-string">'./documents.mjs'</span>;
+<span class="tok-keyword">const</span> documents <span class="tok-operator">=</span> <span class="tok-keyword">new</span> <span class="tok-type">JsonCodec</span>(valueCodecs.identity.result);
+<span class="tok-keyword">const</span> document <span class="tok-operator">=</span> documents.<span class="tok-function">parseCompact</span>(<span class="tok-string">'{&quot;title&quot;:&quot;hello&quot;}'</span>);
+<span class="tok-keyword">const</span> requests <span class="tok-operator">=</span> valueCodecs.mark_received.arguments.<span class="tok-function">compact</span>();
+<span class="tok-keyword">const</span> request <span class="tok-operator">=</span> requests.<span class="tok-function">encodeWith</span>(w <span class="tok-operator">=&gt;</span> w.<span class="tok-function">frame</span>(() <span class="tok-operator">=&gt;</span> w.<span class="tok-function">bytes</span>(document.<span class="tok-function">subarray</span>(<span class="tok-number">1</span>))));
+<span class="tok-comment">// Both peers negotiate the exact schema identity and transport format first.</span>
+<span class="tok-keyword">const</span> reply <span class="tok-operator">=</span> <span class="tok-function">callCompact</span>(<span class="tok-string">'mark_received'</span>, request);</code></pre></div><p><a href="./json.html">Try the compiled JSON flow</a> · <a href="./documents.ink">Download the source</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/json-and-portable-values.md">JSON and portable value contracts</a></p>
 </div></section>
 <section class="chapter" id="teach-ink-a-better-way" aria-labelledby="title-teach-ink-a-better-way"><h2 id="title-teach-ink-a-better-way">Teach Ink a better way</h2><div class="prose"><p>Algorithms, storage layouts and transformation laws live in a separate knowledge database. Ink checks a proposed optimisation&#39;s proofs against the actual program. Measurements choose among valid alternatives.</p>
 <p>Knowledge can remove intermediate collections, maintain derived results, introduce indexes, select layouts or reuse immutable values. It can also supply a new typed helper algorithm that was absent from the source: for example, replace a filtered list followed by a count with a proved ordered counting loop. The helper passes ordinary type, ownership and termination checks, and an equality proof must justify its use.</p>
@@ -134,21 +147,25 @@ ink compile prices.ink --plan prices.rs.planning.json --target rust -o replayed.
 <p>An ordered query is an ordinary expression, and its consumer remains ordinary code:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-12">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-12"><span class="tok-keyword">module</span> queries;
 
-<span class="tok-keyword">fn</span> <span class="tok-function">selected</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, minimum: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span> {
-    <span class="tok-keyword">return</span> <span class="tok-keyword">list</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>{
+<span class="tok-keyword">fn</span> <span class="tok-function">selected</span>(<span class="tok-property">xs</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-property">minimum</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span> {
+    <span class="tok-keyword">return</span> <span class="tok-keyword">list</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span> {
         <span class="tok-keyword">from</span> x <span class="tok-keyword">in</span> xs;
         <span class="tok-keyword">where</span> x <span class="tok-operator">&gt;=</span> minimum;
         <span class="tok-keyword">select</span> x <span class="tok-operator">*</span> <span class="tok-number">3</span>;
     };
 }
 
-<span class="tok-keyword">fn</span> <span class="tok-function">total</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, minimum: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
+<span class="tok-keyword">fn</span> <span class="tok-function">total</span>(<span class="tok-property">xs</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-property">minimum</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
     <span class="tok-keyword">return</span> <span class="tok-function">sum</span>(<span class="tok-function">selected</span>(xs, minimum));
 }
 
-<span class="tok-keyword">fn</span> <span class="tok-function">overlap</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, ys: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Bool</span> {
-    <span class="tok-keyword">return</span> <span class="tok-keyword">exists</span>{<span class="tok-keyword">from</span> x <span class="tok-keyword">in</span> xs; <span class="tok-keyword">join</span> y <span class="tok-keyword">in</span> ys <span class="tok-keyword">on</span> x <span class="tok-operator">==</span> y;};
-}</code></pre></div><p><code>list&lt;T&gt;</code> preserves source order and every duplicate. <code>exists</code> searches for a witness without constructing matching pairs. First inputs and independent join inputs evaluate once in written order; additional <code>from</code> clauses are lateral. Existing word arithmetic still wraps. These forms elaborate to normal checked list operations rather than granting an optimisation exemption.</p>
+<span class="tok-keyword">fn</span> <span class="tok-function">overlap</span>(<span class="tok-property">xs</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-property">ys</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Bool</span> {
+    <span class="tok-keyword">return</span> <span class="tok-keyword">exists</span> {
+        <span class="tok-keyword">from</span> x <span class="tok-keyword">in</span> xs;
+        <span class="tok-keyword">join</span> y <span class="tok-keyword">in</span> ys <span class="tok-keyword">on</span> x <span class="tok-operator">==</span> y;
+    };
+}
+</code></pre></div><p><code>list&lt;T&gt;</code> preserves source order and every duplicate. <code>exists</code> searches for a witness without constructing matching pairs. First inputs and independent join inputs evaluate once in written order; additional <code>from</code> clauses are lateral. Existing word arithmetic still wraps. These forms elaborate to normal checked list operations rather than granting an optimisation exemption.</p>
 <p>Seeing the query together with its consumer creates opportunities to fuse transformations, skip unnecessary construction, push predicates and projections toward data, reuse an index, or maintain only the changes to an aggregate. Database laws must establish each transformation; target eligibility and complete lifecycle costs decide whether an admitted implementation is useful.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
 <thead>
@@ -210,11 +227,11 @@ open. <a href="https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae
 to fixed layout, simulation or generator code. Learning actions update only the
 designated trainable state; regular changes cannot write it. Queries stay readonly.
 Value state uses ordinary reads and assignments, such as <code>let w=Model; Model=next;</code>.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-13">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-13">trainable state Model:Weights = initial();
-adaptive fn score(context:Context,weights:Weights)-&gt;f32 { /* pure model */ }
-adaptive query suggest(context:Context)-&gt;f32 reads(Model) { /* readonly */ }
-learn change observe(context:Context,target:f32,rate:f32)
-    -&gt;Result&lt;f32,String&gt; reads(Model) writes(Model) { /* explicit update */ }</code></pre></div><p>These signatures illustrate the new forms; the <a href="https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/examples/adaptive-layout.ink">complete runnable example</a>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · illustrative syntax example" data-copy="code-13">copy</button><pre tabindex="0" aria-label="Ink · illustrative syntax example"><code id="code-13"><span class="tok-keyword">trainable</span> <span class="tok-keyword">state</span> <span class="tok-type">Model</span>:<span class="tok-type">Weights</span> <span class="tok-operator">=</span> <span class="tok-function">initial</span>();
+<span class="tok-keyword">adaptive</span> <span class="tok-keyword">fn</span> <span class="tok-function">score</span>(<span class="tok-property">context</span>:<span class="tok-type">Context</span>,<span class="tok-property">weights</span>:<span class="tok-type">Weights</span>)<span class="tok-operator">-&gt;</span><span class="tok-type">f32</span> { <span class="tok-comment">/* pure model */</span> }
+<span class="tok-keyword">adaptive</span> <span class="tok-keyword">query</span> <span class="tok-function">suggest</span>(<span class="tok-property">context</span>:<span class="tok-type">Context</span>)<span class="tok-operator">-&gt;</span><span class="tok-type">f32</span> <span class="tok-keyword">reads</span>(<span class="tok-type">Model</span>) { <span class="tok-comment">/* readonly */</span> }
+<span class="tok-keyword">learn</span> <span class="tok-keyword">change</span> <span class="tok-keyword">observe</span>(<span class="tok-property">context</span>:<span class="tok-type">Context</span>,<span class="tok-property">target</span>:<span class="tok-type">f32</span>,<span class="tok-property">rate</span>:<span class="tok-type">f32</span>)
+    <span class="tok-operator">-&gt;</span><span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">f32</span>,<span class="tok-type">String</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">reads</span>(<span class="tok-type">Model</span>) <span class="tok-keyword">writes</span>(<span class="tok-type">Model</span>) { <span class="tok-comment">/* explicit update */</span> }</code></pre></div><p>These signatures illustrate the new forms; the <a href="https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/examples/adaptive-layout.ink">complete runnable example</a>
 learns width × document-length interactions with an authored squared-error update.
 It keeps legal output bounds in fixed code. <code>ink train SOURCE TRACE.json -o model.snapshot</code>
 can fit before compilation/deployment and exports a portable checkpoint plus a
@@ -241,8 +258,8 @@ support larger models. <a href="https://github.com/siliconjungle/ink-lang/blob/a
 <p>A trainable field identifies what learning may change. The objective can run that
 model through authored simulation, layout or generation code and measure the final
 outcome. Ink now generates gradients through the admitted pure computation:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-14">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-14">let derivatives = gradient(objective, parameters, context);
-let sensitivity = jvp(objective, parameters, direction, context);</code></pre></div><p>The <a href="https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/examples/differentiable-world.ink">world/controller example</a>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · illustrative syntax example" data-copy="code-14">copy</button><pre tabindex="0" aria-label="Ink · illustrative syntax example"><code id="code-14"><span class="tok-keyword">let</span> derivatives <span class="tok-operator">=</span> <span class="tok-function">gradient</span>(objective, parameters, context);
+<span class="tok-keyword">let</span> sensitivity <span class="tok-operator">=</span> <span class="tok-function">jvp</span>(objective, parameters, direction, context);</code></pre></div><p>The <a href="https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/examples/differentiable-world.ink">world/controller example</a>
 propagates gradients through twelve feedback-controlled physics steps. Two training
 contexts improve from loss 1 to about .039 after 200 updates; a held-out context
 improves from .378 to .015. These are designed capability checks, not a claim of
@@ -272,13 +289,25 @@ invalidate their summaries. <a href="https://github.com/siliconjungle/ink-lang/b
 retains immutable records, lists, strings and recursive values on JavaScript,
 Rust and Rust/Wasm hosts. Checked state dependencies determine invalidation:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-15">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-15"><span class="tok-keyword">module</span> prepared_points;
-<span class="tok-keyword">record</span> <span class="tok-type">Point</span> { x:<span class="tok-type">f32</span>, y:<span class="tok-type">f32</span>, }
-<span class="tok-keyword">state</span> <span class="tok-type">Points</span>:<span class="tok-type">Table</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span>,<span class="tok-type">Point</span><span class="tok-operator">&gt;=</span><span class="tok-type">Table</span>.<span class="tok-function">empty</span>();
-<span class="tok-keyword">keep</span> <span class="tok-type">Powers</span>:<span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">f32</span><span class="tok-operator">&gt;=</span><span class="tok-type">Points</span>.<span class="tok-function">values</span>().<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(p)<span class="tok-operator">=&gt;</span>p.x<span class="tok-operator">*</span>p.x<span class="tok-operator">+</span>p.y<span class="tok-operator">*</span>p.y);
-<span class="tok-keyword">query</span> <span class="tok-function">total</span>()<span class="tok-operator">-&gt;</span><span class="tok-type">f32</span> <span class="tok-keyword">reads</span>(<span class="tok-type">Powers</span>){<span class="tok-keyword">return</span> <span class="tok-function">sum</span>(<span class="tok-type">Powers</span>);}
-<span class="tok-keyword">change</span> <span class="tok-function">put</span>(key:<span class="tok-type">u32</span>,point:<span class="tok-type">Point</span>)<span class="tok-operator">-&gt;</span><span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>,<span class="tok-type">String</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Points</span>){
-    <span class="tok-type">Points</span>.<span class="tok-function">put</span>(key,point);<span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(());
-}</code></pre></div><p><code>Powers</code> is computed on its first observation and reused until <code>Points</code> changes.
+
+<span class="tok-keyword">record</span> <span class="tok-type">Point</span> {
+    <span class="tok-property">x</span>: <span class="tok-type">f32</span>,
+    <span class="tok-property">y</span>: <span class="tok-type">f32</span>,
+}
+
+<span class="tok-keyword">state</span> <span class="tok-type">Points</span>: <span class="tok-type">Table</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span>, <span class="tok-type">Point</span><span class="tok-operator">&gt;=</span> <span class="tok-type">Table</span>.<span class="tok-function">empty</span>();
+
+<span class="tok-keyword">keep</span> <span class="tok-type">Powers</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">f32</span><span class="tok-operator">&gt;=</span> <span class="tok-type">Points</span>.<span class="tok-function">values</span>().<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(p) <span class="tok-operator">=&gt;</span> p.x <span class="tok-operator">*</span> p.x <span class="tok-operator">+</span> p.y <span class="tok-operator">*</span> p.y);
+
+<span class="tok-keyword">query</span> <span class="tok-function">total</span>() <span class="tok-operator">-&gt;</span> <span class="tok-type">f32</span> <span class="tok-keyword">reads</span>(<span class="tok-type">Powers</span>) {
+    <span class="tok-keyword">return</span> <span class="tok-function">sum</span>(<span class="tok-type">Powers</span>);
+}
+
+<span class="tok-keyword">change</span> <span class="tok-function">put</span>(<span class="tok-property">key</span>: <span class="tok-type">u32</span>, <span class="tok-property">point</span>: <span class="tok-type">Point</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">String</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Points</span>) {
+    <span class="tok-type">Points</span>.<span class="tok-function">put</span>(key, point);
+    <span class="tok-keyword">return</span> <span class="tok-constant">Ok</span>(());
+}
+</code></pre></div><p><code>Powers</code> is computed on its first observation and reused until <code>Points</code> changes.
 An unrelated state write preserves it. Public results are detached; rollback and
 restore preserve source behavior. Derived caches are excluded from portable
 checkpoints. Owned Buffer/Map descendants remain ineligible.</p>
@@ -309,8 +338,8 @@ inference, writer withdrawal and restore.</p>
 <section class="chapter" id="prepare-a-model-and-learn-through-it" aria-labelledby="title-prepare-a-model-and-learn-through-it"><h2 id="title-prepare-a-model-and-learn-through-it">Prepare a model and learn through it</h2><div class="prose"><p>The CLI now includes ordinary <code>std:autodiff</code>, <code>std:neural</code> and <code>std:learning</code>
 libraries. A ReGLU network can be prepared once, then evaluated and differentiated
 with changing weights and complete explicit context:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-16">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-16">let model = nn.network(10, [6,6], 4, 10000)?;
-let update = nn.mse_gradient(model, weights, context, target)?;</code></pre></div><p>The complete example learns 244 parameters, with all derivatives checked against
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · illustrative syntax example" data-copy="code-16">copy</button><pre tabindex="0" aria-label="Ink · illustrative syntax example"><code id="code-16"><span class="tok-keyword">let</span> model <span class="tok-operator">=</span> nn.<span class="tok-function">network</span>(<span class="tok-number">10</span>, [<span class="tok-number">6</span>,<span class="tok-number">6</span>], <span class="tok-number">4</span>, <span class="tok-number">10000</span>)<span class="tok-operator">?</span>;
+<span class="tok-keyword">let</span> update <span class="tok-operator">=</span> nn.<span class="tok-function">mse_gradient</span>(model, weights, context, target)<span class="tok-operator">?</span>;</code></pre></div><p>The complete example learns 244 parameters, with all derivatives checked against
 an independent dense-network oracle. Preparation keeps the selected graph roots;
 fused affine/ReGLU nodes express the authored arithmetic. It fits Ink&#39;s broader
 stack compression goal: model preparation, numeric computation, state updates and
@@ -416,13 +445,16 @@ certificates retain their original circuit mode and bytes.</p>
 events, keeps and portable checkpoints across Rust, JavaScript and Rust-Wasm.
 This preserves JavaScript measurement precision instead of silently narrowing
 text-layout inputs to F32.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-19">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-19">module precise_measurement;
-fn scale(width:f64,ratio:f64)-&gt;f64 {
-    return width*ratio;
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · illustrative syntax example" data-copy="code-19">copy</button><pre tabindex="0" aria-label="Ink · illustrative syntax example"><code id="code-19"><span class="tok-keyword">module</span> precise_measurement;
+
+<span class="tok-keyword">fn</span> <span class="tok-function">scale</span>(<span class="tok-property">width</span>: <span class="tok-type">f64</span>, <span class="tok-property">ratio</span>: <span class="tok-type">f64</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">f64</span> {
+    <span class="tok-keyword">return</span> width <span class="tok-operator">*</span> ratio;
 }
-fn measured()-&gt;f64 {
-    return 1.0000000000000002f64;
-}</code></pre></div><p>Unsuffixed decimal literals retain their F32 meaning. Cross-width conversions
+
+<span class="tok-keyword">fn</span> <span class="tok-function">measured</span>() <span class="tok-operator">-&gt;</span> <span class="tok-type">f64</span> {
+    <span class="tok-keyword">return</span> <span class="tok-number">1.0000000000000002f64</span>;
+}
+</code></pre></div><p>Unsuffixed decimal literals retain their F32 meaning. Cross-width conversions
 are explicit. Scalar equality follows IEEE rules; stored structural equality and
 snapshots preserve raw float bits. Exact nonfinite values can cross JSON through
 <code>{&quot;F64Bits&quot;:&quot;unsigned decimal u64&quot;}</code> tags. The same typed value can pass between
@@ -479,13 +511,13 @@ gap to Pretext&#39;s direct loop. This CLI library is ahead of the browser compi
 <section class="chapter" id="keep-values-in-compiled-storage" aria-labelledby="title-keep-values-in-compiled-storage"><h2 id="title-keep-values-in-compiled-storage">Keep values in compiled storage</h2><div class="prose"><p>A compiled JavaScript module exposes typed opaque values. Capture a logical input once or decode an agreed-schema binary value, call functions with the handle, and encode the result directly for transport. The handle owns its private data and rejects foreign or mismatched types. Public materialization returns detached mutable containers.</p>
 <p>The module can retain checked type facts with its private immutable handles. This allows repeated calls to avoid equivalent type-only guards; semantic <code>requires</code> clauses remain active. These facts do not prove arbitrary JSON number grammar or unique object members. The JSON boundary keeps those validations.</p>
 <p>For repeated Unicode rendering, an optional <code>createJsonQuoter()</code> from the same generated module can be passed as <code>{quoter}</code> to <code>JsonCodec.stringifyCompiled</code>. It reuses escaped strings and exact UTF-8 lengths while charging output budgets on every call. It adds retained memory and can slow cold or short sessions; choose it using comparable lifecycle measurements. <code>clear()</code> releases its entries. Binary transport and ordinary calls do not require this option.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-20">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-20"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
-const json <span class="tok-operator">=</span> new <span class="tok-type">JsonCodec</span>(valueCodecs.identity.<span class="tok-keyword">result</span>);
-const input <span class="tok-operator">=</span> compiledValues.mark_received.params[<span class="tok-number">0</span>];
-const document <span class="tok-operator">=</span> input.<span class="tok-function">decodeCompact</span>(json.<span class="tok-function">parseCompact</span>(text));
-const <span class="tok-keyword">result</span> <span class="tok-operator">=</span> <span class="tok-function">callCompiled</span>('mark_received', [document]);
-const bytes <span class="tok-operator">=</span> compiledValues.mark_received.<span class="tok-keyword">result</span>.<span class="tok-function">encodeCompact</span>(<span class="tok-keyword">result</span>);
-const logical <span class="tok-operator">=</span> compiledValues.mark_received.<span class="tok-keyword">result</span>.<span class="tok-function">materialize</span>(<span class="tok-keyword">result</span>);</code></pre></div><p>Capture and decoding costs belong in the workload profile. Private outputs, detached public outputs and encoded outputs have different costs. State actions retain their separate capture and transaction APIs.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-20">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-20"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> <span class="tok-string">'./documents.mjs'</span>;
+<span class="tok-keyword">const</span> json <span class="tok-operator">=</span> <span class="tok-keyword">new</span> <span class="tok-type">JsonCodec</span>(valueCodecs.identity.result);
+<span class="tok-keyword">const</span> input <span class="tok-operator">=</span> compiledValues.mark_received.params[<span class="tok-number">0</span>];
+<span class="tok-keyword">const</span> document <span class="tok-operator">=</span> input.<span class="tok-function">decodeCompact</span>(json.<span class="tok-function">parseCompact</span>(text));
+<span class="tok-keyword">const</span> result <span class="tok-operator">=</span> <span class="tok-function">callCompiled</span>(<span class="tok-string">'mark_received'</span>, [document]);
+<span class="tok-keyword">const</span> bytes <span class="tok-operator">=</span> compiledValues.mark_received.result.<span class="tok-function">encodeCompact</span>(result);
+<span class="tok-keyword">const</span> logical <span class="tok-operator">=</span> compiledValues.mark_received.result.<span class="tok-function">materialize</span>(result);</code></pre></div><p>Capture and decoding costs belong in the workload profile. Private outputs, detached public outputs and encoded outputs have different costs. State actions retain their separate capture and transaction APIs.</p>
 <p>The JavaScript planner can also propose private layouts that flatten nested sums.
 Knowledge supplies ordinary proofs in both directions; core checks the exact
 source codecs, and the backend preserves logical values, validation limits,
@@ -510,19 +542,22 @@ callbacks. An ordinary helper can build an index or coefficient table once, then
 use it for changing queries, loop elements and indices. The source still describes
 the complete computation; the explicit prepared-call interface binds its fixed
 inputs. No new source keyword is required.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-21">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-21">module batch;
-fn member(keys:List&lt;u32&gt;,query:u32)-&gt;Bool {
-    let index:Map&lt;u32,Bool&gt;=foldr(keys,Map.empty(),fn(k)=&gt;fn(m)=&gt;m.set(k,true));
-    return index.contains(query);
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · illustrative syntax example" data-copy="code-21">copy</button><pre tabindex="0" aria-label="Ink · illustrative syntax example"><code id="code-21"><span class="tok-keyword">module</span> batch;
+
+<span class="tok-keyword">fn</span> <span class="tok-function">member</span>(<span class="tok-property">keys</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-keyword">query</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Bool</span> {
+    <span class="tok-keyword">let</span> <span class="tok-property">index</span>: <span class="tok-type">Map</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span>, <span class="tok-type">Bool</span><span class="tok-operator">&gt;=</span> <span class="tok-function">foldr</span>(keys, <span class="tok-type">Map</span>.<span class="tok-function">empty</span>(), <span class="tok-keyword">fn</span>(k) <span class="tok-operator">=&gt;</span> <span class="tok-keyword">fn</span>(m) <span class="tok-operator">=&gt;</span> m.<span class="tok-function">set</span>(k, <span class="tok-constant">true</span>));
+    <span class="tok-keyword">return</span> index.<span class="tok-function">contains</span>(<span class="tok-keyword">query</span>);
 }
-fn batch(keys:List&lt;u32&gt;,queries:List&lt;u32&gt;)-&gt;List&lt;Bool&gt; {
-    return queries.map(fn(query)=&gt;member(keys,query));
-}</code></pre></div><p>After compiling this complete module with the current CLI, bind its keys:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-22">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-22">const entry <span class="tok-operator">=</span> model.compiledValues.batch;
-const keys <span class="tok-operator">=</span> entry.params[<span class="tok-number">0</span>].<span class="tok-function">capture</span>([<span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>]);
-const prepared <span class="tok-operator">=</span> model.<span class="tok-function">prepareCompiled</span>('batch', [[<span class="tok-number">0</span>, keys]]);
-const queries <span class="tok-operator">=</span> entry.params[<span class="tok-number">1</span>].<span class="tok-function">capture</span>([<span class="tok-number">7</span>, <span class="tok-number">2</span>, <span class="tok-number">9</span>]);
-const answer <span class="tok-operator">=</span> entry.<span class="tok-keyword">result</span>.<span class="tok-function">materialize</span>(model.<span class="tok-function">callPreparedCompiled</span>(prepared, [queries]));</code></pre></div><p>The index is created lazily at the first reached helper and reused by that token.
+
+<span class="tok-keyword">fn</span> <span class="tok-function">batch</span>(<span class="tok-property">keys</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-property">queries</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">Bool</span><span class="tok-operator">&gt;</span> {
+    <span class="tok-keyword">return</span> queries.<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(<span class="tok-keyword">query</span>) <span class="tok-operator">=&gt;</span> <span class="tok-function">member</span>(keys, <span class="tok-keyword">query</span>));
+}
+</code></pre></div><p>After compiling this complete module with the current CLI, bind its keys:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-22">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-22"><span class="tok-keyword">const</span> entry <span class="tok-operator">=</span> model.compiledValues.batch;
+<span class="tok-keyword">const</span> keys <span class="tok-operator">=</span> entry.params[<span class="tok-number">0</span>].<span class="tok-function">capture</span>([<span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>]);
+<span class="tok-keyword">const</span> prepared <span class="tok-operator">=</span> model.<span class="tok-function">prepareCompiled</span>(<span class="tok-string">'batch'</span>, [[<span class="tok-number">0</span>, keys]]);
+<span class="tok-keyword">const</span> queries <span class="tok-operator">=</span> entry.params[<span class="tok-number">1</span>].<span class="tok-function">capture</span>([<span class="tok-number">7</span>, <span class="tok-number">2</span>, <span class="tok-number">9</span>]);
+<span class="tok-keyword">const</span> answer <span class="tok-operator">=</span> entry.result.<span class="tok-function">materialize</span>(model.<span class="tok-function">callPreparedCompiled</span>(prepared, [queries]));</code></pre></div><p>The index is created lazily at the first reached helper and reused by that token.
 An empty query list needs no index; changing the keys requires a new capture and
 token. Iteration inputs stay dynamic, results stay detached, and owned/parallel
 callbacks retain ordinary execution. Stateful learning does not automatically
@@ -535,5 +570,5 @@ controls still expose substantial gaps.
 <a href="https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/docs/prepared-loop-callbacks.md">Execution contract and runnable source</a> ·
 <a href="./performance.html#sequential-callback-preparation">Measured gains and remaining gaps</a>.</p>
 </div></section></div>
-<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
+<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/4e25eff8f8a2e5135a1901c8028ec7068101411f">Editor 4e25eff</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

@@ -188,6 +188,9 @@ h1 {
 .tok-number {
   color: #e0b393;
 }
+.tok-property {
+  color: #a8c9cf;
+}
 .tok-function {
   color: #cbd9a6;
 }

@@ -12,18 +12,18 @@
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-1"><span class="tok-keyword">module</span> prices;
 
 <span class="tok-keyword">state</span> <span class="tok-type">Prices</span>: <span class="tok-type">Table</span><span class="tok-operator">&lt;</span><span class="tok-type">u64</span>, <span class="tok-type">u64</span><span class="tok-operator">&gt;</span> <span class="tok-operator">=</span> <span class="tok-type">Table</span>.<span class="tok-function">empty</span>();
-<span class="tok-keyword">keep</span> total_price: <span class="tok-type">u64</span> <span class="tok-operator">=</span> <span class="tok-function">sum</span>(<span class="tok-type">Prices</span>.<span class="tok-function">values</span>());
 
-<span class="tok-keyword">change</span> <span class="tok-function">set_price</span>(item: <span class="tok-type">u64</span>, price: <span class="tok-type">u64</span>)
-    <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">String</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Prices</span>)
-{
+<span class="tok-keyword">keep</span> <span class="tok-property">total_price</span>: <span class="tok-type">u64</span> <span class="tok-operator">=</span> <span class="tok-function">sum</span>(<span class="tok-type">Prices</span>.<span class="tok-function">values</span>());
+
+<span class="tok-keyword">change</span> <span class="tok-function">set_price</span>(<span class="tok-property">item</span>: <span class="tok-type">u64</span>, <span class="tok-property">price</span>: <span class="tok-type">u64</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">String</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Prices</span>) {
     <span class="tok-type">Prices</span>.<span class="tok-function">put</span>(item, price);
-    <span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(());
+    <span class="tok-keyword">return</span> <span class="tok-constant">Ok</span>(());
 }
 
 <span class="tok-keyword">query</span> <span class="tok-function">total</span>() <span class="tok-operator">-&gt;</span> <span class="tok-type">u64</span> <span class="tok-keyword">reads</span>(total_price) {
     <span class="tok-keyword">return</span> total_price;
-}</code></pre></div><p><code>keep</code> describes a relationship that must stay true. <code>change</code> makes an atomic update. You write what the total means, without wiring up cache invalidation yourself.</p>
+}
+</code></pre></div><p><code>keep</code> describes a relationship that must stay true. <code>change</code> makes an atomic update. You write what the total means, without wiring up cache invalidation yourself.</p>
 <p><a href="./environment/?example=prices">Run this example</a></p>
 </div></section>
 <section class="chapter" id="better-implementations-same-source" aria-labelledby="title-better-implementations-same-source"><h2 id="title-better-implementations-same-source">Better implementations, same source</h2><div class="prose"><p>What if improving a program didn&#39;t always mean rewriting it?</p>
@@ -42,34 +42,35 @@ The goal can concern behaviour, decisions or performance—whatever you author.<
 <section class="chapter" id="code-and-queries-compiled-together" aria-labelledby="title-code-and-queries-compiled-together"><h2 id="title-code-and-queries-compiled-together">Code and queries, compiled together</h2><div class="prose"><p>A query can sit inside an ordinary function. Its result can feed more computation:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-2">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-2"><span class="tok-keyword">module</span> queries;
 
-<span class="tok-keyword">fn</span> <span class="tok-function">selected</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, minimum: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span> {
-    <span class="tok-keyword">return</span> <span class="tok-keyword">list</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>{
+<span class="tok-keyword">fn</span> <span class="tok-function">selected</span>(<span class="tok-property">xs</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-property">minimum</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span> {
+    <span class="tok-keyword">return</span> <span class="tok-keyword">list</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span> {
         <span class="tok-keyword">from</span> x <span class="tok-keyword">in</span> xs;
         <span class="tok-keyword">where</span> x <span class="tok-operator">&gt;=</span> minimum;
         <span class="tok-keyword">select</span> x <span class="tok-operator">*</span> <span class="tok-number">3</span>;
     };
 }
 
-<span class="tok-keyword">fn</span> <span class="tok-function">total</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, minimum: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
+<span class="tok-keyword">fn</span> <span class="tok-function">total</span>(<span class="tok-property">xs</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-property">minimum</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
     <span class="tok-keyword">return</span> <span class="tok-function">sum</span>(<span class="tok-function">selected</span>(xs, minimum));
-}</code></pre></div><p>The wider ambition is to optimise that connected computation across application logic, queries, storage and execution targets. A plan could filter near storage, avoid intermediate collections, maintain a result as data changes, or keep a large parallel calculation on the GPU. The opportunity extends across the usual hand-off between fetching data and processing it.</p>
+}
+</code></pre></div><p>The wider ambition is to optimise that connected computation across application logic, queries, storage and execution targets. A plan could filter near storage, avoid intermediate collections, maintain a result as data changes, or keep a large parallel calculation on the GPU. The opportunity extends across the usual hand-off between fetching data and processing it.</p>
 <p>Today, ordered list queries and eligible GPU execution work; external database pushdown, out-of-core query execution and an Ink-native storage engine remain future work. List queries preserve order and duplicates. A query alone does not guarantee a speedup.</p>
 <p><a href="./environment/?example=queries">Try this query</a> · <a href="./guide.html#one-computation-across-the-stack">How the pieces fit together</a> · <a href="./performance.html#ordered-query-expressions">Query measurements</a></p>
 </div></section>
 <section class="chapter" id="bring-it-into-your-app" aria-labelledby="title-bring-it-into-your-app"><h2 id="title-bring-it-into-your-app">Bring it into your app</h2><div class="prose"><p>Compile Ink to a JavaScript module and call it from your application:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-3">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-3">import { createState } from './prices.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-3">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-3"><span class="tok-keyword">import</span> { createState } <span class="tok-keyword">from</span> <span class="tok-string">'./prices.mjs'</span>;
 
-const prices = createState();
-const setPrice = prices.bind('set_price');
-const total = prices.bind('total', { resultOnly: true });
+<span class="tok-keyword">const</span> prices <span class="tok-operator">=</span> <span class="tok-function">createState</span>();
+<span class="tok-keyword">const</span> setPrice <span class="tok-operator">=</span> prices.<span class="tok-function">bind</span>(<span class="tok-string">'set_price'</span>);
+<span class="tok-keyword">const</span> total <span class="tok-operator">=</span> prices.<span class="tok-function">bind</span>(<span class="tok-string">'total'</span>, { <span class="tok-property">resultOnly</span>: <span class="tok-constant">true</span> });
 
-setPrice(1n, 40n);
-setPrice(2n, 60n);
-console.log(total()); // 100n</code></pre></div><p>Ink also targets native Rust and Rust/Wasm, with WebGPU for eligible pure computation. Use it for a focused piece of state or computation; keep the rest of your app where it is.</p>
+<span class="tok-function">setPrice</span>(<span class="tok-number">1n</span>, <span class="tok-number">40n</span>);
+<span class="tok-function">setPrice</span>(<span class="tok-number">2n</span>, <span class="tok-number">60n</span>);
+console.<span class="tok-function">log</span>(<span class="tok-function">total</span>()); <span class="tok-comment">// 100n</span></code></pre></div><p>Ink also targets native Rust and Rust/Wasm, with WebGPU for eligible pure computation. Use it for a focused piece of state or computation; keep the rest of your app where it is.</p>
 </div></section>
 <section class="chapter" id="explore-ink" aria-labelledby="title-explore-ink"><h2 id="title-explore-ink">Explore Ink</h2><div class="prose"><p>Ink is an open-source working prototype, not a production-ready promise. The language, compiler and knowledge library are evolving together.</p>
 <p><a href="./environment/">Try the editor</a> · <a href="./guide.html">Read the guide</a> · <a href="./reference.html">Language reference</a> · <a href="./performance.html">Performance results</a></p>
 </div></section></div>
 <script type="application/json" id="guide-anchors">["a-small-example","bring-it-into-your-app","javascript-values-without-json","json-across-boundaries","teach-ink-a-better-way","plan-before-the-application-runs","learn-from-real-usage","split-the-work-across-targets","one-computation-across-the-stack","infer-facts-and-prepare-repeated-work","authored-code-with-explicit-learning","train-through-authored-computation","reuse-prepared-computation","prepare-a-model-and-learn-through-it","see-what-growing-knowledge-changes","binary64-across-compiled-boundaries","what-runs-today","open-source","keep-values-in-compiled-storage","prepare-work-inside-loops"]</script>
-<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
+<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/4e25eff8f8a2e5135a1901c8028ec7068101411f">Editor 4e25eff</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

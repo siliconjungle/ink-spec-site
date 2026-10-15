@@ -1,6 +1,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { marked, Renderer } from "marked";
 import { execFileSync } from "node:child_process";
+import {highlightCode, formatInk, formatJSON} from "@siliconjungle/ink-environment/syntax";
 
 const esc = (s) =>
   s
@@ -8,62 +9,27 @@ const esc = (s) =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
-const keywords = new Set(
-  "module import pub private invariant spec id record enum type fn partial let var return if else match for in while state event keep change query reads writes emits emit requires ensures before result where theorem by rewrite from to proof implementation representation abstraction initialise step observe certificate normalize arithmetic induction cases intro exact apply list exists join on select approximates within absolute relative ulps".split(
-    " ",
-  ),
-);
-const types = new Set(
-  "Unit Bool Int Nat String Bytes Option Result List Array Set Map Table Buffer Prop Proof u8 u16 u32 u64 i8 i16 i32 i64 f32 f64".split(
-    " ",
-  ),
-);
-// A small lexical highlighter for Ink. No expression evaluation or HTML input.
-function highlight(text) {
-  const pattern =
-    /\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:\\.|[^"\\])*"|\b(?:0x[\da-fA-F_]+|\d[\d_]*(?:\.\d+)?)\b|\b[A-Za-z_][A-Za-z_\d]*\b|(?:->|=>|==|!=|<=|>=|&&|\|\||[+*?!=<>-])/g;
-  let result = "",
-    end = 0;
-  for (const m of text.matchAll(pattern)) {
-    result += esc(text.slice(end, m.index));
-    const t = m[0];
-    const cls =
-      t.startsWith("//") || t.startsWith("/*")
-        ? "comment"
-        : t.startsWith('"')
-          ? "string"
-          : /^\d/.test(t)
-            ? "number"
-            : keywords.has(t)
-              ? "keyword"
-              : types.has(t) || /^[A-Z]/.test(t)
-                ? "type"
-                : ["true", "false", "None", "Some", "Ok", "Err"].includes(t)
-                  ? "constant"
-                  : /^[A-Za-z_]/.test(t)
-                    ? /^\s*\(/.test(text.slice(m.index + t.length))
-                      ? "function"
-                      : ""
-                    : "operator";
-    result += cls ? `<span class="tok-${cls}">${esc(t)}</span>` : esc(t);
-    end = m.index + t.length;
-  }
-  return result + esc(text.slice(end));
-}
 let codeIndex = 0;
-function codePanel(text, label = "Ink · draft syntax") {
+function codePanel(text, label = "Ink · draft syntax", language = "ink") {
   const id = `code-${++codeIndex}`;
-  return `<div class="code-panel"><button type="button" class="copy" aria-label="Copy ${esc(label)} example" data-copy="${id}">copy</button><pre tabindex="0" aria-label="${esc(label)} example"><code id="${id}">${label.startsWith("Terminal") || label === "JavaScript" || label === "Schematic" ? esc(text) : highlight(text)}</code></pre></div>`;
+  if(language==="ink" && /^module\s/.test(text)){try{text=formatInk(text);}catch{ /* Incomplete drafts remain readable. */ }}
+  if(language==="json"){try{text=formatJSON(text);}catch{ /* Show invalid examples verbatim. */ }}
+  const rendered=language?highlightCode(text,language):esc(text);
+  return `<div class="code-panel"><button type="button" class="copy" aria-label="Copy ${esc(label)} example" data-copy="${id}">copy</button><pre tabindex="0" aria-label="${esc(label)} example"><code id="${id}">${rendered}</code></pre></div>`;
 }
 const renderer = new Renderer();
-renderer.code = ({ text, lang }) => codePanel(text,
-  lang === "sh" ? "Terminal" : lang === "ink" ? "Ink · supported syntax" :
-  lang === "js" ? "JavaScript" : lang === "text" ? "Schematic" :
-  /^(module\s*=|proof_script\s*=)/.test(text) ? "Grammar · EBNF" :
-  /^ink check/.test(text) ? "Terminal · proposed commands" :
-  /^(maintain\(|sum_values\(|new_cached_total)/.test(text) ? "Proof · schematic" :
-  /^(Observe|Source modules|Logical state:|Begin\(S\)|change\(S,|init\(program)/.test(text) ? "Semantics · schematic" :
-  "Ink · draft syntax");
+renderer.code = ({text,lang}) => {
+  const inkSnippet=/^\s*(?:module|trainable|adaptive|learn|state|keep|change|query|record|enum|fn|let|var|return)\b/.test(text);
+  const label=lang==="sh"?"Terminal":lang==="ink"?"Ink · supported syntax":
+    ["js","javascript"].includes(lang)?"JavaScript":lang==="json"?"JSON":
+    lang==="text"?(inkSnippet?"Ink · illustrative syntax":"Schematic"):
+    /^(module\s*=|proof_script\s*=)/.test(text)?"Grammar · EBNF":
+    /^ink check/.test(text)?"Terminal · proposed commands":
+    /^(maintain\(|sum_values\(|new_cached_total)/.test(text)?"Proof · schematic":
+    /^(Observe|Source modules|Logical state:|Begin\(S\)|change\(S,|init\(program)/.test(text)?"Semantics · schematic":"Ink · draft syntax";
+  const language=label.startsWith("Ink")?"ink":label==="JavaScript"?"javascript":label==="JSON"?"json":null;
+  return codePanel(text,label,language);
+};
 renderer.table = function (token) {
   return `<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table">${Renderer.prototype.table.call(this, token)}</div>`;
 };
@@ -76,6 +42,8 @@ for (const value of [implementation.revision, environment.revision, environment.
   if (!/^[a-f0-9]{40}$/.test(value)) throw Error('Documentation pins must be exact Git revisions');
 }
 if (environment.distribution !== implementation.revision) throw Error('Reference and browser editor must describe the same distribution');
+const syntaxPackage=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).devDependencies['@siliconjungle/ink-environment'];
+if(!syntaxPackage.endsWith('#'+environment.revision))throw Error('Docs highlighter and embedded environment must use the same exact revision');
 const read = async (name) => (await readFile(new URL(`../content/${name}`, import.meta.url), "utf8"))
   .replaceAll('{{ink_revision}}', implementation.revision);
 const spec = await read("spec.md");

@@ -45,12 +45,11 @@
 </div></section>
 <section class="chapter" id="chapter-2" aria-labelledby="title-chapter-2"><h2 id="title-chapter-2">An inventory program</h2><div class="prose"><p>This is supported source, checked with the compiler. It stores items, exposes their stock, and defines a total. The smaller <a href="https://siliconjungle.github.io/ink-spec-site/#a-small-example">homepage example</a> shows the same structure.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-1"><span class="tok-keyword">module</span> inventory;
-
 <span class="tok-keyword">id</span> <span class="tok-type">ItemId</span>;
 
 <span class="tok-keyword">record</span> <span class="tok-type">Item</span> {
-    name: <span class="tok-type">String</span>,
-    stock: <span class="tok-type">u32</span>,
+    <span class="tok-property">name</span>: <span class="tok-type">String</span>,
+    <span class="tok-property">stock</span>: <span class="tok-type">u32</span>,
 }
 
 <span class="tok-keyword">enum</span> <span class="tok-type">Error</span> {
@@ -60,55 +59,50 @@
 }
 
 <span class="tok-keyword">record</span> <span class="tok-type">StockChanged</span> {
-    item: <span class="tok-type">ItemId</span>,
+    <span class="tok-property">item</span>: <span class="tok-type">ItemId</span>,
     <span class="tok-keyword">before</span>: <span class="tok-type">u32</span>,
-    after: <span class="tok-type">u32</span>,
+    <span class="tok-property">after</span>: <span class="tok-type">u32</span>,
 }
 
 <span class="tok-keyword">state</span> <span class="tok-type">Items</span>: <span class="tok-type">Table</span><span class="tok-operator">&lt;</span><span class="tok-type">ItemId</span>, <span class="tok-type">Item</span><span class="tok-operator">&gt;</span> <span class="tok-operator">=</span> <span class="tok-type">Table</span>.<span class="tok-function">empty</span>();
-<span class="tok-keyword">event</span> stock_changed: <span class="tok-type">StockChanged</span>;
+<span class="tok-keyword">event</span> <span class="tok-property">stock_changed</span>: <span class="tok-type">StockChanged</span>;
 
-<span class="tok-keyword">keep</span> total_units: <span class="tok-type">Int</span> <span class="tok-operator">=</span>
-    <span class="tok-function">sum</span>(<span class="tok-type">Items</span>.<span class="tok-function">values</span>().<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(item) <span class="tok-operator">=&gt;</span> <span class="tok-type">Int</span>(item.stock)));
+<span class="tok-keyword">keep</span> <span class="tok-property">total_units</span>: <span class="tok-type">Int</span> <span class="tok-operator">=</span> <span class="tok-function">sum</span>(<span class="tok-type">Items</span>.<span class="tok-function">values</span>().<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(item) <span class="tok-operator">=&gt;</span> <span class="tok-type">Int</span>(item.stock)));
 
-<span class="tok-keyword">change</span> <span class="tok-function">create</span>(<span class="tok-keyword">id</span>: <span class="tok-type">ItemId</span>, name: <span class="tok-type">String</span>, stock: <span class="tok-type">u32</span>)
-    <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">Error</span><span class="tok-operator">&gt;</span>
-    <span class="tok-keyword">writes</span>(<span class="tok-type">Items</span>)
-{
+<span class="tok-keyword">change</span> <span class="tok-function">create</span>(<span class="tok-keyword">id</span>: <span class="tok-type">ItemId</span>, <span class="tok-property">name</span>: <span class="tok-type">String</span>, <span class="tok-property">stock</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">Error</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Items</span>) {
     <span class="tok-keyword">if</span> <span class="tok-type">Items</span>.<span class="tok-function">contains</span>(<span class="tok-keyword">id</span>) {
-        <span class="tok-keyword">return</span> <span class="tok-type">Err</span>(<span class="tok-type">Error</span>.<span class="tok-type">AlreadyExists</span>);
+        <span class="tok-keyword">return</span> <span class="tok-constant">Err</span>(<span class="tok-type">Error</span>.<span class="tok-type">AlreadyExists</span>);
     }
-    <span class="tok-type">Items</span>.<span class="tok-function">insert</span>(<span class="tok-keyword">id</span>, <span class="tok-type">Item</span> { name: name, stock: stock });
-    <span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(());
-}
-
-<span class="tok-keyword">change</span> <span class="tok-function">restock</span>(<span class="tok-keyword">id</span>: <span class="tok-type">ItemId</span>, amount: <span class="tok-type">u32</span>)
-    <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">Error</span><span class="tok-operator">&gt;</span>
-    <span class="tok-keyword">writes</span>(<span class="tok-type">Items</span>)
-    <span class="tok-keyword">emits</span>(stock_changed)
-{
-    <span class="tok-keyword">let</span> item <span class="tok-operator">=</span> <span class="tok-type">Items</span>.<span class="tok-function">get</span>(<span class="tok-keyword">id</span>).<span class="tok-function">ok_or</span>(<span class="tok-type">Error</span>.<span class="tok-type">Missing</span>)<span class="tok-operator">?</span>;
-    <span class="tok-keyword">let</span> next <span class="tok-operator">=</span> <span class="tok-function">checked_add</span>(item.stock, amount)
-        .<span class="tok-function">map_err</span>(<span class="tok-keyword">fn</span>(_) <span class="tok-operator">=&gt;</span> <span class="tok-type">Error</span>.<span class="tok-type">Overflow</span>)<span class="tok-operator">?</span>;
-
-    <span class="tok-type">Items</span>.<span class="tok-function">replace</span>(<span class="tok-keyword">id</span>, <span class="tok-type">Item</span> { name: item.name, stock: next });
-    <span class="tok-keyword">emit</span> <span class="tok-function">stock_changed</span>(<span class="tok-type">StockChanged</span> {
-        item: <span class="tok-keyword">id</span>,
-        <span class="tok-keyword">before</span>: item.stock,
-        after: next,
+    <span class="tok-type">Items</span>.<span class="tok-function">insert</span>(<span class="tok-keyword">id</span>, <span class="tok-type">Item</span> {
+        <span class="tok-property">name</span>: name,
+        <span class="tok-property">stock</span>: stock
     });
-    <span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(());
+    <span class="tok-keyword">return</span> <span class="tok-constant">Ok</span>(());
 }
 
-<span class="tok-keyword">query</span> <span class="tok-function">stock_of</span>(<span class="tok-keyword">id</span>: <span class="tok-type">ItemId</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Option</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>
-    <span class="tok-keyword">reads</span>(<span class="tok-type">Items</span>)
-{
+<span class="tok-keyword">change</span> <span class="tok-function">restock</span>(<span class="tok-keyword">id</span>: <span class="tok-type">ItemId</span>, <span class="tok-property">amount</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">Unit</span>, <span class="tok-type">Error</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">writes</span>(<span class="tok-type">Items</span>) <span class="tok-keyword">emits</span>(stock_changed) {
+    <span class="tok-keyword">let</span> item <span class="tok-operator">=</span> <span class="tok-type">Items</span>.<span class="tok-function">get</span>(<span class="tok-keyword">id</span>).<span class="tok-function">ok_or</span>(<span class="tok-type">Error</span>.<span class="tok-type">Missing</span>)<span class="tok-operator">?</span>;
+    <span class="tok-keyword">let</span> next <span class="tok-operator">=</span> <span class="tok-function">checked_add</span>(item.stock, amount).<span class="tok-function">map_err</span>(<span class="tok-keyword">fn</span>(<span class="tok-constant">_</span>) <span class="tok-operator">=&gt;</span> <span class="tok-type">Error</span>.<span class="tok-type">Overflow</span>)<span class="tok-operator">?</span>;
+    <span class="tok-type">Items</span>.<span class="tok-function">replace</span>(<span class="tok-keyword">id</span>, <span class="tok-type">Item</span> {
+        <span class="tok-property">name</span>: item.name,
+        <span class="tok-property">stock</span>: next
+    });
+    <span class="tok-keyword">emit</span> <span class="tok-function">stock_changed</span>(<span class="tok-type">StockChanged</span> {
+        <span class="tok-property">item</span>: <span class="tok-keyword">id</span>,
+        <span class="tok-keyword">before</span>: item.stock,
+        <span class="tok-property">after</span>: next,
+    });
+    <span class="tok-keyword">return</span> <span class="tok-constant">Ok</span>(());
+}
+
+<span class="tok-keyword">query</span> <span class="tok-function">stock_of</span>(<span class="tok-keyword">id</span>: <span class="tok-type">ItemId</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Option</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">reads</span>(<span class="tok-type">Items</span>) {
     <span class="tok-keyword">return</span> <span class="tok-type">Items</span>.<span class="tok-function">get</span>(<span class="tok-keyword">id</span>).<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(item) <span class="tok-operator">=&gt;</span> item.stock);
 }
 
 <span class="tok-keyword">query</span> <span class="tok-function">total</span>() <span class="tok-operator">-&gt;</span> <span class="tok-type">Int</span> <span class="tok-keyword">reads</span>(total_units) {
     <span class="tok-keyword">return</span> total_units;
-}</code></pre></div><p><code>create</code> rejects an existing item. <code>restock</code> rejects a missing item or arithmetic overflow. A successful change commits its writes and ordered events together; a failed change discards them. <code>total_units</code> describes the result, without prescribing whether an implementation recomputes or maintains it.</p>
+}
+</code></pre></div><p><code>create</code> rejects an existing item. <code>restock</code> rejects a missing item or arithmetic overflow. A successful change commits its writes and ordered events together; a failed change discards them. <code>total_units</code> describes the result, without prescribing whether an implementation recomputes or maintains it.</p>
 </div></section>
 <section class="chapter" id="chapter-3" aria-labelledby="title-chapter-3"><h2 id="title-chapter-3">Values and types</h2><div class="prose"><p>Declarations have concrete parameter, result and field types. Local bindings can infer a type from context.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
@@ -179,8 +173,8 @@
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-2">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-2"><span class="tok-keyword">module</span> geometry;
 
 <span class="tok-keyword">record</span> <span class="tok-type">Point</span> {
-    x: <span class="tok-type">f32</span>,
-    y: <span class="tok-type">f32</span>,
+    <span class="tok-property">x</span>: <span class="tok-type">f32</span>,
+    <span class="tok-property">y</span>: <span class="tok-type">f32</span>,
 }
 
 <span class="tok-keyword">enum</span> <span class="tok-type">Colour</span> {
@@ -188,9 +182,13 @@
     <span class="tok-type">Blue</span>,
 }
 
-<span class="tok-keyword">fn</span> <span class="tok-function">move</span>(p: <span class="tok-type">Point</span>, dx: <span class="tok-type">f32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Point</span> {
-    <span class="tok-keyword">return</span> <span class="tok-type">Point</span> { x: p.x <span class="tok-operator">+</span> dx, y: p.y };
-}</code></pre></div><p>Type aliases, type/constant parameters and payload enums are supported through bounded elaboration. Generic applications use explicit arguments, such as <code>identity&lt;u32&gt;(7)</code>. Payload enums use the existing record/sum wire encoding; their host values are not a new variant-labelled JSON format.</p>
+<span class="tok-keyword">fn</span> <span class="tok-function">move</span>(<span class="tok-property">p</span>: <span class="tok-type">Point</span>, <span class="tok-property">dx</span>: <span class="tok-type">f32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Point</span> {
+    <span class="tok-keyword">return</span> <span class="tok-type">Point</span> {
+        <span class="tok-property">x</span>: p.x <span class="tok-operator">+</span> dx,
+        <span class="tok-property">y</span>: p.y
+    };
+}
+</code></pre></div><p>Type aliases, type/constant parameters and payload enums are supported through bounded elaboration. Generic applications use explicit arguments, such as <code>identity&lt;u32&gt;(7)</code>. Payload enums use the existing record/sum wire encoding; their host values are not a new variant-labelled JSON format.</p>
 <p><code>std:json</code> supplies an ordinary recursive <code>Json</code> datatype with Null, Boolean, Number, Text, Array and Object variants. Number stores its exact JSON token; object members are ordered source values. Constructors, accessors, field replacement/removal and projection live in the knowledge library. Checked text adapters reject duplicate keys, invalid number tokens and malformed Unicode. Missing is <code>None</code>; present null is <code>Some(Json.Null)</code>.</p>
 <p><code>Nat</code>, packed <code>Bytes</code>, <code>f64</code>, the other integer widths, a general dependent <code>Prop</code>/<code>Proof</code> value language remain design proposals. Source specifications and invariants create checked obligations; database properties can justify erased computations and physical capacity hints. The external library <code>Set&lt;T&gt;</code> is an abstract refined record with structural uniqueness and stable enumeration, rather than a built-in unordered carrier. A genuine unordered Bag/Set interface remains future work. See <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/generic-language-foundations.md">generic language foundations</a> for instantiation, wire and resource limits.</p>
 <p>Fixed-width <code>+</code>, <code>-</code> and <code>*</code> wrap; <code>checked_add</code>, <code>checked_sub</code> and <code>checked_mul</code> return an overflow result instead. <code>Int</code> arithmetic is exact. Conversions are explicit. Scalar <code>f32</code> comparisons use IEEE rules, while stored aggregate equality compares contained float bits, including signed zeros and NaN payloads.</p>
@@ -200,50 +198,65 @@
 <section class="chapter" id="chapter-4" aria-labelledby="title-chapter-4"><h2 id="title-chapter-4">Functions</h2><div class="prose"><p>A <code>fn</code> is pure. It cannot read state, call an action or emit an event. Bodies support lexical bindings, conditionals, early returns and bounded local iteration. Types, ownership and termination are checked after surface elaboration.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-3">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-3"><span class="tok-keyword">module</span> totals;
 
-<span class="tok-keyword">fn</span> <span class="tok-function">total</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u64</span><span class="tok-operator">&gt;</span>, scale: <span class="tok-type">u64</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u64</span> {
+<span class="tok-keyword">fn</span> <span class="tok-function">total</span>(<span class="tok-property">xs</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u64</span><span class="tok-operator">&gt;</span>, <span class="tok-property">scale</span>: <span class="tok-type">u64</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u64</span> {
     <span class="tok-keyword">let</span> scaled <span class="tok-operator">=</span> xs.<span class="tok-function">map</span>(<span class="tok-keyword">fn</span>(x) <span class="tok-operator">=&gt;</span> x <span class="tok-operator">*</span> scale);
     <span class="tok-keyword">return</span> <span class="tok-function">sum</span>(scaled);
 }
 
-<span class="tok-keyword">fn</span> <span class="tok-function">positive</span>(x: <span class="tok-type">i32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">i32</span> {
+<span class="tok-keyword">fn</span> <span class="tok-function">positive</span>(<span class="tok-property">x</span>: <span class="tok-type">i32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">i32</span> {
     <span class="tok-keyword">return</span> <span class="tok-function">choose</span>(x <span class="tok-operator">&gt;</span> <span class="tok-number">0</span>, x, <span class="tok-number">0</span>);
-}</code></pre></div><p><code>choose(condition, yes, no)</code> evaluates only the selected branch. Arguments normally evaluate left to right; <code>&amp;&amp;</code> and <code>||</code> short-circuit. Lambdas use <code>fn(x) =&gt; expression</code> inside supported higher-order operations. Generic functions require explicit type arguments. Pure unary callback parameters use <code>fn(T)-&gt;U</code>; named functions or literal lambdas are specialised before execution. Captured owners, escaping callbacks and functions returning callable values are rejected.</p>
+}
+</code></pre></div><p><code>choose(condition, yes, no)</code> evaluates only the selected branch. Arguments normally evaluate left to right; <code>&amp;&amp;</code> and <code>||</code> short-circuit. Lambdas use <code>fn(x) =&gt; expression</code> inside supported higher-order operations. Generic functions require explicit type arguments. Pure unary callback parameters use <code>fn(T)-&gt;U</code>; named functions or literal lambdas are specialised before execution. Captured owners, escaping callbacks and functions returning callable values are rejected.</p>
 <p><code>repeat(BOUND, initial, fn(i) =&gt; fn(acc) =&gt; expression)</code> has a literal bound of at most 65,536. <code>repeat_until</code> accepts a runtime <code>u32</code> bound and a stopping predicate. Guarded self recursion supports unsigned/list descent, including admitted lexicographic measures. Mutual recursion and arbitrary partial functions remain unsupported.</p>
 <p><code>var</code> locals have explicit types. Pure <code>for</code> loops traverse finite lists in order or literal half-open <code>u32</code> ranges of at most 65,536 steps. A <code>while</code> requires a literal <code>limit</code>; reaching the limit continues with the current values. Effectful action loops are unsupported. Local assignment is supported, but does not bypass affine ownership.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-4">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-4"><span class="tok-keyword">module</span> batches;
 <span class="tok-keyword">type</span> <span class="tok-type">Sequence</span><span class="tok-operator">&lt;</span><span class="tok-type">T</span><span class="tok-operator">&gt;</span> <span class="tok-operator">=</span> <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">T</span><span class="tok-operator">&gt;</span>;
 
-<span class="tok-keyword">fn</span> first<span class="tok-operator">&lt;</span><span class="tok-type">T</span><span class="tok-operator">&gt;</span>(xs: <span class="tok-type">Sequence</span><span class="tok-operator">&lt;</span><span class="tok-type">T</span><span class="tok-operator">&gt;</span>, fallback: <span class="tok-type">T</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">T</span> {
+<span class="tok-keyword">fn</span> <span class="tok-function">first</span><span class="tok-operator">&lt;</span><span class="tok-type">T</span><span class="tok-operator">&gt;</span>(<span class="tok-property">xs</span>: <span class="tok-type">Sequence</span><span class="tok-operator">&lt;</span><span class="tok-type">T</span><span class="tok-operator">&gt;</span>, <span class="tok-property">fallback</span>: <span class="tok-type">T</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">T</span> {
     <span class="tok-keyword">return</span> xs.<span class="tok-function">at_or</span>(<span class="tok-number">0</span>, fallback);
 }
 
 <span class="tok-keyword">fn</span> <span class="tok-function">example</span>() <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
-    <span class="tok-keyword">return</span> first<span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>([<span class="tok-number">7</span>, <span class="tok-number">8</span>, <span class="tok-number">9</span>], <span class="tok-number">0</span>);
+    <span class="tok-keyword">return</span> <span class="tok-function">first</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>([<span class="tok-number">7</span>, <span class="tok-number">8</span>, <span class="tok-number">9</span>], <span class="tok-number">0</span>);
 }
 
-<span class="tok-keyword">fn</span> <span class="tok-function">total</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
+<span class="tok-keyword">fn</span> <span class="tok-function">total</span>(<span class="tok-property">xs</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
     <span class="tok-keyword">var</span> <span class="tok-keyword">result</span>: <span class="tok-type">u32</span> <span class="tok-operator">=</span> <span class="tok-number">0</span>;
-    <span class="tok-keyword">for</span> item <span class="tok-keyword">in</span> xs { <span class="tok-keyword">result</span> <span class="tok-operator">=</span> <span class="tok-keyword">result</span> <span class="tok-operator">+</span> item; }
+    <span class="tok-keyword">for</span> item <span class="tok-keyword">in</span> xs {
+        <span class="tok-keyword">result</span> <span class="tok-operator">=</span> <span class="tok-keyword">result</span> <span class="tok-operator">+</span> item;
+    }
     <span class="tok-keyword">return</span> <span class="tok-keyword">result</span>;
-}</code></pre></div><p>Owned buffers/maps support temporary mutation through consuming operations and rebinding. The checker rejects reuse after a move and captured owners consumed by repeated callbacks. <code>parallel_map</code> preserves result order; worker scheduling and grain size affect cost, not that order. Scoped <code>split_at</code> partitions share disjoint ranges; adjacent rejoining can reuse storage. Partial-range growth detaches before overlap. The consuming <code>fill_range(start, count, value)</code> clips writes to a buffer range; <code>copy_within(start, count, destination)</code> uses snapshot-copy semantics with clipped ranges. Range arithmetic does not wrap. These mechanisms do not expose mutable references or a general borrow syntax.</p>
+}
+</code></pre></div><p>Owned buffers/maps support temporary mutation through consuming operations and rebinding. The checker rejects reuse after a move and captured owners consumed by repeated callbacks. <code>parallel_map</code> preserves result order; worker scheduling and grain size affect cost, not that order. Scoped <code>split_at</code> partitions share disjoint ranges; adjacent rejoining can reuse storage. Partial-range growth detaches before overlap. The consuming <code>fill_range(start, count, value)</code> clips writes to a buffer range; <code>copy_within(start, count, destination)</code> uses snapshot-copy semantics with clipped ranges. Range arithmetic does not wrap. These mechanisms do not expose mutable references or a general borrow syntax.</p>
 <p>See <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/parallel-execution.md">checked recursion and ordered parallel work</a>.</p>
 <h3>Ordered query expressions</h3>
 <p>Queries are expressions inside ordinary code. Explicit <code>list&lt;T&gt;{...}</code> results retain source order and duplicates; <code>exists{...}</code> returns a Bool without materializing matching pairs.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-5">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-5"><span class="tok-keyword">module</span> query_reference;
-<span class="tok-keyword">record</span> <span class="tok-type">Pair</span> { left: <span class="tok-type">u32</span>, right: <span class="tok-type">u32</span>, }
 
-<span class="tok-keyword">fn</span> <span class="tok-function">matches</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, ys: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">Pair</span><span class="tok-operator">&gt;</span> {
-    <span class="tok-keyword">return</span> <span class="tok-keyword">list</span><span class="tok-operator">&lt;</span><span class="tok-type">Pair</span><span class="tok-operator">&gt;</span>{
+<span class="tok-keyword">record</span> <span class="tok-type">Pair</span> {
+    <span class="tok-property">left</span>: <span class="tok-type">u32</span>,
+    <span class="tok-property">right</span>: <span class="tok-type">u32</span>,
+}
+
+<span class="tok-keyword">fn</span> <span class="tok-function">matches</span>(<span class="tok-property">xs</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-property">ys</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">Pair</span><span class="tok-operator">&gt;</span> {
+    <span class="tok-keyword">return</span> <span class="tok-keyword">list</span><span class="tok-operator">&lt;</span><span class="tok-type">Pair</span><span class="tok-operator">&gt;</span> {
         <span class="tok-keyword">from</span> x <span class="tok-keyword">in</span> xs;
         <span class="tok-keyword">join</span> y <span class="tok-keyword">in</span> ys <span class="tok-keyword">on</span> x <span class="tok-operator">==</span> y;
         <span class="tok-keyword">where</span> x <span class="tok-operator">&gt;</span> <span class="tok-number">0</span>;
-        <span class="tok-keyword">select</span> <span class="tok-type">Pair</span> { left: x, right: y };
+        <span class="tok-keyword">select</span> <span class="tok-type">Pair</span> {
+            <span class="tok-property">left</span>: x,
+            <span class="tok-property">right</span>: y
+        };
     };
 }
 
-<span class="tok-keyword">fn</span> <span class="tok-function">overlap</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, ys: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Bool</span> {
-    <span class="tok-keyword">return</span> <span class="tok-keyword">exists</span>{<span class="tok-keyword">from</span> x <span class="tok-keyword">in</span> xs; <span class="tok-keyword">join</span> y <span class="tok-keyword">in</span> ys <span class="tok-keyword">on</span> x <span class="tok-operator">==</span> y;};
-}</code></pre></div><p>The first source and every independent <code>join</code> source evaluate once, left to right, before traversal, even when an input is empty. Independent sources are outside row-binder scope. Additional <code>from</code> clauses evaluate a lateral source for each surviving prefix. Joins enumerate left-major then right-major. Predicates retain written short-circuit order; duplicate binders reject. The explicit result element type is checked, including generic and nested list queries.</p>
+<span class="tok-keyword">fn</span> <span class="tok-function">overlap</span>(<span class="tok-property">xs</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-property">ys</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Bool</span> {
+    <span class="tok-keyword">return</span> <span class="tok-keyword">exists</span> {
+        <span class="tok-keyword">from</span> x <span class="tok-keyword">in</span> xs;
+        <span class="tok-keyword">join</span> y <span class="tok-keyword">in</span> ys <span class="tok-keyword">on</span> x <span class="tok-operator">==</span> y;
+    };
+}
+</code></pre></div><p>The first source and every independent <code>join</code> source evaluate once, left to right, before traversal, even when an input is empty. Independent sources are outside row-binder scope. Additional <code>from</code> clauses evaluate a lateral source for each surviving prefix. Joins enumerate left-major then right-major. Predicates retain written short-circuit order; duplicate binders reject. The explicit result element type is checked, including generic and nested list queries.</p>
 <p><code>exists</code> may omit <code>select</code>, or use a Bool projection as its final predicate. Existing stopping-fold semantics may visit a lookahead row after success, but no subsequent predicate, projection or lateral input executes. Row callbacks are pure. Supported actions can evaluate independent input actions outside the pure traversal; normal effects, ownership, preconditions and rollback checking remain in force. Queries admit at most sixteen lowered clauses, with a join counting as a generator and predicate, under ordinary resource limits.</p>
 <p>These forms elaborate to existing map/filter, folds, typed bindings and Buffer operations. They add no privileged rewrite authority. Grouping, distinct/order/top-k/windows, other join forms, unordered carriers, out-of-core producers and database pushdown remain outside this first milestone. See <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/query-expressions.md">exact syntax and conformance</a> and <a href="./guide.html#one-computation-across-the-stack">the broader direction</a>.</p>
 </div></section>
@@ -328,27 +341,36 @@
 <section class="chapter" id="chapter-8" aria-labelledby="title-chapter-8"><h2 id="title-chapter-8">Proofs and contracts</h2><div class="prose"><p>Optimisation proofs are database objects, checked by Ink&#39;s Rust checker. The supported calculi include typed equality, congruence, theorem application, cases, structural induction, exact-Int inequality certificates and checked word-arithmetic certificates, with separate admission boundaries for different uses.</p>
 <p>Fallible <code>requires(predicate, error)</code> and <code>ensures(result =&gt; predicate, error)</code> clauses are supported on compatible <code>Result</code> functions and actions. Requirements run before the body; postconditions check each normal return, including <code>Err</code>, in declaration order. Failure in a change aborts its transaction. They are runtime validations, not static refinement facts.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-6">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-6"><span class="tok-keyword">module</span> contracts;
-<span class="tok-keyword">enum</span> <span class="tok-type">Error</span> { <span class="tok-type">Input</span>, <span class="tok-type">Output</span>, }
 
-<span class="tok-keyword">fn</span> <span class="tok-function">increment</span>(x: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span>, <span class="tok-type">Error</span><span class="tok-operator">&gt;</span>
-    <span class="tok-keyword">requires</span>(x <span class="tok-operator">&gt;</span> <span class="tok-number">0</span>, <span class="tok-type">Error</span>.<span class="tok-type">Input</span>)
-    <span class="tok-keyword">ensures</span>(reply <span class="tok-operator">=&gt;</span> reply.<span class="tok-function">fold</span>(<span class="tok-keyword">fn</span>(v) <span class="tok-operator">=&gt;</span> v <span class="tok-operator">&lt;</span> <span class="tok-number">10</span>, <span class="tok-keyword">fn</span>(e) <span class="tok-operator">=&gt;</span> <span class="tok-constant">true</span>), <span class="tok-type">Error</span>.<span class="tok-type">Output</span>)
-{
-    <span class="tok-keyword">return</span> <span class="tok-type">Ok</span>(x <span class="tok-operator">+</span> <span class="tok-number">1</span>);
-}</code></pre></div><p>External law files use <code>law</code> declarations and <code>ink emit-laws</code> to check and export canonical evidence; <code>rewrite</code> is the concrete-case form. General laws can carry type parameters and assumptions, which must be proved when instantiated. Executable application modules reject inline laws and rewrites. The broader dependent theorem/tactic language remains a design proposal. See <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/laws-in-source.md">law authoring</a>.</p>
+<span class="tok-keyword">enum</span> <span class="tok-type">Error</span> {
+    <span class="tok-type">Input</span>,
+    <span class="tok-type">Output</span>,
+}
+
+<span class="tok-keyword">fn</span> <span class="tok-function">increment</span>(<span class="tok-property">x</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Result</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span>, <span class="tok-type">Error</span><span class="tok-operator">&gt;</span> <span class="tok-keyword">requires</span>(x <span class="tok-operator">&gt;</span> <span class="tok-number">0</span>, <span class="tok-type">Error</span>.<span class="tok-type">Input</span>) <span class="tok-keyword">ensures</span>(reply <span class="tok-operator">=&gt;</span> reply.<span class="tok-function">fold</span>(<span class="tok-keyword">fn</span>(v) <span class="tok-operator">=&gt;</span> v <span class="tok-operator">&lt;</span> <span class="tok-number">10</span>,
+<span class="tok-keyword">fn</span>(e) <span class="tok-operator">=&gt;</span> <span class="tok-constant">true</span>), <span class="tok-type">Error</span>.<span class="tok-type">Output</span>) {
+    <span class="tok-keyword">return</span> <span class="tok-constant">Ok</span>(x <span class="tok-operator">+</span> <span class="tok-number">1</span>);
+}
+</code></pre></div><p>External law files use <code>law</code> declarations and <code>ink emit-laws</code> to check and export canonical evidence; <code>rewrite</code> is the concrete-case form. General laws can carry type parameters and assumptions, which must be proved when instantiated. Executable application modules reject inline laws and rewrites. The broader dependent theorem/tactic language remains a design proposal. See <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/laws-in-source.md">law authoring</a>.</p>
 <p>Source <code>spec fn</code>, <code>spec query</code> and <code>spec change</code> declarations instead create static obligations. Every named <code>implementation</code> must satisfy the clauses; source callers must discharge static <code>requires</code>, and public checked value/JSON hosts validate input preconditions. <code>result</code> names the result, <code>before(...)</code> observes an action&#39;s input state, and <code>invariant</code> must hold initially and after public actions. Evidence binds the actual source; specifications are not trusted annotations. An unconstrained part of a specification remains unconstrained, including event history unless another proof preserves it.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-7">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-7"><span class="tok-keyword">module</span> contracts_static;
-<span class="tok-keyword">spec</span> <span class="tok-keyword">fn</span> <span class="tok-function">next</span>(x: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> <span class="tok-keyword">ensures</span> <span class="tok-keyword">result</span> <span class="tok-operator">==</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>;
-<span class="tok-keyword">implementation</span> direct <span class="tok-keyword">for</span> next { <span class="tok-keyword">return</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>; }
-<span class="tok-keyword">implementation</span> commuted <span class="tok-keyword">for</span> next { <span class="tok-keyword">return</span> <span class="tok-number">1</span> <span class="tok-operator">+</span> x; }</code></pre></div><p><code>ink emit-contract-obligations</code>, <code>ink check-contracts</code> and <code>--contract-proofs</code> expose ordinary external proof transport. Public invariant and precondition checks remain at their defined ingress boundaries. <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/source-contracts.md">Source contracts</a> describes the exact supported state observations.</p>
+<span class="tok-keyword">spec</span> <span class="tok-keyword">fn</span> <span class="tok-function">next</span>(<span class="tok-property">x</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> <span class="tok-keyword">ensures</span> <span class="tok-keyword">result</span> <span class="tok-operator">==</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>;
+<span class="tok-keyword">implementation</span> direct <span class="tok-keyword">for</span> next {
+    <span class="tok-keyword">return</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>;
+}
+<span class="tok-keyword">implementation</span> commuted <span class="tok-keyword">for</span> next {
+    <span class="tok-keyword">return</span> <span class="tok-number">1</span> <span class="tok-operator">+</span> x;
+}
+</code></pre></div><p><code>ink emit-contract-obligations</code>, <code>ink check-contracts</code> and <code>--contract-proofs</code> expose ordinary external proof transport. Public invariant and precondition checks remain at their defined ingress boundaries. <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/source-contracts.md">Source contracts</a> describes the exact supported state observations.</p>
 <p>Proof authors and search tools propose evidence. The core checks the actual proof bytes and applicable premises. A solver result, entry name, hash or performance observation cannot replace that check. Lean is not required to compile ordinary programs.</p>
 <h3>Explicit approximation</h3>
 <p>Approximation permission names a reference and an error budget. It creates an ordinary checked postcondition:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-8">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-8"><span class="tok-keyword">module</span> approximation;
-
-<span class="tok-keyword">spec</span> <span class="tok-keyword">fn</span> <span class="tok-function">estimate</span>(x: <span class="tok-type">Int</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Int</span>
-    <span class="tok-keyword">approximates</span> x <span class="tok-operator">+</span> <span class="tok-number">8</span> <span class="tok-keyword">within</span> <span class="tok-keyword">absolute</span> <span class="tok-number">8</span>;
-<span class="tok-keyword">implementation</span> cheaper <span class="tok-keyword">for</span> estimate { <span class="tok-keyword">return</span> x; }</code></pre></div><p><code>absolute</code> bounds exact integer error for Int and supported words. <code>relative(numerator, denominator)</code> uses exact rational integer comparisons; a zero reference requires an exact result. <code>ulps</code> bounds finite binary32 step distance, with both signed zeros at one position; NaNs and infinities reject. These clauses preserve other postconditions and grant no silent replacement of exact computations. Ordinary checked laws support error composition and explicit finite probability spaces; the latter do not validate an external random source or establish continuous-distribution guarantees. See <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/approximation-contracts.md">approximation contracts and assurance scope</a>.</p>
+<span class="tok-keyword">spec</span> <span class="tok-keyword">fn</span> <span class="tok-function">estimate</span>(<span class="tok-property">x</span>: <span class="tok-type">Int</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Int</span> <span class="tok-keyword">approximates</span> x <span class="tok-operator">+</span> <span class="tok-number">8</span> <span class="tok-keyword">within</span> <span class="tok-keyword">absolute</span> <span class="tok-number">8</span>;
+<span class="tok-keyword">implementation</span> cheaper <span class="tok-keyword">for</span> estimate {
+    <span class="tok-keyword">return</span> x;
+}
+</code></pre></div><p><code>absolute</code> bounds exact integer error for Int and supported words. <code>relative(numerator, denominator)</code> uses exact rational integer comparisons; a zero reference requires an exact result. <code>ulps</code> bounds finite binary32 step distance, with both signed zeros at one position; NaNs and infinities reject. These clauses preserve other postconditions and grant no silent replacement of exact computations. Ordinary checked laws support error composition and explicit finite probability spaces; the latter do not validate an external random source or establish continuous-distribution guarantees. See <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/approximation-contracts.md">approximation contracts and assurance scope</a>.</p>
 </div></section>
 <section class="chapter" id="chapter-9" aria-labelledby="title-chapter-9"><h2 id="title-chapter-9">What a proof guarantees</h2><div class="prose"><div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
 <thead>
@@ -426,15 +448,15 @@
 <p>Some direct pure generated entries use trusted-caller interfaces. Host submission wrappers, state invocation and checkpoint codecs have their own input and resource checks. There is no universal promise that every entry validates arbitrary JavaScript values. Ordinary state invocation and standalone representation invocation also have different contracts.</p>
 <h3>JavaScript</h3>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-9">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-9">ink build prices.ink --target javascript -o prices.mjs</code></pre></div><p>Using the <a href="https://siliconjungle.github.io/ink-spec-site/#a-small-example">homepage program</a>:</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-10">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-10">import { createState } from './prices.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-10">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-10"><span class="tok-keyword">import</span> { createState } <span class="tok-keyword">from</span> <span class="tok-string">'./prices.mjs'</span>;
 
-const state = createState();
-state.invoke('set_price', [1n, 1200n]);
-console.log(state.invoke('total', []).result); // 1200n
+<span class="tok-keyword">const</span> state <span class="tok-operator">=</span> <span class="tok-function">createState</span>();
+state.<span class="tok-function">invoke</span>(<span class="tok-string">'set_price'</span>, [<span class="tok-number">1n</span>, <span class="tok-number">1200n</span>]);
+console.<span class="tok-function">log</span>(state.<span class="tok-function">invoke</span>(<span class="tok-string">'total'</span>, []).result); <span class="tok-comment">// 1200n</span>
 
-const saved = await state.checkpoint();
-const restored = createState();
-await restored.restore(saved);</code></pre></div><p>Pure functions are exported through <code>functions.name(...args)</code> and dynamic <code>call(name, args)</code>. <code>u64</code> results are BigInt; JSON hosts must encode them explicitly. Ordinary state modules export <code>createState()</code>. Deterministic scalar keeps retain results across unchanged dependencies; admitted compiled representations can use other proved maintenance algorithms. Resolve a typed entry once with <code>state.bind(name)</code>; <code>{ resultOnly: true }</code> returns its result while preserving transactions and the committed outbox. Typed bound scalar inputs are a caller obligation, and composite inputs/results retain their ownership contracts.</p>
+<span class="tok-keyword">const</span> saved <span class="tok-operator">=</span> <span class="tok-keyword">await</span> state.<span class="tok-function">checkpoint</span>();
+<span class="tok-keyword">const</span> restored <span class="tok-operator">=</span> <span class="tok-function">createState</span>();
+<span class="tok-keyword">await</span> restored.<span class="tok-function">restore</span>(saved);</code></pre></div><p>Pure functions are exported through <code>functions.name(...args)</code> and dynamic <code>call(name, args)</code>. <code>u64</code> results are BigInt; JSON hosts must encode them explicitly. Ordinary state modules export <code>createState()</code>. Deterministic scalar keeps retain results across unchanged dependencies; admitted compiled representations can use other proved maintenance algorithms. Resolve a typed entry once with <code>state.bind(name)</code>; <code>{ resultOnly: true }</code> returns its result while preserving transactions and the committed outbox. Typed bound scalar inputs are a caller obligation, and composite inputs/results retain their ownership contracts.</p>
 <p>Generated JavaScript modules also export <code>ValueCodec</code>, <code>JsonCodec</code>, <code>TypedJsonCodec</code>, <code>valueCodecs</code> and <code>callBinary(name, bytes)</code>. The schema-bound <code>ink-value-wire-v1</code> format transports ordinary declared values as binary buffers, preserving exact Int/word values and raw f32 bits. JSON conversion is a separate, fallible boundary. Native Rust exposes <code>State::call_binary</code>; the optional Rust/Wasm export is <code>lang_call_binary</code>, with <code>StateInstance.pureBinary</code> on Wasm hosts. Rust borrowed validation can inspect and relay bytes without building a document tree. Structural validation alone does not establish a source precondition. <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/json-and-portable-values.md">JSON and portable values</a> defines schemas, limits, number policies and the trust boundary.</p>
 <p><code>JsonCodec.fromJS(value, limits)</code> captures plain JavaScript object/array trees as the library <code>Json</code> type without a text round trip. <code>toJS(value, options)</code> returns detached ordinary objects. These are explicit JS host operations, not new source semantics or an implicit cost in Rust and Rust/Wasm execution. Cycles, accessors and unsupported host values reject. Number output rejects decimal precision loss by default; <code>numbers: &#39;bigint&#39;</code> converts exact integers and <code>numbers: &#39;string&#39;</code> preserves numeric tokens. Known typed records can still use direct calls and <code>ValueCodec.capture</code> without dynamic JSON conversion. See the <a href="./#json-across-boundaries">plain-object example</a> and its linked boundary contract.</p>
 <p>JavaScript <code>valueCodec.compact()</code> creates an <code>ink-value-session-v1</code> codec, and <code>callCompact(name, bytes)</code> invokes the same pure function and preconditions. Both peers must agree on its exact schema identity and format outside the message. It omits per-message schema hashes and node frames, while retaining type, Unicode, count, byte/node/depth checks and owned results. Portable v1 messages and state checkpoints are unchanged. Native targets do not yet expose direct compact calls.</p>
@@ -444,11 +466,13 @@ await restored.restore(saved);</code></pre></div><p>Pure functions are exported 
 </div></section>
 <section class="chapter" id="chapter-19" aria-labelledby="title-chapter-19"><h2 id="title-chapter-19">Modules and commands</h2><div class="prose"><p>Imports name explicit relative source files or embedded standard helpers:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-11">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-11"><span class="tok-keyword">module</span> app;
-<span class="tok-keyword">import</span> <span class="tok-string">&quot;std:words&quot;</span> as words;
 
-<span class="tok-keyword">fn</span> <span class="tok-function">limited</span>(n: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
+<span class="tok-keyword">import</span> <span class="tok-string">&quot;std:words&quot;</span> <span class="tok-keyword">as</span> words;
+
+<span class="tok-keyword">fn</span> <span class="tok-function">limited</span>(<span class="tok-property">n</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
     <span class="tok-keyword">return</span> words.<span class="tok-function">clamp32</span>(n, <span class="tok-number">0</span>, <span class="tok-number">100</span>);
-}</code></pre></div><p>Top-level declarations are accessible through their import namespace. <code>std:json</code> embeds the distribution&#39;s pinned knowledge library. The browser editor remains a single-file compiler; the <a href="./json.html">JSON flow demo</a> runs a precompiled linked program. Concrete root functions with public value signatures are host entry points; uninstantiated templates and owned Buffer/Map helpers are excluded from the public value interface. The optional <code>pub</code> spelling does not provide general private visibility; <code>private state</code> has its explicit importing-module boundary. Import cycles, alias shadowing and missing declarations are rejected. Network package resolution and private exports are not implemented.</p>
+}
+</code></pre></div><p>Top-level declarations are accessible through their import namespace. <code>std:json</code> embeds the distribution&#39;s pinned knowledge library. The browser editor remains a single-file compiler; the <a href="./json.html">JSON flow demo</a> runs a precompiled linked program. Concrete root functions with public value signatures are host entry points; uninstantiated templates and owned Buffer/Map helpers are excluded from the public value interface. The optional <code>pub</code> spelling does not provide general private visibility; <code>private state</code> has its explicit importing-module boundary. Import cycles, alias shadowing and missing declarations are rejected. Network package resolution and private exports are not implemented.</p>
 <p>Useful current commands include:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-12">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-12">ink check prices.ink
 ink modules prices.ink
@@ -501,5 +525,5 @@ target/release/ink run examples/hello.ink total arguments.json
 <p>Stateful preservation includes results, errors, commit status, versions, logical state and ordered events across permitted future actions. It requires more than equal answers on sampled inputs.</p>
 <p>The implemented proof formats and resource checks live in the <a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027/core">core</a>. The general dependent proof-term language and richer source tactics in the design draft remain proposals; current static specifications and ordinary database certificates use the admitted kernels. Tests and adversarial fixtures validate the implementation within their scope; they do not substitute for its mathematical admission obligations or prove the checker itself.</p>
 </div></section></div>
-<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
+<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/4e25eff8f8a2e5135a1901c8028ec7068101411f">Editor 4e25eff</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

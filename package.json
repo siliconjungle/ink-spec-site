@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@chenglou/freerange": "0.0.5",
+    "@siliconjungle/ink-environment": "git+https://github.com/siliconjungle/ink-environment.git#4e25eff8f8a2e5135a1901c8028ec7068101411f",
     "marked": "18.1.0",
     "typescript": "5.9.3",
     "vite": "8.3.4"
