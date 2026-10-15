@@ -68,6 +68,11 @@ then use checked specialization to remove its unused serving branches. Objective
 can be authored and reconfigured too, with explicit rules for old feedback.
 [Learn a program structure](./guide.html#learn-a-program-structure).
 
+The planner's goal can be authored code too. A learner can change how already
+checked variants are ranked—for latency, memory or application-defined utility—
+within the program's permitted choices and constraints.
+[Give the planner a goal](./guide.html#give-the-planner-an-authored-goal).
+
 ## Code and queries, compiled together
 
 A query can sit inside an ordinary function. Its result can feed more computation:

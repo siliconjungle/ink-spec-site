@@ -365,6 +365,29 @@ implementation and proofs.
 [Proof domain and limits](https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/docs/frozen-structural-specialization.md).
 This explicit build request does not establish a profitable automatic choice.
 
+## Give the planner an authored goal
+
+The CLI and adaptive host can now rank already checked compiled variants using
+an ordinary Ink function. It sees the whole eligible portfolio and an explicit
+typed context, which can include learned parameters and application state.
+The objective can be nonlinear and can change through an application-controlled
+learner. Performance remains the default policy; the language has no built-in
+engagement target.
+
+For example, the same program can prefer latency now and a smaller representation
+later. Publishing a new captured objective serializes with application calls,
+rejects stale updates and restarts selection confirmations. Correctness proofs,
+resource limits, migration checks and switch budgets still apply. Each application
+action runs once.
+
+This is opt-in portfolio ranking for offline and runtime planning. General compiler
+search does not yet learn its objective automatically, and a model's score is not a
+certified prediction. Binary64 goal code uses CPU fallback on GPU hosts.
+
+[Complete source example](./programmable-objective.ink) ·
+[Host APIs, offline command and limits](https://github.com/siliconjungle/ink-lang/blob/8724aeb5a0cfa4b4a7456adb4d39844bca36a403/docs/programmable-objectives.md).
+This feature is available through the current CLI, ahead of the embedded playground.
+
 ## Train through authored computation
 
 An application-wide objective can use the complete explicit context and evaluate
