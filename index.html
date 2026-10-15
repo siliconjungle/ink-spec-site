@@ -2,12 +2,12 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink is a typed language for state and computation, with locally checked optimisation proofs and an independently growing knowledge database. Explore the working prototype, language reference and measured results."><title>ink — state is a program</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body class="landing"><a class="skip" href="#purpose">Skip to the content</a><main class="site-shell"><h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
-<p>Ink is a typed language for data and the computation around it. Define state, derived results and atomic changes, then compile them together.</p>
+<p>Ink is a typed language for data and the computation around it. Define state, derived results and atomic changes, then compile them together. Selected state can learn from feedback, under objectives and constraints you define.</p>
 <p>Ordinary code and queries can describe one connected computation. The ambition is to optimise across application logic, storage and CPU/Wasm/GPU execution, reducing the work and data movement between layers.</p>
 <p>Ink's planner searches a growing knowledge library, composing optimisations backed by checked proofs that preserve your program's meaning. As the library grows, those optimisations can compound: rebuilding the same code with the same compiler can produce a better implementation.</p>
 <p class="status-note">Open source. MIT licensed. Working prototype.</p>
 </div>
-<nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink</a><a href="%BASE_URL%guide.html">Read the guide</a><a href="https://github.com/siliconjungle/ink-lang">Source code</a></nav>
+<nav class="reading-links" aria-label="Explore Ink"><a href="%BASE_URL%environment/">Try Ink</a><a href="#software-that-learns-and-adapts">Adaptive software</a><a href="%BASE_URL%guide.html">Read the guide</a><a href="https://github.com/siliconjungle/ink-lang">Source code</a></nav>
 <div id="guide" class="chapters"><section class="chapter" id="a-small-example" aria-labelledby="title-a-small-example"><h2 id="title-a-small-example">A small example</h2><div class="prose"><p>Store prices. Define their total. Update the prices without letting the total drift out of sync.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-1">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-1"><span class="tok-keyword">module</span> prices;
 
@@ -30,6 +30,15 @@
 <p>Ink separates your program&#39;s meaning from its implementation. A growing knowledge library supplies algorithms, storage layouts and optimisation rules. The compiler checks the proofs behind a proposed transformation; measurements help choose between valid alternatives.</p>
 <p>That makes optimisation reusable: a better implementation can become knowledge for the next program, not just a one-off hand-tuned rewrite. Your source keeps describing the problem.</p>
 </div></section>
+<section class="chapter" id="software-that-learns-and-adapts" aria-labelledby="title-software-that-learns-and-adapts"><h2 id="title-software-that-learns-and-adapts">Software that learns and adapts</h2><div class="prose"><p>Mark the parts of your program that may learn, define an objective over its
+computation and context, and set the constraints each update must respect.
+Your code decides what can change and what counts as better.</p>
+<p>Train before deployment, adapt to runtime feedback, or keep learning while the
+software runs. Save, resume and ship the learned state with your application.
+The goal can concern behaviour, decisions or performance—whatever you author.</p>
+<p><a href="./guide.html#authored-code-with-explicit-learning">Explore adaptive Ink</a> ·
+<a href="./guide.html#train-through-authored-computation">Training through application logic</a></p>
+</div></section>
 <section class="chapter" id="code-and-queries-compiled-together" aria-labelledby="title-code-and-queries-compiled-together"><h2 id="title-code-and-queries-compiled-together">Code and queries, compiled together</h2><div class="prose"><p>A query can sit inside an ordinary function. Its result can feed more computation:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-2">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-2"><span class="tok-keyword">module</span> queries;
 
@@ -44,20 +53,6 @@
 <span class="tok-keyword">fn</span> <span class="tok-function">total</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, minimum: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
     <span class="tok-keyword">return</span> <span class="tok-function">sum</span>(<span class="tok-function">selected</span>(xs, minimum));
 }</code></pre></div><p>The wider ambition is to optimise that connected computation across application logic, queries, storage and execution targets. A plan could filter near storage, avoid intermediate collections, maintain a result as data changes, or keep a large parallel calculation on the GPU. The opportunity extends across the usual hand-off between fetching data and processing it.</p>
-<p>Explicit learning can live in the same computation too: prepare a model, use
-complete application context to evaluate an objective, and update designated
-state with normal rollback and recovery. The CLI now includes prepared reverse
-graphs and a 244-parameter ReGLU example; model training currently runs on CPU
-hosts. <a href="./guide.html#prepare-a-model-and-learn-through-it">Learning through authored computation</a>.</p>
-<p>The current CLI can also retain a structured <code>keep</code>: prepare a model architecture or
-derived collection once, then reuse it while its checked inputs stay unchanged.
-Training may continue to change the weights. This connects ordinary derived state
-to prepared computation, with automatic invalidation and explicit recovery.
-<a href="./guide.html#reuse-prepared-computation">Reuse and its costs</a>.
-Prepared defaults can now seed mutable model state too. Stable construction is
-reused while weights, optimizer moments and application controls continue to
-change. This is another step toward compiling preparation, execution and learning
-as one connected program; automatic graph specialization remains open.</p>
 <p>Today, ordered list queries and eligible GPU execution work; external database pushdown, out-of-core query execution and an Ink-native storage engine remain future work. List queries preserve order and duplicates. A query alone does not guarantee a speedup.</p>
 <p><a href="./environment/?example=queries">Try this query</a> · <a href="./guide.html#one-computation-across-the-stack">How the pieces fit together</a> · <a href="./performance.html#ordered-query-expressions">Query measurements</a></p>
 </div></section>
@@ -74,29 +69,6 @@ console.log(total()); // 100n</code></pre></div><p>Ink also targets native Rust 
 </div></section>
 <section class="chapter" id="explore-ink" aria-labelledby="title-explore-ink"><h2 id="title-explore-ink">Explore Ink</h2><div class="prose"><p>Ink is an open-source working prototype, not a production-ready promise. The language, compiler and knowledge library are evolving together.</p>
 <p><a href="./environment/">Try the editor</a> · <a href="./guide.html">Read the guide</a> · <a href="./reference.html">Language reference</a> · <a href="./performance.html">Performance results</a></p>
-<p>Prepared learning can also stay within that stack: ordinary source sessions queue
-feedback, train a candidate while serving an accepted version, validate publication
-and retain exact progress through durable recovery. Explicit build-stage training
-packages the full learned application state for deployment, where learning can
-continue. The current continuous service uses cooperative compiled JavaScript or
-Wasm on CPU hosts. Explicit frozen builds can withdraw selected learning
-capabilities while retaining normal application state. Automatic neural/arithmetic
-specialization and parallel/device training remain work in progress.</p>
-<p>Learning goals belong to the application author. Ink supplies mechanisms for
-gradients, authored rewards, discrete choices and versioned feedback; the author
-sets the objective, allowed changes, constraints and acceptance rules.</p>
-<p>Explicit pure-call preparation now reaches through ordinary JavaScript helpers:
-an immutable graph can stay prepared while weights/context change, with fresh
-predictions and derivatives. That carries the same stable-versus-changing-input
-idea from query/layout preparation into learning code. Stateful automatic staging,
-graph specialization and device training remain open; the measured pure-call gains
-also carry setup/ordinary-call costs. <a href="https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/docs/prepared-helpers.md">Implementation and limits</a> · <a href="./performance.html#pure-helper-preparation">Measurements</a>.</p>
-<p>Preparation can now cross sequential loop callbacks too: an index or numeric
-table can stay fixed while each query or model input changes. This brings reusable
-work inside ordinary connected computation. The measured gains are workload
-dependent; neural/text performance and full upstream fidelity remain ongoing work.
-<a href="./guide.html#prepare-work-inside-loops">How to bind fixed inputs</a> ·
-<a href="./performance.html#sequential-callback-preparation">Gains, costs and remaining gaps</a>.</p>
 </div></section></div>
 <script type="application/json" id="guide-anchors">["a-small-example","bring-it-into-your-app","javascript-values-without-json","json-across-boundaries","teach-ink-a-better-way","plan-before-the-application-runs","learn-from-real-usage","split-the-work-across-targets","one-computation-across-the-stack","infer-facts-and-prepare-repeated-work","authored-code-with-explicit-learning","train-through-authored-computation","reuse-prepared-computation","prepare-a-model-and-learn-through-it","see-what-growing-knowledge-changes","binary64-across-compiled-boundaries","what-runs-today","open-source","keep-values-in-compiled-storage","prepare-work-inside-loops"]</script>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
