@@ -20,7 +20,7 @@ function codePanel(text, label = "Ink · draft syntax", language = "ink") {
 const renderer = new Renderer();
 renderer.code = ({text,lang}) => {
   const inkSnippet=/^\s*(?:module|trainable|adaptive|learn|state|keep|change|query|record|enum|fn|let|var|return)\b/.test(text);
-  const label=lang==="sh"?"Terminal":lang==="ink"?"Ink · supported syntax":
+  const label=lang==="sh"?"Terminal":lang==="ink-cli"?"Ink · current CLI syntax":lang==="ink"?"Ink · supported syntax":
     ["js","javascript"].includes(lang)?"JavaScript":lang==="json"?"JSON":
     lang==="text"?(inkSnippet?"Ink · illustrative syntax":"Schematic"):
     /^(module\s*=|proof_script\s*=)/.test(text)?"Grammar · EBNF":

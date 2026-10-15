@@ -36,7 +36,7 @@ Your code decides what can change and what counts as better.</p>
 <p>Train before deployment, adapt to runtime feedback, or keep learning while the
 software runs. Save, resume and ship the learned state with your application.
 The goal can concern behaviour, decisions or performance—whatever you author.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · illustrative syntax example" data-copy="code-2">copy</button><pre tabindex="0" aria-label="Ink · illustrative syntax example"><code id="code-2"><span class="tok-keyword">trainable</span> <span class="tok-keyword">state</span> <span class="tok-type">Gain</span>: <span class="tok-type">f32</span> <span class="tok-operator">=</span> <span class="tok-number">1.0</span>;
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · current CLI syntax example" data-copy="code-2">copy</button><pre tabindex="0" aria-label="Ink · current CLI syntax example"><code id="code-2"><span class="tok-keyword">trainable</span> <span class="tok-keyword">state</span> <span class="tok-type">Gain</span>: <span class="tok-type">f32</span> <span class="tok-operator">=</span> <span class="tok-number">1.0</span>;
 
 <span class="tok-keyword">adaptive</span> <span class="tok-keyword">query</span> <span class="tok-function">predict</span>(<span class="tok-property">x</span>: <span class="tok-type">f32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">f32</span> <span class="tok-keyword">reads</span>(<span class="tok-type">Gain</span>) {
     <span class="tok-keyword">return</span> <span class="tok-type">Gain</span> <span class="tok-operator">*</span> x;
@@ -48,7 +48,7 @@ The goal can concern behaviour, decisions or performance—whatever you author.<
     <span class="tok-type">Gain</span> <span class="tok-operator">=</span> <span class="tok-type">Gain</span> <span class="tok-operator">-</span> <span class="tok-number">0.01</span> <span class="tok-operator">*</span> error <span class="tok-operator">*</span> x;
     <span class="tok-keyword">return</span> <span class="tok-constant">Ok</span>(());
 }</code></pre></div><p>Here, feedback adjusts the prediction toward the supplied target. Your application
-defines the learning rule and when it runs. <a href="./adaptive-gain.ink">Complete example</a>.</p>
+defines the learning rule and when it runs. <a href="./adaptive-gain.ink">Complete example for the current Ink CLI</a>.</p>
 <p><a href="./guide.html#authored-code-with-explicit-learning">Explore adaptive Ink</a> ·
 <a href="./guide.html#train-through-authored-computation">Training through application logic</a></p>
 </div></section>

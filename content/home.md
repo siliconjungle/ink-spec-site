@@ -42,7 +42,7 @@ Train before deployment, adapt to runtime feedback, or keep learning while the
 software runs. Save, resume and ship the learned state with your application.
 The goal can concern behaviour, decisions or performance—whatever you author.
 
-```text
+```ink-cli
 trainable state Gain: f32 = 1.0;
 
 adaptive query predict(x: f32) -> f32 reads(Gain) {
@@ -58,7 +58,7 @@ learn change feedback(x: f32, target: f32) -> Result<Unit, String>
 ```
 
 Here, feedback adjusts the prediction toward the supplied target. Your application
-defines the learning rule and when it runs. [Complete example](./adaptive-gain.ink).
+defines the learning rule and when it runs. [Complete example for the current Ink CLI](./adaptive-gain.ink).
 
 [Explore adaptive Ink](./guide.html#authored-code-with-explicit-learning) ·
 [Training through application logic](./guide.html#train-through-authored-computation)
