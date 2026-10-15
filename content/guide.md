@@ -266,8 +266,9 @@ These mechanisms can apply to queries, rendering, parsing and numeric computatio
 
 Ink already has staging parameters, checked physical layouts, maintained state
 and resident GPU sessions. A new ordinary bit-state library has measured search
-gains. General inferred facts, automatic preparation and projection-sensitive
-lowering remain work in progress. Exact effects and observable errors still
+gains. Initial checked unsigned-fact inference and numeric-table preparation are
+also implemented; broader inference, preparation and projection-sensitive lowering
+remain work in progress. Exact effects and observable errors still
 constrain which work may be skipped.
 
 Precision is part of the contract. JavaScript text-layout calculations use F64;
@@ -283,6 +284,37 @@ General call summaries, backward requirements and floating-point inference remai
 open. [Implementation and measured scope](https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae00ff66986cc98dcc27a80a/docs/conditional-word-facts.md).
 
 [Three-project delivery checklist and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae00ff66986cc98dcc27a80a/docs/chenglou-optimisation-programme.md#delivery-checklist) · [Measured search scope](./performance.html#matched-handwired-searches)
+
+## Authored code with explicit learning
+
+The current CLI accepts `trainable state`, `adaptive fn` / `adaptive query` and
+`learn change`. Ordinary code can use a contextual model, then pass its suggestion
+to fixed layout, simulation or generator code. Learning actions update only the
+designated trainable state; regular changes cannot write it. Queries stay readonly.
+
+```ink
+trainable state Model:Table<u32,Weights> = Table.empty();
+adaptive fn score(context:Context,weights:Weights)->f32 { /* pure model */ }
+adaptive query suggest(context:Context)->f32 reads(Model) { /* readonly */ }
+learn change observe(context:Context,target:f32,rate:f32)
+    ->Result<f32,String> reads(Model) writes(Model) { /* explicit update */ }
+```
+
+These signatures illustrate the new forms; the [complete runnable example](https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/examples/adaptive-layout.ink)
+learns width × document-length interactions with an authored squared-error update.
+It keeps legal output bounds in fixed code. `ink train SOURCE TRACE.json -o model.snapshot`
+can fit before compilation/deployment and exports a portable checkpoint plus a
+receipt. Runtime feedback invokes the same explicit learning action. The model
+checkpoint loads as data at startup; weights are not yet baked into generated code.
+
+The new CLI is ahead of this page's pinned playground distribution. Automatic
+differentiation, general neural libraries and frozen-weight specialization remain
+open. The markers grant no approximation or optimisation authority. [Training syntax,
+constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/docs/adaptive-learning.md).
+
+Initial numeric preparation also shares invariant tables inside one invocation.
+The large measured case wins substantially; a small case loses. Neither this nor
+the learning example establishes broad application speedups. [Preparation evidence](./performance.html#prepared-numeric-tables).
 
 ## See what growing knowledge changes
 

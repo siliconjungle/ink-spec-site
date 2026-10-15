@@ -79,6 +79,38 @@ compiler. The separate conditional-fact experiment below measures initial
 Freerange-inspired inference; Pretext-inspired gains remain open.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/a0a4fa0ff7f24e74ab99a6f98b6b86f31458e702/reports/handwired-packed-circuits-2026-10-15/README.md">Raw samples, reproducer, controls and limits</a> · <a href="./guide.html#infer-facts-and-prepare-repeated-work">Broader contracts and preparation work</a></p>
 </div></section>
+<section class="chapter" id="prepared-numeric-tables" aria-labelledby="title-prepared-numeric-tables"><h2 id="title-prepared-numeric-tables">Prepared numeric tables</h2><div class="prose"><p>A Pretext-inspired proposal prepares a numeric table once outside a map when it
+does not depend on the current item. Whole-function equality proofs, including an
+empty-input guard, are checked before selection. This is a preparation mechanism;
+full Unicode/browser text-layout parity remains open.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Complete JavaScript call</th>
+<th align="right">Before</th>
+<th align="right">Selected</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>512 indices, 256 table values</td>
+<td align="right">147.208 µs</td>
+<td align="right">1.291 µs</td>
+</tr>
+<tr>
+<td>32 indices, 16 table values</td>
+<td align="right">1.383 µs</td>
+<td align="right">2.143 µs</td>
+</tr>
+</tbody></table>
+</div><p>These held-out results are medians of three fresh Node processes, each with eleven
+paired samples, including preparation and full output consumption. They use designed
+workloads, no retained cache across calls, and an independent direct lookup oracle.
+The small-case regression is a reason to retain profitability gates. They do not
+measure browser layout or cold first-call latency. <a href="https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/bench/prepared-tables/README.md">Raw receipts and procedure</a>.</p>
+<p>Required-target checks compare 94 cases across Rust, JavaScript and Wasm, including
+exceptional F32 values. GPU-host comparison uses CPU fallback for these cases;
+it does not establish device preparation support. <a href="https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/reports/prepared-tables-2026-10-15">Full verification logs</a>.</p>
+</div></section>
 <section class="chapter" id="conditional-unsigned-facts" aria-labelledby="title-conditional-unsigned-facts"><h2 id="title-conditional-unsigned-facts">Conditional unsigned facts</h2><div class="prose"><p>The first Freerange-inspired addition extends Ink&#39;s existing unsigned analyser
 with excluded values and relational range refinement. Offline acquisition proves
 four complete source equalities before publishing them into the normal database

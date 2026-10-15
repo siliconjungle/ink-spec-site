@@ -50,6 +50,28 @@ Freerange-inspired inference; Pretext-inspired gains remain open.
 
 [Raw samples, reproducer, controls and limits](https://github.com/siliconjungle/ink-lang/blob/a0a4fa0ff7f24e74ab99a6f98b6b86f31458e702/reports/handwired-packed-circuits-2026-10-15/README.md) · [Broader contracts and preparation work](./guide.html#infer-facts-and-prepare-repeated-work)
 
+## Prepared numeric tables
+
+A Pretext-inspired proposal prepares a numeric table once outside a map when it
+does not depend on the current item. Whole-function equality proofs, including an
+empty-input guard, are checked before selection. This is a preparation mechanism;
+full Unicode/browser text-layout parity remains open.
+
+| Complete JavaScript call | Before | Selected |
+| --- | ---: | ---: |
+| 512 indices, 256 table values | 147.208 µs | 1.291 µs |
+| 32 indices, 16 table values | 1.383 µs | 2.143 µs |
+
+These held-out results are medians of three fresh Node processes, each with eleven
+paired samples, including preparation and full output consumption. They use designed
+workloads, no retained cache across calls, and an independent direct lookup oracle.
+The small-case regression is a reason to retain profitability gates. They do not
+measure browser layout or cold first-call latency. [Raw receipts and procedure](https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/bench/prepared-tables/README.md).
+
+Required-target checks compare 94 cases across Rust, JavaScript and Wasm, including
+exceptional F32 values. GPU-host comparison uses CPU fallback for these cases;
+it does not establish device preparation support. [Full verification logs](https://github.com/siliconjungle/ink-lang/blob/bc9ff59e49766908968dfb91a54ceb7652cd775b/reports/prepared-tables-2026-10-15).
+
 ## Conditional unsigned facts
 
 The first Freerange-inspired addition extends Ink's existing unsigned analyser
