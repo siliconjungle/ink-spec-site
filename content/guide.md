@@ -311,7 +311,7 @@ checkpoint loads as data at startup; weights are not yet baked into generated co
 The new CLI is ahead of this page's pinned playground distribution. Automatic
 differentiation now propagates through supported pure helpers, structured state
 and bounded loops. Authored reverse graphs and neural libraries are also available;
-general source reverse AD and frozen-weight specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
+general source reverse AD and automatic frozen-weight arithmetic specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
 constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md).
 
 Initial numeric preparation also shares invariant tables inside one invocation.
@@ -404,10 +404,11 @@ A model/observation-generic session now adds bounded feedback, serving/candidate
 separation, work budgets, publication cadence and stale-version rejection. The
 compiled JavaScript/Wasm service serves predictions between cooperative training turns
 and durably recovers queued/candidate progress, including an offline CLI bootstrap.
-An explicit build stage now packages that complete state for adaptive deployment.
-Frozen specialization, trained implementation selection, parallel worker promotion
+An explicit build stage packages that complete state for adaptive deployment, or
+explicitly freezes selected roots and withdraws their writers. Automatic arithmetic/graph
+specialization, trained implementation selection, parallel worker promotion
 and device training remain open. These phases share the full objective and optimizer lineage.
-[Lifecycle contract and implementation status](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/learning-lifecycle.md).
+[Lifecycle contract and implementation status](https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/learning-lifecycle.md).
 
 ```sh
 ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
@@ -421,7 +422,25 @@ include JavaScript, native, Rust projects, Wasm and mixed GPU modules. Runtime l
 stays enabled; existing durable stores retain their newer state. Verification binds
 the package's inputs and files, with optional reference training replay. It establishes
 neither artifact authenticity nor compiler correctness.
-[Build-stage training, startup interfaces and limits](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/trained-builds.md).
+[Build-stage training, startup interfaces and limits](https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/trained-builds.md).
+
+Freeze only when the application wants to remove those degrees of freedom:
+
+```sh
+ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
+    --freeze --target javascript -o build/frozen-layout
+# Or freeze named roots while retaining other learners:
+ink build-model SOURCE TRACE.json --freeze-roots First,Prepared \
+    --target wasm32 -o build/partly-frozen
+```
+
+The frozen source binds exact typed rows and withdraws their writers and callers.
+Other application and learning state can remain mutable. Restore rejects any change
+to the fixed rows, and artifact verification replays the full restriction even if
+someone recomputes file hashes. The complete optimizer/control state, pending events
+and commit version survive under a new source identity. These bindings expose
+constant facts to the proof system; they do not yet establish faster neural inference.
+[Immutable state, proof scope and limits](https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/frozen-state.md).
 
 A continuous learner remains ordinary source logic. The application can pause a
 session, change its budget or cadence, advance a candidate, publish it, cancel it

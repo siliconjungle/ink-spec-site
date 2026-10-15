@@ -223,7 +223,7 @@ checkpoint loads as data at startup; weights are not yet baked into generated co
 <p>The new CLI is ahead of this page&#39;s pinned playground distribution. Automatic
 differentiation now propagates through supported pure helpers, structured state
 and bounded loops. Authored reverse graphs and neural libraries are also available;
-general source reverse AD and frozen-weight specialization remain open. The markers grant no approximation or optimisation authority. <a href="https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md">Training syntax,
+general source reverse AD and automatic frozen-weight arithmetic specialization remain open. The markers grant no approximation or optimisation authority. <a href="https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md">Training syntax,
 constraints and tested scope</a>.</p>
 <p>Initial numeric preparation also shares invariant tables inside one invocation.
 The large measured case wins substantially; a small case loses. Neither this nor
@@ -293,10 +293,11 @@ A model/observation-generic session now adds bounded feedback, serving/candidate
 separation, work budgets, publication cadence and stale-version rejection. The
 compiled JavaScript/Wasm service serves predictions between cooperative training turns
 and durably recovers queued/candidate progress, including an offline CLI bootstrap.
-An explicit build stage now packages that complete state for adaptive deployment.
-Frozen specialization, trained implementation selection, parallel worker promotion
+An explicit build stage packages that complete state for adaptive deployment, or
+explicitly freezes selected roots and withdraws their writers. Automatic arithmetic/graph
+specialization, trained implementation selection, parallel worker promotion
 and device training remain open. These phases share the full objective and optimizer lineage.
-<a href="https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/learning-lifecycle.md">Lifecycle contract and implementation status</a>.</p>
+<a href="https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/learning-lifecycle.md">Lifecycle contract and implementation status</a>.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-16">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-16">ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
     --target javascript -o build/fitted-layout
 ink verify-model build/fitted-layout --replay</code></pre></div><p>The build captures the checked source and explicit trace, executes authored learning
@@ -305,7 +306,19 @@ include JavaScript, native, Rust projects, Wasm and mixed GPU modules. Runtime l
 stays enabled; existing durable stores retain their newer state. Verification binds
 the package&#39;s inputs and files, with optional reference training replay. It establishes
 neither artifact authenticity nor compiler correctness.
-<a href="https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/trained-builds.md">Build-stage training, startup interfaces and limits</a>.</p>
+<a href="https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/trained-builds.md">Build-stage training, startup interfaces and limits</a>.</p>
+<p>Freeze only when the application wants to remove those degrees of freedom:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-17">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-17">ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
+    --freeze --target javascript -o build/frozen-layout
+# Or freeze named roots while retaining other learners:
+ink build-model SOURCE TRACE.json --freeze-roots First,Prepared \
+    --target wasm32 -o build/partly-frozen</code></pre></div><p>The frozen source binds exact typed rows and withdraws their writers and callers.
+Other application and learning state can remain mutable. Restore rejects any change
+to the fixed rows, and artifact verification replays the full restriction even if
+someone recomputes file hashes. The complete optimizer/control state, pending events
+and commit version survive under a new source identity. These bindings expose
+constant facts to the proof system; they do not yet establish faster neural inference.
+<a href="https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/frozen-state.md">Immutable state, proof scope and limits</a>.</p>
 <p>A continuous learner remains ordinary source logic. The application can pause a
 session, change its budget or cadence, advance a candidate, publish it, cancel it
 without dropping observations, or explicitly discard bad feedback. Candidate
@@ -377,7 +390,7 @@ certificates retain their original circuit mode and bytes.</p>
 <section class="chapter" id="keep-values-in-compiled-storage" aria-labelledby="title-keep-values-in-compiled-storage"><h2 id="title-keep-values-in-compiled-storage">Keep values in compiled storage</h2><div class="prose"><p>A compiled JavaScript module exposes typed opaque values. Capture a logical input once or decode an agreed-schema binary value, call functions with the handle, and encode the result directly for transport. The handle owns its private data and rejects foreign or mismatched types. Public materialization returns detached mutable containers.</p>
 <p>The module can retain checked type facts with its private immutable handles. This allows repeated calls to avoid equivalent type-only guards; semantic <code>requires</code> clauses remain active. These facts do not prove arbitrary JSON number grammar or unique object members. The JSON boundary keeps those validations.</p>
 <p>For repeated Unicode rendering, an optional <code>createJsonQuoter()</code> from the same generated module can be passed as <code>{quoter}</code> to <code>JsonCodec.stringifyCompiled</code>. It reuses escaped strings and exact UTF-8 lengths while charging output budgets on every call. It adds retained memory and can slow cold or short sessions; choose it using comparable lifecycle measurements. <code>clear()</code> releases its entries. Binary transport and ordinary calls do not require this option.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-17">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-17"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-18">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-18"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
 const json <span class="tok-operator">=</span> new <span class="tok-type">JsonCodec</span>(valueCodecs.identity.<span class="tok-keyword">result</span>);
 const input <span class="tok-operator">=</span> compiledValues.mark_received.params[<span class="tok-number">0</span>];
 const document <span class="tok-operator">=</span> input.<span class="tok-function">decodeCompact</span>(json.<span class="tok-function">parseCompact</span>(text));

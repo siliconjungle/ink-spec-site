@@ -94,8 +94,9 @@ feedback, train a candidate while serving an accepted version, validate publicat
 and retain exact progress through durable recovery. Explicit build-stage training
 packages the full learned application state for deployment, where learning can
 continue. The current continuous service uses cooperative compiled JavaScript or
-Wasm on CPU hosts; parallel/device training and frozen specialization remain work
-in progress.
+Wasm on CPU hosts. Explicit frozen builds can withdraw selected learning
+capabilities while retaining normal application state. Automatic neural/arithmetic
+specialization and parallel/device training remain work in progress.
 
 Learning goals belong to the application author. Ink supplies mechanisms for
 gradients, authored rewards, discrete choices and versioned feedback; the author
