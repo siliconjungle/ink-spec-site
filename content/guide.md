@@ -276,7 +276,7 @@ change a line break. The proposed direction is a faithful F64 baseline followed
 by checked narrower implementations or guarded fallbacks where profitable. That
 F64 extension and adaptive precision are not implemented yet.
 
-[Mechanisms, source revisions and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/a0a4fa0ff7f24e74ab99a6f98b6b86f31458e702/docs/chenglou-optimisation-programme.md) · [Measured search scope](./performance.html#matched-handwired-searches)
+[Three-project delivery checklist and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/1ed77ac1c3a04b2e463dc05916996825a07a6cb5/docs/chenglou-optimisation-programme.md#delivery-checklist) · [Measured search scope](./performance.html#matched-handwired-searches)
 
 ## See what growing knowledge changes
 
