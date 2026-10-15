@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "distribution": "ede1da12f4adefbb89ea5c91bc13670745d50027",
+  "environment": "ec5319f2772fa78fe96803cadfa406bde31a4951",
+  "commands": [
+    {
+      "command": "npm run build:pages",
+      "result": "passed; TypeScript and FreeRange checks included"
+    },
+    {
+      "command": "npm run check:reference -- ../ink-environment/compiler/target/debug/ink-browser-check ../ink-lang/target/debug/ink",
+      "result": "15 complete examples checked; emitted JavaScript assertions and checkpoint/restore passed"
+    },
+    {
+      "command": "node scripts/check-json.mjs dist-pages/json-demo.mjs",
+      "result": "exact numbers/unknown fields preserved; duplicate names/malformed binary rejected"
+    },
+    {
+      "command": "node scripts/install-environment.mjs ../ink-environment/dist/app dist-pages/environment",
+      "result": "built compiler hash and both revision pins matched"
+    }
+  ],
+  "environment_checks": {
+    "rust_tests": 5,
+    "node_tests": 8,
+    "wasm_compiler": "built; 5.24 MiB",
+    "typescript_and_package_app_builds": "passed"
+  },
+  "browser": {
+    "url": "http://127.0.0.1:4318/ink-spec-site/environment/?example=queries",
+    "input": [
+      [
+        3,
+        1,
+        3,
+        2
+      ],
+      2
+    ],
+    "entry": "total",
+    "javascript_result": 24,
+    "webgpu_result": 24,
+    "actualBackend": "gpu",
+    "counters": {
+      "upload_bytes": 24,
+      "readback_bytes": 4,
+      "dispatches": 10,
+      "live_buffer_bytes": 104,
+      "resident_copy_bytes": 0
+    },
+    "boundary": "Functional smoke check; not a GPU profitability benchmark"
+  },
+  "publication": "main push and Pages deployment pending at receipt creation"
+}

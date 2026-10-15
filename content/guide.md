@@ -212,6 +212,50 @@ Eligible pure pipelines can combine **JavaScript, WebAssembly and WebGPU**. Save
 
 [How placement works](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/adaptive-execution.md)
 
+## One computation across the stack
+
+Application logic often fetches data, decodes it, transforms it, aggregates it and then sends part of it to another execution system. Each hand-off can force a materialized collection, a copy or a separate optimisation decision. Ink's direction is to describe the connected computation with shared types and meaning, so a planner can consider those decisions together.
+
+An ordered query is an ordinary expression, and its consumer remains ordinary code:
+
+```ink
+module queries;
+
+fn selected(xs: List<u32>, minimum: u32) -> List<u32> {
+    return list<u32>{
+        from x in xs;
+        where x >= minimum;
+        select x * 3;
+    };
+}
+
+fn total(xs: List<u32>, minimum: u32) -> u32 {
+    return sum(selected(xs, minimum));
+}
+
+fn overlap(xs: List<u32>, ys: List<u32>) -> Bool {
+    return exists{from x in xs; join y in ys on x == y;};
+}
+```
+
+`list<T>` preserves source order and every duplicate. `exists` searches for a witness without constructing matching pairs. First inputs and independent join inputs evaluate once in written order; additional `from` clauses are lateral. Existing word arithmetic still wraps. These forms elaborate to normal checked list operations rather than granting an optimisation exemption.
+
+Seeing the query together with its consumer creates opportunities to fuse transformations, skip unnecessary construction, push predicates and projections toward data, reuse an index, or maintain only the changes to an aggregate. Database laws must establish each transformation; target eligibility and complete lifecycle costs decide whether an admitted implementation is useful.
+
+| Boundary | Direction and current scope |
+| --- | --- |
+| Ordinary code and queries | Typed ordered queries work inside functions and supported actions; broader relational operators and unordered carriers remain in progress |
+| Updates and derived results | Existing keeps and checked maintained representations share transaction semantics with application code |
+| JavaScript, Wasm and GPU | Eligible pure computations and pipelines can use different targets; transactions stay on the host |
+| Memory and persistent storage | Chunked/out-of-core execution, external database pushdown and an Ink-native storage engine are future work |
+| Logical values and transport | Existing compiled-value and binary interfaces can avoid some repeated conversion; each boundary retains its own validation and ownership contract |
+
+This is the stack-compression ambition: fewer independently designed execution layers and more decisions made over one connected program. It does not require every stage to run on one machine or one device. A future plan might filter at storage, transfer only surviving columns, reduce on the GPU and return a small result. The storage backend, effect model and evidence for such a plan still need implementation.
+
+Queries must not acquire permission to change ordering, float behavior, errors, events or transaction visibility merely because another placement is faster. A GPU scan also pays for upload, dispatch and readback; an indexed CPU lookup can be cheaper. Keeping intermediates resident can change that balance. Passing a device conformance test establishes tested agreement, while profitability needs separate measurements.
+
+[Try the query example](./environment/?example=queries) · [Exact query contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/query-expressions.md) · [Implementation programme](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/optimisation-language-programme.md)
+
 ## See what growing knowledge changes
 
 Two different improvements matter: finding a better algorithm and executing the chosen algorithm with less overhead. Ink measures them separately.

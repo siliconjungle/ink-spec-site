@@ -67,7 +67,7 @@ const input = {title: 'hello', unknown: {items: [true, null, 3]}};
 const result = callOwned('mark_received', [documents.fromJS(input)]);
 if (Object.hasOwn(result, 'Ok')) console.log(documents.toJS(result.Ok));
 // {received: true, title: 'hello', unknown: {items: [true, null, 3]}}</code></pre></div><p>These adapters run only when a JavaScript host calls them. Native Rust and Rust/Wasm execution, source types and wire formats are unchanged; existing calls acquire no implicit conversion. Containers are detached. Cycles, getters, undefined, functions, class instances and sparse arrays reject rather than being silently coerced. Inputs must be stable plain data; Proxy traps are not sandboxed.</p>
-<p>Finite Numbers and BigInts can enter this boundary. On return, the default Number policy rejects overflow or decimal precision loss. Use <code>toJS(value, {numbers: &#39;bigint&#39;})</code> for exact integers, or <code>{numbers: &#39;string&#39;}</code> to retain every numeric token as a string. JSON has no separate BigInt tag, and ordinary JavaScript objects need not preserve JSON member order or number spelling. The <a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/docs/json-and-portable-values.md#plain-objects-at-the-javascript-boundary">complete boundary contract</a> covers accepted properties and resource limits.</p>
+<p>Finite Numbers and BigInts can enter this boundary. On return, the default Number policy rejects overflow or decimal precision loss. Use <code>toJS(value, {numbers: &#39;bigint&#39;})</code> for exact integers, or <code>{numbers: &#39;string&#39;}</code> to retain every numeric token as a string. JSON has no separate BigInt tag, and ordinary JavaScript objects need not preserve JSON member order or number spelling. The <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/json-and-portable-values.md#plain-objects-at-the-javascript-boundary">complete boundary contract</a> covers accepted properties and resource limits.</p>
 <p>Text remains a separate entry point when the input really is JSON. <code>JsonCodec.parse</code> preserves exact numeric tokens; schema codecs also convert JSON into typed records and collections, rejecting invalid shapes and out-of-range numbers.</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy JavaScript example" data-copy="code-8">copy</button><pre tabindex="0" aria-label="JavaScript example"><code id="code-8">import {JsonCodec, valueCodecs, callBinary} from './documents.mjs';
 
@@ -108,27 +108,79 @@ const document = documents.parseCompact('{&quot;title&quot;:&quot;hello&quot;}')
 const requests = valueCodecs.mark_received.arguments.compact();
 const request = requests.encodeWith(w =&gt; w.frame(() =&gt; w.bytes(document.subarray(1))));
 // Both peers negotiate the exact schema identity and transport format first.
-const reply = callCompact('mark_received', request);</code></pre></div><p><a href="./json.html">Try the compiled JSON flow</a> · <a href="./documents.ink">Download the source</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/docs/json-and-portable-values.md">JSON and portable value contracts</a></p>
+const reply = callCompact('mark_received', request);</code></pre></div><p><a href="./json.html">Try the compiled JSON flow</a> · <a href="./documents.ink">Download the source</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/json-and-portable-values.md">JSON and portable value contracts</a></p>
 </div></section>
 <section class="chapter" id="teach-ink-a-better-way" aria-labelledby="title-teach-ink-a-better-way"><h2 id="title-teach-ink-a-better-way">Teach Ink a better way</h2><div class="prose"><p>Algorithms, storage layouts and transformation laws live in a separate knowledge database. Ink checks a proposed optimisation&#39;s proofs against the actual program. Measurements choose among valid alternatives.</p>
 <p>Knowledge can remove intermediate collections, maintain derived results, introduce indexes, select layouts or reuse immutable values. It can also supply a new typed helper algorithm that was absent from the source: for example, replace a filtered list followed by a count with a proved ordered counting loop. The helper passes ordinary type, ownership and termination checks, and an equality proof must justify its use.</p>
 <p>A new optimisation can improve the same source when rebuilt. The compiler supplies general checking and execution machinery; the database accumulates reusable ways to use it.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/docs/database-executable-extensions.md">How database-authored algorithms work</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/database-executable-extensions.md">How database-authored algorithms work</a></p>
 </div></section>
 <section class="chapter" id="plan-before-the-application-runs" aria-labelledby="title-plan-before-the-application-runs"><h2 id="title-plan-before-the-application-runs">Plan before the application runs</h2><div class="prose"><p>Search can compose a query rewrite, maintained representation, physical layout and execution route, revisiting layers while there is useful work and budget. Every step has its own checked obligations. The emitted application executes the selected plan without carrying a proof search engine.</p>
 <p>With an installed knowledge checkout:</p>
 <div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-11">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-11">ink compile prices.ink --optimise knowledge --target rust \
   --search-budget 16384 --state-limit 4096 --planning-seconds 3600 -o prices.rs
 ink compile prices.ink --plan prices.rs.planning.json --target rust -o replayed.rs</code></pre></div><p>The first command records the selected chain and search receipt. Frozen replay checks the proof packet without rediscovering it. More search can find better alternatives; it does not guarantee a global optimum. Ordinary selection retains the baseline without comparable lifecycle evidence. An explicitly supplied experimental work model can predict pure-call gains, subject to its separate guards.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/docs/database-planning.md">Search, planning and physical strategies</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/database-planning.md">Search, planning and physical strategies</a></p>
 </div></section>
 <section class="chapter" id="learn-from-real-usage" aria-labelledby="title-learn-from-real-usage"><h2 id="title-learn-from-real-usage">Learn from real usage</h2><div class="prose"><p>Optional recording captures call frequencies, input shapes, concurrency and lifecycle phases without storing input values. Publish those immutable observations, then compile again: planning discovers compatible recordings and uses measured complete-session costs across the observed cohorts. You do not have to invent query/update weights.</p>
 <p>Proofs establish correctness. Profiles guide profitability. A past observation cannot establish a type invariant or predict every future request. Compiled resource plans can choose capacity reservations, checked final-use releases and admission credits. Runtime credit checks still handle future overload, rejecting with <code>INK_BACKPRESSURE</code> while preserving accepted-call order.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/docs/proved-usage-planning.md">Observed usage, proved properties and resources</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/proved-usage-planning.md">Observed usage, proved properties and resources</a></p>
 </div></section>
 <section class="chapter" id="split-the-work-across-targets" aria-labelledby="title-split-the-work-across-targets"><h2 id="title-split-the-work-across-targets">Split the work across targets</h2><div class="prose"><p>Eligible pure pipelines can combine <strong>JavaScript, WebAssembly and WebGPU</strong>. Saved target-bound cost profiles account for startup, data transfers and repeated use. Consecutive GPU stages can keep intermediates on the device. Stateful transactions execute on the host.</p>
 <p><a href="./environment/">Try a three-stage pipeline in the editor</a>: compile and choose JavaScript or eligible WebGPU execution. The editor exports Rust source; Rust/Wasm builds and adaptive profiles use the native Ink toolchain. The checker runs in Wasm, while browser execution uses fixed target selection. Run does not perform profitability experiments.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/docs/adaptive-execution.md">How placement works</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/adaptive-execution.md">How placement works</a></p>
+</div></section>
+<section class="chapter" id="one-computation-across-the-stack" aria-labelledby="title-one-computation-across-the-stack"><h2 id="title-one-computation-across-the-stack">One computation across the stack</h2><div class="prose"><p>Application logic often fetches data, decodes it, transforms it, aggregates it and then sends part of it to another execution system. Each hand-off can force a materialized collection, a copy or a separate optimisation decision. Ink&#39;s direction is to describe the connected computation with shared types and meaning, so a planner can consider those decisions together.</p>
+<p>An ordered query is an ordinary expression, and its consumer remains ordinary code:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · supported syntax example" data-copy="code-12">copy</button><pre tabindex="0" aria-label="Ink · supported syntax example"><code id="code-12"><span class="tok-keyword">module</span> queries;
+
+<span class="tok-keyword">fn</span> <span class="tok-function">selected</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, minimum: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span> {
+    <span class="tok-keyword">return</span> <span class="tok-keyword">list</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>{
+        <span class="tok-keyword">from</span> x <span class="tok-keyword">in</span> xs;
+        <span class="tok-keyword">where</span> x <span class="tok-operator">&gt;=</span> minimum;
+        <span class="tok-keyword">select</span> x <span class="tok-operator">*</span> <span class="tok-number">3</span>;
+    };
+}
+
+<span class="tok-keyword">fn</span> <span class="tok-function">total</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, minimum: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">u32</span> {
+    <span class="tok-keyword">return</span> <span class="tok-function">sum</span>(<span class="tok-function">selected</span>(xs, minimum));
+}
+
+<span class="tok-keyword">fn</span> <span class="tok-function">overlap</span>(xs: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, ys: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Bool</span> {
+    <span class="tok-keyword">return</span> <span class="tok-keyword">exists</span>{<span class="tok-keyword">from</span> x <span class="tok-keyword">in</span> xs; <span class="tok-keyword">join</span> y <span class="tok-keyword">in</span> ys <span class="tok-keyword">on</span> x <span class="tok-operator">==</span> y;};
+}</code></pre></div><p><code>list&lt;T&gt;</code> preserves source order and every duplicate. <code>exists</code> searches for a witness without constructing matching pairs. First inputs and independent join inputs evaluate once in written order; additional <code>from</code> clauses are lateral. Existing word arithmetic still wraps. These forms elaborate to normal checked list operations rather than granting an optimisation exemption.</p>
+<p>Seeing the query together with its consumer creates opportunities to fuse transformations, skip unnecessary construction, push predicates and projections toward data, reuse an index, or maintain only the changes to an aggregate. Database laws must establish each transformation; target eligibility and complete lifecycle costs decide whether an admitted implementation is useful.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Direction and current scope</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ordinary code and queries</td>
+<td>Typed ordered queries work inside functions and supported actions; broader relational operators and unordered carriers remain in progress</td>
+</tr>
+<tr>
+<td>Updates and derived results</td>
+<td>Existing keeps and checked maintained representations share transaction semantics with application code</td>
+</tr>
+<tr>
+<td>JavaScript, Wasm and GPU</td>
+<td>Eligible pure computations and pipelines can use different targets; transactions stay on the host</td>
+</tr>
+<tr>
+<td>Memory and persistent storage</td>
+<td>Chunked/out-of-core execution, external database pushdown and an Ink-native storage engine are future work</td>
+</tr>
+<tr>
+<td>Logical values and transport</td>
+<td>Existing compiled-value and binary interfaces can avoid some repeated conversion; each boundary retains its own validation and ownership contract</td>
+</tr>
+</tbody></table>
+</div><p>This is the stack-compression ambition: fewer independently designed execution layers and more decisions made over one connected program. It does not require every stage to run on one machine or one device. A future plan might filter at storage, transfer only surviving columns, reduce on the GPU and return a small result. The storage backend, effect model and evidence for such a plan still need implementation.</p>
+<p>Queries must not acquire permission to change ordering, float behavior, errors, events or transaction visibility merely because another placement is faster. A GPU scan also pays for upload, dispatch and readback; an indexed CPU lookup can be cheaper. Keeping intermediates resident can change that balance. Passing a device conformance test establishes tested agreement, while profitability needs separate measurements.</p>
+<p><a href="./environment/?example=queries">Try the query example</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/query-expressions.md">Exact query contract</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/optimisation-language-programme.md">Implementation programme</a></p>
 </div></section>
 <section class="chapter" id="see-what-growing-knowledge-changes" aria-labelledby="title-see-what-growing-knowledge-changes"><h2 id="title-see-what-growing-knowledge-changes">See what growing knowledge changes</h2><div class="prose"><p>Two different improvements matter: finding a better algorithm and executing the chosen algorithm with less overhead. Ink measures them separately.</p>
 <p><img src="./proof-growth.svg" alt="Execution gains and regressions as reusable proof families grow"></p>
@@ -142,7 +194,7 @@ are not selected compiler implementations and do not establish an overall speed
 win. An explicit shared Boolean-circuit mode now reduces proof-generation cost;
 48 bounded tagged-word equations replay through the normal checker. Existing
 certificates retain their original circuit mode and bytes.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/docs/shared-bit-circuits.md">Versioned circuit scope, evidence and limits</a></p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/shared-bit-circuits.md">Versioned circuit scope, evidence and limits</a></p>
 </div></section>
 <section class="chapter" id="what-runs-today" aria-labelledby="title-what-runs-today"><h2 id="title-what-runs-today">What runs today</h2><div class="prose"><p>Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include Rust, JavaScript and Rust/Wasm, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
@@ -171,15 +223,15 @@ certificates retain their original circuit mode and bytes.</p>
 </tbody></table>
 </div><p>Ink remains a working prototype. Broad performance on unfamiliar applications, automatic live strategy switching and schema evolution are open work. The checker, codecs, lowerers and host toolchains are trusted implementations; accepted rewrite proofs do not establish end-to-end compiler correctness.</p>
 <p>The standalone <a href="https://github.com/siliconjungle/ink-environment">editor repository</a> contains the real browser compiler and execution environment. It supports single-file programs and explicit local target profiling. Linked imports, automatic external knowledge search and native Rust execution are outside that editor&#39;s current scope. Its exact compiler and package versions are linked below; language support, proof coverage and target eligibility remain distinct.</p>
-<p><a href="./reference.html">Language reference</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/STATUS.md">Implementation status</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/BENCHMARKS.md">Benchmark evidence</a></p>
+<p><a href="./reference.html">Language reference</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/STATUS.md">Implementation status</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/BENCHMARKS.md">Benchmark evidence</a></p>
 </div></section>
 <section class="chapter" id="open-source" aria-labelledby="title-open-source"><h2 id="title-open-source">Open source</h2><div class="prose"><p>Ink&#39;s compiler, optimisation knowledge, planner, lowerers, runtime, ABI, native support, editor, documentation site and Lean exporter are MIT licensed. Bundled dependencies, fonts and research data retain their own licences and notices.</p>
-<p><a href="./ink-license.txt">MIT license</a> · <a href="https://github.com/siliconjungle/ink-lang">Language repository</a> · <a href="https://github.com/siliconjungle/ink-environment">Editor repository</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/docs/vision.md">Design and ambitions</a></p>
+<p><a href="./ink-license.txt">MIT license</a> · <a href="https://github.com/siliconjungle/ink-lang">Language repository</a> · <a href="https://github.com/siliconjungle/ink-environment">Editor repository</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/vision.md">Design and ambitions</a></p>
 </div></section>
 <section class="chapter" id="keep-values-in-compiled-storage" aria-labelledby="title-keep-values-in-compiled-storage"><h2 id="title-keep-values-in-compiled-storage">Keep values in compiled storage</h2><div class="prose"><p>A compiled JavaScript module exposes typed opaque values. Capture a logical input once or decode an agreed-schema binary value, call functions with the handle, and encode the result directly for transport. The handle owns its private data and rejects foreign or mismatched types. Public materialization returns detached mutable containers.</p>
 <p>The module can retain checked type facts with its private immutable handles. This allows repeated calls to avoid equivalent type-only guards; semantic <code>requires</code> clauses remain active. These facts do not prove arbitrary JSON number grammar or unique object members. The JSON boundary keeps those validations.</p>
 <p>For repeated Unicode rendering, an optional <code>createJsonQuoter()</code> from the same generated module can be passed as <code>{quoter}</code> to <code>JsonCodec.stringifyCompiled</code>. It reuses escaped strings and exact UTF-8 lengths while charging output budgets on every call. It adds retained memory and can slow cold or short sessions; choose it using comparable lifecycle measurements. <code>clear()</code> releases its entries. Binary transport and ordinary calls do not require this option.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-12">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-12"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-13">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-13"><span class="tok-keyword">import</span> {compiledValues, callCompiled, <span class="tok-type">JsonCodec</span>, valueCodecs} <span class="tok-keyword">from</span> './documents.mjs';
 const json <span class="tok-operator">=</span> new <span class="tok-type">JsonCodec</span>(valueCodecs.identity.<span class="tok-keyword">result</span>);
 const input <span class="tok-operator">=</span> compiledValues.mark_received.params[<span class="tok-number">0</span>];
 const document <span class="tok-operator">=</span> input.<span class="tok-function">decodeCompact</span>(json.<span class="tok-function">parseCompact</span>(text));
@@ -203,7 +255,7 @@ transport format. The optimisation database proposes the choices, and automatic
 planning compares logical, portable and compact call lifecycles. Runtime
 execution follows the selected plan. The general synthetic profile is a starting
 model; observed usage profiles take precedence.</p>
-<p><a href="./performance.html#checked-wire-readers-and-automatic-boundary-planning">Measured trade-offs</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/150b18582cef188486d94e18351a492f80d15ec1/docs/checked-physical-capabilities.md">Physical plan contract</a></p>
+<p><a href="./performance.html#checked-wire-readers-and-automatic-boundary-planning">Measured trade-offs</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/checked-physical-capabilities.md">Physical plan contract</a></p>
 </div></section></div>
-<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/150b18582cef188486d94e18351a492f80d15ec1">Language 150b185</a><a href="https://github.com/siliconjungle/ink-environment/tree/b615afa220c6378b0ecacd25a43b47d8a68bc108">Editor b615afa</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
+<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

@@ -9,7 +9,7 @@ const esc = (s) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 const keywords = new Set(
-  "module import pub private invariant spec id record enum type fn partial let var return if else match for in while state event keep change query reads writes emits emit requires ensures before result where theorem by rewrite from to proof implementation representation abstraction initialise step observe certificate normalize arithmetic induction cases intro exact apply".split(
+  "module import pub private invariant spec id record enum type fn partial let var return if else match for in while state event keep change query reads writes emits emit requires ensures before result where theorem by rewrite from to proof implementation representation abstraction initialise step observe certificate normalize arithmetic induction cases intro exact apply list exists join on select approximates within absolute relative ulps".split(
     " ",
   ),
 );
@@ -111,6 +111,7 @@ function page(title, body, skip = "guide", landing = false) {
 const homeBody = `<h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
 <p>Ink is a typed language for data and the computation around it. Define state, derived results and atomic changes, then compile them together.</p>
+<p>Ordinary code and queries can describe one connected computation. The ambition is to optimise across application logic, storage and CPU/Wasm/GPU execution, reducing the work and data movement between layers.</p>
 <p>Ink's planner searches a growing knowledge library, composing optimisations backed by checked proofs that preserve your program's meaning. As the library grows, those optimisations can compound: rebuilding the same code with the same compiler can produce a better implementation.</p>
 <p class="status-note">Open source. MIT licensed. Working prototype.</p>
 </div>

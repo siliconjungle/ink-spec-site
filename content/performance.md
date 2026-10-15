@@ -2,7 +2,26 @@
 
 Every result needs a baseline. Adding knowledge to a fixed compiler, improving the compiler itself and comparing with another library answer different questions. Their speedup factors should not be multiplied together.
 
-The results below retain separate published experiments from 13–14 October 2026. Each report retains its acquired source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.
+The results below retain separate published experiments from 13–15 October 2026. Each report retains its acquired source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.
+
+## Ordered query expressions
+
+The first ordered-query milestone compares query syntax, ordinary Ink pipelines/loops and handwritten Rust/JavaScript controls. The following held-out times are microseconds per complete warm call including output consumption, using three fresh processes and eleven samples per process on one macOS arm64 host.
+
+| Workload | Query | Ordinary Ink pipeline/loop | Handwritten target control |
+| --- | ---: | ---: | ---: |
+| Rust filter, 4096 rows / broad result | 5.526 | 5.757 | 5.454 |
+| Rust filter, 4096 rows / selective | 3.114 | 3.435 | 2.201 |
+| Rust existence, first of 4096 | 0.198 | 0.197 | 0.004 |
+| Rust join, 256 × 256 | 24.760 | 36.946 | 21.414 |
+| JS filter, 4096 rows / broad result | 25.988 | 26.061 | 23.789 |
+| JS join, 256 × 256 | 91.369 | 131.806 | 54.413 |
+
+The broad filter is close to the ordinary pipeline and handwritten Rust. Selective filters, joins and native early-exit calls retain material gaps. Native Ink typed calls own their input vectors and include cloning reusable caller data; handwritten Rust borrows slices. The existence comparison therefore exposes a storage/call-boundary cost as well as traversal. JavaScript compares exported trusted calls with direct handwritten functions. The report retains empty/small cases and all raw samples; these timings are not a universal speed claim or an automatic selection decision.
+
+Cross-target conformance separately checks 113 values, outcomes and exact snapshots, including 19 actual eligible wgpu calls. It does not establish a GPU speedup. The milestone adds no database pushdown or index/hash-join selection.
+
+[Exact source, controls, raw samples and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/ordered-query-expressions-2026-10-15/README.md)
 
 ## Compiler and planner
 
@@ -59,7 +78,7 @@ Imports, construction, first use, retained buffers and process peak memory are r
 
 ## Selection policy
 
-Proof admission, target eligibility and profitability are separate gates. An implementation must preserve the required meaning and be executable on the target before cost evidence can select it. Missing comparable lifecycle evidence normally keeps selection on the baseline. When no profile, measurement or work model decides, a target-eligible plan consisting only of checked maintained folds may instead be selected from its asymptotic work bound. This does not establish a universal lifetime gain: construction, constant factors and retained memory still need measurement.
+Proof admission, target eligibility and profitability are separate gates. An implementation must preserve the required meaning and be executable on the target before cost evidence can select it. Missing comparable lifecycle evidence keeps selection on the baseline, including plans made only of checked maintained folds. The former asymptotic-only exception is removed: equal asymptotic write cost does not establish better setup costs, latency, memory or migration. Automatic selection needs comparable lifecycle evidence or an admitted validated work model.
 
 The work-model path is an explicit experimental option in the Python compiled planner. Supply both `--work-model` and `--work-workload` to enable it. It can predict gains when ordinary selection lacks comparable evidence; it does not override a timing-based decision. Its current held-out study selected one of ten programs, with a 1.53× gain for that program. The reference-fuel model was rejected. This is narrow evidence, not established general prediction.
 

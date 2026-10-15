@@ -33,6 +33,25 @@ try {
       ++checked;
       const modulePath = join(directory, `example-${checked}.mjs`);
       await writeFile(modulePath, reply.ok.javascript);
+      if (source.startsWith('module queries;')) {
+        const {functions}=await import(pathToFileURL(modulePath).href);
+        assert.deepEqual(functions.selected([3,1,3,2],2),[9,9,6]);
+        assert.equal(functions.total([3,1,3,2],2),24);
+        assert.deepEqual(functions.selected([],0),[]);
+        assert.equal(functions.total([],0),0);
+        if(functions.overlap){
+          assert.equal(functions.overlap([1,2,2],[3,2]),true);
+          assert.equal(functions.overlap([],[2]),false);
+        }
+      }
+      if (source.startsWith('module query_reference;')) {
+        const {functions}=await import(pathToFileURL(modulePath).href);
+        assert.deepEqual(functions.matches([2,1,2],[2,2,1]),[
+          {left:2,right:2},{left:2,right:2},{left:1,right:1},
+          {left:2,right:2},{left:2,right:2}]);
+        assert.equal(functions.overlap([1,2],[2]),true);
+        assert.equal(functions.overlap([],[2]),false);
+      }
       if (source.startsWith('module documents;')) {
         const {JsonCodec, valueCodecs, compiledValues, callCompiled} = await import(pathToFileURL(modulePath).href);
         const documents = new JsonCodec(valueCodecs.identity.result);

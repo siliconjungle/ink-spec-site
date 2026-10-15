@@ -32,6 +32,32 @@ Ink separates your program's meaning from its implementation. A growing knowledg
 
 That makes optimisation reusable: a better implementation can become knowledge for the next program, not just a one-off hand-tuned rewrite. Your source keeps describing the problem.
 
+## Code and queries, compiled together
+
+A query can sit inside an ordinary function. Its result can feed more computation:
+
+```ink
+module queries;
+
+fn selected(xs: List<u32>, minimum: u32) -> List<u32> {
+    return list<u32>{
+        from x in xs;
+        where x >= minimum;
+        select x * 3;
+    };
+}
+
+fn total(xs: List<u32>, minimum: u32) -> u32 {
+    return sum(selected(xs, minimum));
+}
+```
+
+The wider ambition is to optimise that connected computation across application logic, queries, storage and execution targets. A plan could filter near storage, avoid intermediate collections, maintain a result as data changes, or keep a large parallel calculation on the GPU. The opportunity extends across the usual hand-off between fetching data and processing it.
+
+Today, ordered list queries and eligible GPU execution work; external database pushdown, out-of-core query execution and an Ink-native storage engine remain future work. List queries preserve order and duplicates. A query alone does not guarantee a speedup.
+
+[Try this query](./environment/?example=queries) · [How the pieces fit together](./guide.html#one-computation-across-the-stack) · [Query measurements](./performance.html#ordered-query-expressions)
+
 ## Bring it into your app
 
 Compile Ink to a JavaScript module and call it from your application:

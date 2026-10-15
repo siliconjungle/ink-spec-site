@@ -2,7 +2,7 @@
 
 [Live site](https://siliconjungle.github.io/ink-spec-site/) · [Language reference](https://siliconjungle.github.io/ink-spec-site/reference.html) · [Performance evidence](https://siliconjungle.github.io/ink-spec-site/performance.html)
 
-A concise introduction to compiling state and computation together, with a runnable price-table example, its JavaScript interface and an explanation of reusable optimisation knowledge. The 25-topic implementation reference, implementation status and benchmark evidence stay linked from the front page. Wider proposals and historical overviews are kept in a separate design-draft download.
+A concise introduction to compiling state and computation together, with runnable price-table and ordered-query examples, a JavaScript interface and an explanation of reusable optimisation knowledge. The homepage and guide describe the wider direction of optimising application logic, queries, storage and CPU/Wasm/GPU execution together, distinguishing present capabilities from future storage execution. The 25-topic implementation reference, implementation status and benchmark evidence stay linked from the front page. Wider proposals and historical overviews are kept in a separate design-draft download.
 
 The site keeps a simple dark reading layout, local syntax highlighting, copy controls and bundled fonts. It makes no third-party runtime requests.
 
@@ -24,7 +24,7 @@ npm run preview
 
 ## Edit and sync
 
-- `content/home.md`: concise language introduction and two small examples on the front page; the opening copy lives in `scripts/generate.mjs`.
+- `content/home.md`: concise language introduction, state/query examples and the broader execution direction on the front page; the opening copy lives in `scripts/generate.mjs`.
 - `content/guide.md`: the detailed application, JavaScript/JSON, optimisation and target guide at `guide.html`. Previous homepage section links redirect here when their sections have moved.
 - `content/readable-spec.md`: supported-language reference, reviewed against the published compiler revision; unsupported proposals are identified explicitly.
 - `content/performance.md`: separately attributed compiler/planner, fixed-compiler knowledge, JSON/state and lifecycle results, plus current selection policy. Historical measurements keep their original evidence boundaries.

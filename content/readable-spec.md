@@ -135,7 +135,7 @@ Type aliases, type/constant parameters and payload enums are supported through b
 
 `std:json` supplies an ordinary recursive `Json` datatype with Null, Boolean, Number, Text, Array and Object variants. Number stores its exact JSON token; object members are ordered source values. Constructors, accessors, field replacement/removal and projection live in the knowledge library. Checked text adapters reject duplicate keys, invalid number tokens and malformed Unicode. Missing is `None`; present null is `Some(Json.Null)`.
 
-`Nat`, packed `Bytes`, `f64`, the other integer widths, a general dependent `Prop`/`Proof` value language remain design proposals. Source specifications and invariants create checked obligations; database properties can justify erased computations and physical capacity hints. `Set<T>` is an external library alias with normalising operations, rather than a built-in invariant-bearing type. See [generic language foundations](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/generic-language-foundations.md) for instantiation, wire and resource limits.
+`Nat`, packed `Bytes`, `f64`, the other integer widths, a general dependent `Prop`/`Proof` value language remain design proposals. Source specifications and invariants create checked obligations; database properties can justify erased computations and physical capacity hints. The external library `Set<T>` is an abstract refined record with structural uniqueness and stable enumeration, rather than a built-in unordered carrier. A genuine unordered Bag/Set interface remains future work. See [generic language foundations](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/generic-language-foundations.md) for instantiation, wire and resource limits.
 
 Fixed-width `+`, `-` and `*` wrap; `checked_add`, `checked_sub` and `checked_mul` return an overflow result instead. `Int` arithmetic is exact. Conversions are explicit. Scalar `f32` comparisons use IEEE rules, while stored aggregate equality compares contained float bits, including signed zeros and NaN payloads.
 
@@ -188,6 +188,34 @@ fn total(xs: List<u32>) -> u32 {
 Owned buffers/maps support temporary mutation through consuming operations and rebinding. The checker rejects reuse after a move and captured owners consumed by repeated callbacks. `parallel_map` preserves result order; worker scheduling and grain size affect cost, not that order. Scoped `split_at` partitions share disjoint ranges; adjacent rejoining can reuse storage. Partial-range growth detaches before overlap. The consuming `fill_range(start, count, value)` clips writes to a buffer range; `copy_within(start, count, destination)` uses snapshot-copy semantics with clipped ranges. Range arithmetic does not wrap. These mechanisms do not expose mutable references or a general borrow syntax.
 
 See [checked recursion and ordered parallel work](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/parallel-execution.md).
+
+### Ordered query expressions
+
+Queries are expressions inside ordinary code. Explicit `list<T>{...}` results retain source order and duplicates; `exists{...}` returns a Bool without materializing matching pairs.
+
+```ink
+module query_reference;
+record Pair { left: u32, right: u32, }
+
+fn matches(xs: List<u32>, ys: List<u32>) -> List<Pair> {
+    return list<Pair>{
+        from x in xs;
+        join y in ys on x == y;
+        where x > 0;
+        select Pair { left: x, right: y };
+    };
+}
+
+fn overlap(xs: List<u32>, ys: List<u32>) -> Bool {
+    return exists{from x in xs; join y in ys on x == y;};
+}
+```
+
+The first source and every independent `join` source evaluate once, left to right, before traversal, even when an input is empty. Independent sources are outside row-binder scope. Additional `from` clauses evaluate a lateral source for each surviving prefix. Joins enumerate left-major then right-major. Predicates retain written short-circuit order; duplicate binders reject. The explicit result element type is checked, including generic and nested list queries.
+
+`exists` may omit `select`, or use a Bool projection as its final predicate. Existing stopping-fold semantics may visit a lookahead row after success, but no subsequent predicate, projection or lateral input executes. Row callbacks are pure. Supported actions can evaluate independent input actions outside the pure traversal; normal effects, ownership, preconditions and rollback checking remain in force. Queries admit at most sixteen lowered clauses, with a join counting as a generator and predicate, under ordinary resource limits.
+
+These forms elaborate to existing map/filter, folds, typed bindings and Buffer operations. They add no privileged rewrite authority. Grouping, distinct/order/top-k/windows, other join forms, unordered carriers, out-of-core producers and database pushdown remain outside this first milestone. See [exact syntax and conformance](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/query-expressions.md) and [the broader direction](./guide.html#one-computation-across-the-stack).
 
 ## 5 State and changes
 
@@ -252,7 +280,7 @@ fn increment(x: u32) -> Result<u32, Error>
 }
 ```
 
-External law files use ordinary `rewrite` declarations and `ink emit-laws` to check and export canonical evidence. Executable application modules still reject inline rewrites. The broader dependent theorem/tactic language remains a design proposal. See [contracts and law authoring](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/generic-language-foundations.md#fallible-contracts-and-external-theorem-authoring).
+External law files use `law` declarations and `ink emit-laws` to check and export canonical evidence; `rewrite` is the concrete-case form. General laws can carry type parameters and assumptions, which must be proved when instantiated. Executable application modules reject inline laws and rewrites. The broader dependent theorem/tactic language remains a design proposal. See [law authoring](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/laws-in-source.md).
 
 Source `spec fn`, `spec query` and `spec change` declarations instead create static obligations. Every named `implementation` must satisfy the clauses; source callers must discharge static `requires`, and public checked value/JSON hosts validate input preconditions. `result` names the result, `before(...)` observes an action's input state, and `invariant` must hold initially and after public actions. Evidence binds the actual source; specifications are not trusted annotations. An unconstrained part of a specification remains unconstrained, including event history unless another proof preserves it.
 
@@ -266,6 +294,20 @@ implementation commuted for next { return 1 + x; }
 `ink emit-contract-obligations`, `ink check-contracts` and `--contract-proofs` expose ordinary external proof transport. Public invariant and precondition checks remain at their defined ingress boundaries. [Source contracts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/source-contracts.md) describes the exact supported state observations.
 
 Proof authors and search tools propose evidence. The core checks the actual proof bytes and applicable premises. A solver result, entry name, hash or performance observation cannot replace that check. Lean is not required to compile ordinary programs.
+
+### Explicit approximation
+
+Approximation permission names a reference and an error budget. It creates an ordinary checked postcondition:
+
+```ink
+module approximation;
+
+spec fn estimate(x: Int) -> Int
+    approximates x + 8 within absolute 8;
+implementation cheaper for estimate { return x; }
+```
+
+`absolute` bounds exact integer error for Int and supported words. `relative(numerator, denominator)` uses exact rational integer comparisons; a zero reference requires an exact result. `ulps` bounds finite binary32 step distance, with both signed zeros at one position; NaNs and infinities reject. These clauses preserve other postconditions and grant no silent replacement of exact computations. Ordinary checked laws support error composition and explicit finite probability spaces; the latter do not validate an external random source or establish continuous-distribution guarantees. See [approximation contracts and assurance scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/approximation-contracts.md).
 
 ## 9 What a proof guarantees
 
@@ -406,7 +448,7 @@ JavaScript `valueCodec.compact()` creates an `ink-value-session-v1` codec, and `
 
 `state.prepare(name, args)` captures owned inputs once and returns a private token; `state.invokePrepared(token)` still enforces preconditions, transaction outcomes and detached replies on every call. Tokens belong to one state instance. Pure `f32` execution uses native Numbers internally where the emitted plan supports them, with exact exceptional tags; public values and binary transport retain the documented raw-bit contract.
 
-Checked source-state plans can maintain U64 or Bool folds using database definitions and eight checked factorisation/group/cell obligations. Dense U32/U64 prefixes have an exact map fallback for other keys. These capabilities are currently JavaScript-only. Restore rebuilds auxiliary folds from validated rows; rollback, events, versions and checkpoint bytes retain their source contract. General single-cell and fresh-result facts also support lean action emission. See [maintained folds](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/maintained-folds.md) for admission, producer limits and host transaction/subscription contracts.
+Checked source-state plans can maintain U64 or Bool group folds using database definitions and eight checked factorisation/group/cell obligations on JavaScript, Rust and Rust-Wasm. Word extrema and grouped one-parameter views run on Rust and Rust-Wasm. Dense U32/U64 prefixes, with exact map fallback for other keys, are JavaScript-only. Unsupported target selections reject explicitly. Restore rebuilds auxiliary folds from validated rows; rollback, events, versions and checkpoint bytes retain their source contract. General single-cell and fresh-result facts also support lean action emission. See [maintained folds](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/maintained-folds.md) for admission, producer limits and host transaction/subscription contracts.
 
 `choose`, Boolean short-circuiting and `at_or` have lazy branches. Option/Result argument evaluation follows each operation's contract; for example, action `ok_or` evaluates its fallback eagerly. See [JavaScript](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/javascript-backend.md), [target parity](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/lowering-parity.md), [binary32 semantics](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/numerical-state.md) and [ordered work](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/parallel-execution.md).
 
