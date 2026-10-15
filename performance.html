@@ -681,6 +681,72 @@ including engine/JIT effects after explicit collection. These are neither memory
 bounds nor allocation counts. Automatic profitable staging, native performance
 ranking, graph/arithmetic specialization and device training remain open.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/reports/prepared-initializers-2026-10-16/README.md">Raw measurements, source bindings and validation</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/bench/staged-initializers/README.md">Reproduction</a>.</p>
+</div></section>
+<section class="chapter" id="pure-helper-preparation" aria-labelledby="title-pure-helper-preparation"><h2 id="title-pure-helper-preparation">Pure helper preparation</h2><div class="prose"><p>A sealed JavaScript partial call can retain stable graph checks through ordinary
+helpers while weights/context/targets change. Prior and current emitters compile
+exactly the same checked source. Each process loads one Ink artifact; complete
+detached binary32 results are consumed and checked. This boundary differs from
+the stateful studies above, so their absolute timings are not interchangeable.</p>
+<p>M4 Pro / Node 25.3.0, holdout medians of three fresh-process medians:</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Complete warm call</th>
+<th align="right">Four outputs</th>
+<th align="right">Loss, outputs, 244 gradients</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Previous ordinary</td>
+<td align="right">10.25 µs</td>
+<td align="right">23.94 µs</td>
+</tr>
+<tr>
+<td>Previous prepared</td>
+<td align="right">10.23 µs</td>
+<td align="right">24.08 µs</td>
+</tr>
+<tr>
+<td>Current ordinary</td>
+<td align="right">10.74 µs</td>
+<td align="right">25.34 µs</td>
+</tr>
+<tr>
+<td>Current prepared</td>
+<td align="right">9.20 µs</td>
+<td align="right">23.51 µs</td>
+</tr>
+<tr>
+<td>Handwired, checked source ranges</td>
+<td align="right">4.12 µs</td>
+<td align="right">22.29 µs</td>
+</tr>
+<tr>
+<td>Independent graph interpreter</td>
+<td align="right">6.02 µs</td>
+<td align="right">18.36 µs</td>
+</tr>
+<tr>
+<td>Independent dense forward</td>
+<td align="right">0.34 µs</td>
+<td align="right">—</td>
+</tr>
+</tbody></table>
+</div><p>The new prepared path improves prediction <strong>1.11×</strong> and full gradients <strong>1.025×</strong>
+over the prior prepared path. Ordinary calls regress about <strong>4.8% / 5.9%</strong> despite
+byte-identical ordinary function bodies; module layout and prepared code differ.
+Handwired&#39;s range-specialized executor still leads. The broad matched-speed goal
+remains open.</p>
+<p>Module bytes rise from 855,312 to 870,459. Separate cold/memory processes observe
+first prepared predictions of 0.922 / 0.939 ms and retained heap deltas of about
+3.03 / 3.04 MB, including source metadata, JIT, Node and caches. These observations
+are not memory bounds or established startup rankings. Capture, import and setup
+costs are retained, and no automatic profitability decision is introduced.</p>
+<p>The new mechanism is a JavaScript pure-call capability, with fresh neural primals
+and malformed-graph validation. These are host measurements; no GPU training,
+whole-session optimizer, native prepared-call or frozen graph-speed claim follows.
+Full-source reverse AD and graph/arithmetic specialization remain separate work.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/reports/prepared-helpers-2026-10-16/README.md">Raw samples, exact bindings, faster controls and validation</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/bench/prepared-helpers/README.md">Reproduction</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

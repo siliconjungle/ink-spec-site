@@ -440,6 +440,18 @@ of every source program. [Interfaces, runnable example and assurance scope](http
 · [Matched performance and remaining gaps](./performance.html#prepared-reverse-models).
 The pinned playground remains behind these new CLI libraries.
 
+The current JavaScript host can also prepare a pure call across helper boundaries.
+`prepareCompiled('predict', [[0, graphHandle]])` binds an immutable captured graph;
+changing weight/context handles still compute fresh predictions and gradients.
+The first valid-shape invocation validates topology, and successful stable checks
+can then persist within that token. Forged graph records keep their errors. Public
+results detach, and thrown failures retry. No new Ink keyword is needed.
+
+This applies preparation to the full helper computation, with a bounded private
+call graph, rather than requiring an application to flatten its source. It is an
+explicit pure-call capability; stateful learning actions do not silently adopt it.
+[Source and boundaries](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/docs/prepared-helpers.md) · [Runnable pure model](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/examples/prepared-network.ink) · [Measured gains and costs](./performance.html#pure-helper-preparation).
+
 Programmers control training through ordinary logic. A checked two-learner example
 uses one model's loss to choose another model's rate, invokes its training action,
 and supports explicit pause and step budgets. Nested actions share rollback of

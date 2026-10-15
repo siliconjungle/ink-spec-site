@@ -112,3 +112,11 @@ specialization and parallel/device training remain work in progress.
 Learning goals belong to the application author. Ink supplies mechanisms for
 gradients, authored rewards, discrete choices and versioned feedback; the author
 sets the objective, allowed changes, constraints and acceptance rules.
+
+
+Explicit pure-call preparation now reaches through ordinary JavaScript helpers:
+an immutable graph can stay prepared while weights/context change, with fresh
+predictions and derivatives. That carries the same stable-versus-changing-input
+idea from query/layout preparation into learning code. Stateful automatic staging,
+graph specialization and device training remain open; the measured pure-call gains
+also carry setup/ordinary-call costs. [Implementation and limits](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/docs/prepared-helpers.md) · [Measurements](./performance.html#pure-helper-preparation).

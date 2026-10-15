@@ -476,3 +476,43 @@ bounds nor allocation counts. Automatic profitable staging, native performance
 ranking, graph/arithmetic specialization and device training remain open.
 
 [Raw measurements, source bindings and validation](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/reports/prepared-initializers-2026-10-16/README.md) · [Reproduction](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/bench/staged-initializers/README.md).
+
+
+## Pure helper preparation
+
+A sealed JavaScript partial call can retain stable graph checks through ordinary
+helpers while weights/context/targets change. Prior and current emitters compile
+exactly the same checked source. Each process loads one Ink artifact; complete
+detached binary32 results are consumed and checked. This boundary differs from
+the stateful studies above, so their absolute timings are not interchangeable.
+
+M4 Pro / Node 25.3.0, holdout medians of three fresh-process medians:
+
+| Complete warm call | Four outputs | Loss, outputs, 244 gradients |
+| --- | ---: | ---: |
+| Previous ordinary | 10.25 µs | 23.94 µs |
+| Previous prepared | 10.23 µs | 24.08 µs |
+| Current ordinary | 10.74 µs | 25.34 µs |
+| Current prepared | 9.20 µs | 23.51 µs |
+| Handwired, checked source ranges | 4.12 µs | 22.29 µs |
+| Independent graph interpreter | 6.02 µs | 18.36 µs |
+| Independent dense forward | 0.34 µs | — |
+
+The new prepared path improves prediction **1.11×** and full gradients **1.025×**
+over the prior prepared path. Ordinary calls regress about **4.8% / 5.9%** despite
+byte-identical ordinary function bodies; module layout and prepared code differ.
+Handwired's range-specialized executor still leads. The broad matched-speed goal
+remains open.
+
+Module bytes rise from 855,312 to 870,459. Separate cold/memory processes observe
+first prepared predictions of 0.922 / 0.939 ms and retained heap deltas of about
+3.03 / 3.04 MB, including source metadata, JIT, Node and caches. These observations
+are not memory bounds or established startup rankings. Capture, import and setup
+costs are retained, and no automatic profitability decision is introduced.
+
+The new mechanism is a JavaScript pure-call capability, with fresh neural primals
+and malformed-graph validation. These are host measurements; no GPU training,
+whole-session optimizer, native prepared-call or frozen graph-speed claim follows.
+Full-source reverse AD and graph/arithmetic specialization remain separate work.
+
+[Raw samples, exact bindings, faster controls and validation](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/reports/prepared-helpers-2026-10-16/README.md) · [Reproduction](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/bench/prepared-helpers/README.md).
