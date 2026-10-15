@@ -63,6 +63,11 @@ defines the learning rule and when it runs. [Complete example for the current In
 [Explore adaptive Ink](./guide.html#authored-code-with-explicit-learning) ·
 [Training through application logic](./guide.html#train-through-authored-computation)
 
+A learned choice can also select program structure. Explicitly freeze a choice,
+then use checked specialization to remove its unused serving branches. Objectives
+can be authored and reconfigured too, with explicit rules for old feedback.
+[Learn a program structure](./guide.html#learn-a-program-structure).
+
 ## Code and queries, compiled together
 
 A query can sit inside an ordinary function. Its result can feed more computation:

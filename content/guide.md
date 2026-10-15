@@ -320,6 +320,51 @@ Initial numeric preparation also shares invariant tables inside one invocation.
 The large measured case wins substantially; a small case loses. Neither this nor
 the learning example establishes broad application speedups. [Preparation evidence](./performance.html#prepared-numeric-tables).
 
+## Learn a program structure
+
+Learning can choose among authored implementations as well as tune numbers.
+The current CLI has an example with an expanded bit circuit, a packed word
+operation and a trainable representation choice. Its objective is ordinary code:
+
+```ink-cli
+fn objective(observation: Metrics, weights: GoalWeights) -> u64 {
+    return observation.latency * weights.latency
+         + observation.energy * weights.energy
+         + observation.memory * weights.memory;
+}
+```
+
+Another function or learner can change those weights. The example versions each
+objective, clears accumulated scores when it changes and rejects stale feedback.
+These illustrative observations demonstrate application control; they are not
+performance measurements or a general learned-objective compiler planner.
+
+If learning changes the objective itself, an outer authored goal and constraints
+govern that change. A lower score under a new objective does not prove improvement
+under the old one, and changing priorities grants no new replacement permissions.
+
+After training, explicitly freeze the chosen degree of freedom and request
+proof-checked specialization:
+
+```sh
+ink build-model adaptive-structure.ink adaptive-structure-training.json \
+    --freeze-roots Choice --specialize-frozen \
+    --target javascript -o build/structure
+ink verify-model build/structure --replay
+```
+
+For the packed choice, the serving action becomes `(x & 255) + offset`.
+The choice lookup, dispatch and expanded-circuit call disappear; application rows
+stay mutable. Complete transition proofs preserve results, errors, events and
+checkpoints. Freezing withdraws the choice's writers. Live structural switching,
+general floating-point specialization and physical-layout migration need further
+implementation and proofs.
+
+[Complete CLI example](./adaptive-structure.ink) ·
+[Training observations](./adaptive-structure-training.json) ·
+[Proof domain and limits](https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/docs/frozen-structural-specialization.md).
+This explicit build request does not establish a profitable automatic choice.
+
 ## Train through authored computation
 
 An application-wide objective can use the complete explicit context and evaluate

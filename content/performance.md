@@ -4,7 +4,37 @@ Every result needs a baseline. Adding knowledge to a fixed compiler, improving t
 
 The results below retain separate published experiments from 13–15 October 2026. Each report retains its acquired source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.
 
+## Learned structure specialization
+
+An explicit frozen learned choice can now specialize its serving computation.
+In the measured example, a choice lookup, representation dispatch and helper call
+collapse to a packed word operation plus a live-row offset. The baseline already
+runs the packed branch; this does not compare eight executed branches with one.
+
+Complete warm JavaScript `state.invoke` calls on one macOS arm64 host with Node
+25.3.0 use five fresh processes and seven paired samples per process. Every reply
+is consumed; reply/checkpoint controls and preparation are outside serving timing.
+
+| Live rows | Frozen baseline (µs) | Checked specialization (µs) | Ratio |
+| --- | ---: | ---: | ---: |
+| 0 | 0.0944 | 0.0897 | 1.053× |
+| 32 | 0.1192 | 0.1090 | 1.094× |
+| 1024 | 0.1120 | 0.1051 | 1.066× |
+
+The generated source shrinks by 136 bytes, while the inventoried package grows
+from 342,529 to 2,705,662 bytes because it retains portable proofs, selected source
+and compilation metadata. Single build-stage observations were 1.59 and 2.60
+seconds; they are not a repeated lifecycle or amortization model. These modest
+serving gains do not establish a profitable automatic choice, a memory improvement
+or a broad neural-network speedup.
+
+Independent conformance includes 439 private core tests, selected native/JS/Wasm
+histories and 93 browser observations with an actual eligible WebGPU call.
+Stateful work remains on the host. [Learned choices and objectives](./guide.html#learn-a-program-structure) ·
+[Exact artifacts, raw samples, setup costs and limits](https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/reports/frozen-structure-2026-10-16/README.md).
+
 ## Ordered query expressions
+
 
 The first ordered-query milestone compares query syntax, ordinary Ink pipelines/loops and handwritten Rust/JavaScript controls. The following held-out times are microseconds per complete warm call including output consumption, using three fresh processes and eleven samples per process on one macOS arm64 host.
 

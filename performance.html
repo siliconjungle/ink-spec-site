@@ -6,6 +6,52 @@
 <div id="performance" class="chapters"><section class="chapter" id="read-the-comparisons" aria-labelledby="title-read-the-comparisons"><h2 id="title-read-the-comparisons">Read the comparisons</h2><div class="prose"><p>Every result needs a baseline. Adding knowledge to a fixed compiler, improving the compiler itself and comparing with another library answer different questions. Their speedup factors should not be multiplied together.</p>
 <p>The results below retain separate published experiments from 13–15 October 2026. Each report retains its acquired source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.</p>
 </div></section>
+<section class="chapter" id="learned-structure-specialization" aria-labelledby="title-learned-structure-specialization"><h2 id="title-learned-structure-specialization">Learned structure specialization</h2><div class="prose"><p>An explicit frozen learned choice can now specialize its serving computation.
+In the measured example, a choice lookup, representation dispatch and helper call
+collapse to a packed word operation plus a live-row offset. The baseline already
+runs the packed branch; this does not compare eight executed branches with one.</p>
+<p>Complete warm JavaScript <code>state.invoke</code> calls on one macOS arm64 host with Node
+25.3.0 use five fresh processes and seven paired samples per process. Every reply
+is consumed; reply/checkpoint controls and preparation are outside serving timing.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Live rows</th>
+<th align="right">Frozen baseline (µs)</th>
+<th align="right">Checked specialization (µs)</th>
+<th align="right">Ratio</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td align="right">0.0944</td>
+<td align="right">0.0897</td>
+<td align="right">1.053×</td>
+</tr>
+<tr>
+<td>32</td>
+<td align="right">0.1192</td>
+<td align="right">0.1090</td>
+<td align="right">1.094×</td>
+</tr>
+<tr>
+<td>1024</td>
+<td align="right">0.1120</td>
+<td align="right">0.1051</td>
+<td align="right">1.066×</td>
+</tr>
+</tbody></table>
+</div><p>The generated source shrinks by 136 bytes, while the inventoried package grows
+from 342,529 to 2,705,662 bytes because it retains portable proofs, selected source
+and compilation metadata. Single build-stage observations were 1.59 and 2.60
+seconds; they are not a repeated lifecycle or amortization model. These modest
+serving gains do not establish a profitable automatic choice, a memory improvement
+or a broad neural-network speedup.</p>
+<p>Independent conformance includes 439 private core tests, selected native/JS/Wasm
+histories and 93 browser observations with an actual eligible WebGPU call.
+Stateful work remains on the host. <a href="./guide.html#learn-a-program-structure">Learned choices and objectives</a> ·
+<a href="https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/reports/frozen-structure-2026-10-16/README.md">Exact artifacts, raw samples, setup costs and limits</a>.</p>
+</div></section>
 <section class="chapter" id="ordered-query-expressions" aria-labelledby="title-ordered-query-expressions"><h2 id="title-ordered-query-expressions">Ordered query expressions</h2><div class="prose"><p>The first ordered-query milestone compares query syntax, ordinary Ink pipelines/loops and handwritten Rust/JavaScript controls. The following held-out times are microseconds per complete warm call including output consumption, using three fresh processes and eleven samples per process on one macOS arm64 host.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
 <thead>
