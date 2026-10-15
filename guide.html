@@ -504,6 +504,36 @@ planning compares logical, portable and compact call lifecycles. Runtime
 execution follows the selected plan. The general synthetic profile is a starting
 model; observed usage profiles take precedence.</p>
 <p><a href="./performance.html#checked-wire-readers-and-automatic-boundary-planning">Measured trade-offs</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/docs/checked-physical-capabilities.md">Physical plan contract</a></p>
+</div></section>
+<section class="chapter" id="prepare-work-inside-loops" aria-labelledby="title-prepare-work-inside-loops"><h2 id="title-prepare-work-inside-loops">Prepare work inside loops</h2><div class="prose"><p>The current CLI can carry immutable captured inputs through sequential JavaScript
+callbacks. An ordinary helper can build an index or coefficient table once, then
+use it for changing queries, loop elements and indices. The source still describes
+the complete computation; the explicit prepared-call interface binds its fixed
+inputs. No new source keyword is required.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Schematic example" data-copy="code-21">copy</button><pre tabindex="0" aria-label="Schematic example"><code id="code-21">module batch;
+fn member(keys:List&lt;u32&gt;,query:u32)-&gt;Bool {
+    let index:Map&lt;u32,Bool&gt;=foldr(keys,Map.empty(),fn(k)=&gt;fn(m)=&gt;m.set(k,true));
+    return index.contains(query);
+}
+fn batch(keys:List&lt;u32&gt;,queries:List&lt;u32&gt;)-&gt;List&lt;Bool&gt; {
+    return queries.map(fn(query)=&gt;member(keys,query));
+}</code></pre></div><p>After compiling this complete module with the current CLI, bind its keys:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · draft syntax example" data-copy="code-22">copy</button><pre tabindex="0" aria-label="Ink · draft syntax example"><code id="code-22">const entry <span class="tok-operator">=</span> model.compiledValues.batch;
+const keys <span class="tok-operator">=</span> entry.params[<span class="tok-number">0</span>].<span class="tok-function">capture</span>([<span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>]);
+const prepared <span class="tok-operator">=</span> model.<span class="tok-function">prepareCompiled</span>('batch', [[<span class="tok-number">0</span>, keys]]);
+const queries <span class="tok-operator">=</span> entry.params[<span class="tok-number">1</span>].<span class="tok-function">capture</span>([<span class="tok-number">7</span>, <span class="tok-number">2</span>, <span class="tok-number">9</span>]);
+const answer <span class="tok-operator">=</span> entry.<span class="tok-keyword">result</span>.<span class="tok-function">materialize</span>(model.<span class="tok-function">callPreparedCompiled</span>(prepared, [queries]));</code></pre></div><p>The index is created lazily at the first reached helper and reused by that token.
+An empty query list needs no index; changing the keys requires a new capture and
+token. Iteration inputs stay dynamic, results stay detached, and owned/parallel
+callbacks retain ordinary execution. Stateful learning does not automatically
+adopt this pure-call capability. This CLI feature is ahead of the pinned browser
+playground.</p>
+<p>The same mechanism applies to queries, layout helpers and model code, but its
+benefit depends on reusable work. The retained study has large repeated-index
+wins alongside small-case losses and extra retained memory; neural and text
+controls still expose substantial gaps.
+<a href="https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/docs/prepared-loop-callbacks.md">Execution contract and runnable source</a> ·
+<a href="./performance.html#sequential-callback-preparation">Measured gains and remaining gaps</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

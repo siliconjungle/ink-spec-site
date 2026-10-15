@@ -775,6 +775,63 @@ portable ranking or broad speed claim. Moving validation into explicit contracts
 did not consistently improve calls. This is a measured remaining execution gap,
 not completion of the performance target.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/eb1d3f0a45886d999171f49ff0c4e88203a87f59/reports/prepared-text-2026-10-16/README.md">Exact source/artifacts, oracle, raw samples and target history</a>.</p>
+</div></section>
+<section class="chapter" id="sequential-callback-preparation" aria-labelledby="title-sequential-callback-preparation"><h2 id="title-sequential-callback-preparation">Sequential callback preparation</h2><div class="prose"><p>This JavaScript comparison uses the same checked core bytes through the previous
+and current emitters. Three fresh processes per cohort execute complete varying
+outputs, including empty, singleton and 32-item requests. Capture, token setup,
+first observations and direct-control construction are retained separately;
+materializing and consuming outputs is timed. The table shows held-out 512-item
+fixed inputs, with medians of per-process medians in microseconds.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Repeated work</th>
+<th align="right">Previous prepared</th>
+<th align="right">Current prepared</th>
+<th align="right">Direct prepared</th>
+<th align="right">Paired gain</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Membership index</td>
+<td align="right">197.07</td>
+<td align="right">1.19</td>
+<td align="right">0.76</td>
+<td align="right">164.69×</td>
+</tr>
+<tr>
+<td>Grouped aggregates</td>
+<td align="right">264.23</td>
+<td align="right">1.14</td>
+<td align="right">0.73</td>
+<td align="right">231.65×</td>
+</tr>
+<tr>
+<td>Numeric coefficient table</td>
+<td align="right">18.92</td>
+<td align="right">0.84</td>
+<td align="right">0.45</td>
+<td align="right">22.90×</td>
+</tr>
+</tbody></table>
+</div><p>These are explicit reuse workloads on Node 25.3.0 / Apple M4 Pro. Paired gain is
+the median process-pair ratio and can differ from the ratio of displayed medians.
+The direct controls remain faster. Development&#39;s 16-item coefficient case loses
+(0.876×); short lifetimes can fail to recover preparation costs. Ordinary calls
+have no corresponding broad speedup, and retained heap increases in the separate
+forced-GC observation.</p>
+<p>The same emitter change does <strong>not</strong> establish neural or layout gains. Held-out
+prediction has paired gain 0.969× and complete gradients 1.002×. Handwired&#39;s
+range-specialized prediction remains about 2.2× faster, while the explicit dense
+prediction control is about 29× faster. At 512 text segments, the simple counter
+measures 15.31 µs currently, 14.38 µs previously and 0.78 µs for pinned Pretext.
+Those are remaining execution gaps, not completed performance targets.</p>
+<p>The standalone backend suite passes 49 tests; callback validation covers 147
+reference cases and 1,510 prepared calls under each F32 carrier. Learning,
+binary64 and text target histories also pass, including an actual eligible F32
+GPU dispatch. These checks do not prove compiler correctness or device training.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/reports/prepared-loops-2026-10-16/README.md">Raw samples, exact package/source bindings, lifecycle costs and validation</a> ·
+<a href="https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/bench/prepared-loops/README.md">Reproduction</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

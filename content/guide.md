@@ -666,3 +666,47 @@ execution follows the selected plan. The general synthetic profile is a starting
 model; observed usage profiles take precedence.
 
 [Measured trade-offs](./performance.html#checked-wire-readers-and-automatic-boundary-planning) · [Physical plan contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/checked-physical-capabilities.md)
+
+
+## Prepare work inside loops
+
+The current CLI can carry immutable captured inputs through sequential JavaScript
+callbacks. An ordinary helper can build an index or coefficient table once, then
+use it for changing queries, loop elements and indices. The source still describes
+the complete computation; the explicit prepared-call interface binds its fixed
+inputs. No new source keyword is required.
+
+```text
+module batch;
+fn member(keys:List<u32>,query:u32)->Bool {
+    let index:Map<u32,Bool>=foldr(keys,Map.empty(),fn(k)=>fn(m)=>m.set(k,true));
+    return index.contains(query);
+}
+fn batch(keys:List<u32>,queries:List<u32>)->List<Bool> {
+    return queries.map(fn(query)=>member(keys,query));
+}
+```
+
+After compiling this complete module with the current CLI, bind its keys:
+
+```javascript
+const entry = model.compiledValues.batch;
+const keys = entry.params[0].capture([1, 2, 3]);
+const prepared = model.prepareCompiled('batch', [[0, keys]]);
+const queries = entry.params[1].capture([7, 2, 9]);
+const answer = entry.result.materialize(model.callPreparedCompiled(prepared, [queries]));
+```
+
+The index is created lazily at the first reached helper and reused by that token.
+An empty query list needs no index; changing the keys requires a new capture and
+token. Iteration inputs stay dynamic, results stay detached, and owned/parallel
+callbacks retain ordinary execution. Stateful learning does not automatically
+adopt this pure-call capability. This CLI feature is ahead of the pinned browser
+playground.
+
+The same mechanism applies to queries, layout helpers and model code, but its
+benefit depends on reusable work. The retained study has large repeated-index
+wins alongside small-case losses and extra retained memory; neural and text
+controls still expose substantial gaps.
+[Execution contract and runnable source](https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/docs/prepared-loop-callbacks.md) ·
+[Measured gains and remaining gaps](./performance.html#sequential-callback-preparation).

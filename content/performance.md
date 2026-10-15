@@ -553,3 +553,41 @@ did not consistently improve calls. This is a measured remaining execution gap,
 not completion of the performance target.
 
 [Exact source/artifacts, oracle, raw samples and target history](https://github.com/siliconjungle/ink-lang/blob/eb1d3f0a45886d999171f49ff0c4e88203a87f59/reports/prepared-text-2026-10-16/README.md).
+
+
+## Sequential callback preparation
+
+This JavaScript comparison uses the same checked core bytes through the previous
+and current emitters. Three fresh processes per cohort execute complete varying
+outputs, including empty, singleton and 32-item requests. Capture, token setup,
+first observations and direct-control construction are retained separately;
+materializing and consuming outputs is timed. The table shows held-out 512-item
+fixed inputs, with medians of per-process medians in microseconds.
+
+| Repeated work | Previous prepared | Current prepared | Direct prepared | Paired gain |
+| --- | ---: | ---: | ---: | ---: |
+| Membership index | 197.07 | 1.19 | 0.76 | 164.69× |
+| Grouped aggregates | 264.23 | 1.14 | 0.73 | 231.65× |
+| Numeric coefficient table | 18.92 | 0.84 | 0.45 | 22.90× |
+
+These are explicit reuse workloads on Node 25.3.0 / Apple M4 Pro. Paired gain is
+the median process-pair ratio and can differ from the ratio of displayed medians.
+The direct controls remain faster. Development's 16-item coefficient case loses
+(0.876×); short lifetimes can fail to recover preparation costs. Ordinary calls
+have no corresponding broad speedup, and retained heap increases in the separate
+forced-GC observation.
+
+The same emitter change does **not** establish neural or layout gains. Held-out
+prediction has paired gain 0.969× and complete gradients 1.002×. Handwired's
+range-specialized prediction remains about 2.2× faster, while the explicit dense
+prediction control is about 29× faster. At 512 text segments, the simple counter
+measures 15.31 µs currently, 14.38 µs previously and 0.78 µs for pinned Pretext.
+Those are remaining execution gaps, not completed performance targets.
+
+The standalone backend suite passes 49 tests; callback validation covers 147
+reference cases and 1,510 prepared calls under each F32 carrier. Learning,
+binary64 and text target histories also pass, including an actual eligible F32
+GPU dispatch. These checks do not prove compiler correctness or device training.
+
+[Raw samples, exact package/source bindings, lifecycle costs and validation](https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/reports/prepared-loops-2026-10-16/README.md) ·
+[Reproduction](https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/bench/prepared-loops/README.md).

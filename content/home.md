@@ -120,3 +120,11 @@ predictions and derivatives. That carries the same stable-versus-changing-input
 idea from query/layout preparation into learning code. Stateful automatic staging,
 graph specialization and device training remain open; the measured pure-call gains
 also carry setup/ordinary-call costs. [Implementation and limits](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/docs/prepared-helpers.md) · [Measurements](./performance.html#pure-helper-preparation).
+
+
+Preparation can now cross sequential loop callbacks too: an index or numeric
+table can stay fixed while each query or model input changes. This brings reusable
+work inside ordinary connected computation. The measured gains are workload
+dependent; neural/text performance and full upstream fidelity remain ongoing work.
+[How to bind fixed inputs](./guide.html#prepare-work-inside-loops) ·
+[Gains, costs and remaining gaps](./performance.html#sequential-callback-preparation).
