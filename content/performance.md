@@ -356,3 +356,34 @@ The checked compact reader now tracks depth with a counter. Portable values keep
 Three paired fresh processes measure 11–14% less time for complete fused compact decoding and re-encoding of a 512-member document. This is an Ink-versus-Ink result, not a new Frontier ranking. The initial module used exact support substitution; fresh compiler emission later verified the identical ABI support, and its newer emitter passed full JavaScript tests and 422 additional malformed-input/resource/value checks. Complete modules differ because JavaScript main advanced independently.
 
 [Exact reader cohorts and provenance](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/reports/frontier-json-2026-10-13/compact-reader-355-360/README.md)
+
+
+## Prepared reverse models
+
+The current CLI can construct a 244-parameter ReGLU model, prepare its graph once
+and compute a fresh forward pass plus an ordered reverse pass for changing weights
+and context. The matched JavaScript comparison consumes all four outputs, the loss
+and all 244 gradients, checking exact agreement against Handwired's own executor
+and an independent graph interpreter. It includes a stronger Handwired control
+with checked `[0,1]` source ranges and smaller multiply expansions.
+
+| Complete forward + reverse call | Development (µs) | Holdout (µs) |
+| --- | ---: | ---: |
+| Ink, prepared graph | 39.32 | 40.36 |
+| Handwired, unknown ranges | 29.36 | 29.48 |
+| Handwired, checked source ranges | 23.58 | 23.83 |
+| Direct typed-array interpreter | 10.08 | 9.72 |
+
+Median of three fresh-process medians per cohort; eleven interleaved samples per process. Ink takes 1.69× the ranged Handwired latency on the holdout cohort.
+
+These are warm CPU calls on one host, with fresh arrays inside each call. Graph
+setup has separate cold observations; import/compilation, peak memory, full gallery
+training and UI rendering are outside this comparison. Handwired's gallery can
+also specialize fixed positional features, unlike this dynamic-context task.
+Optimizer arithmetic is a separate comparison: Ink currently uses F32 moments.
+The matched speed target and device reverse execution remain open.
+
+[Raw samples, complete controls and reproduction](https://github.com/siliconjungle/ink-lang/blob/e47ad29de8ea2161d984e78e80a3aeaa1a054c28/bench/reverse-learning/README.md).
+Full-target validation separately compares values/errors/events/exact snapshots,
+including backtracking and failed updates. An unrelated eligible numeric kernel
+confirms one actual GPU dispatch; it does not establish GPU training.

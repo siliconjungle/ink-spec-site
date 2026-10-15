@@ -54,6 +54,12 @@ fn total(xs: List<u32>, minimum: u32) -> u32 {
 
 The wider ambition is to optimise that connected computation across application logic, queries, storage and execution targets. A plan could filter near storage, avoid intermediate collections, maintain a result as data changes, or keep a large parallel calculation on the GPU. The opportunity extends across the usual hand-off between fetching data and processing it.
 
+Explicit learning can live in the same computation too: prepare a model, use
+complete application context to evaluate an objective, and update designated
+state with normal rollback and recovery. The CLI now includes prepared reverse
+graphs and a 244-parameter ReGLU example; model training currently runs on CPU
+hosts. [Learning through authored computation](./guide.html#prepare-a-model-and-learn-through-it).
+
 Today, ordered list queries and eligible GPU execution work; external database pushdown, out-of-core query execution and an Ink-native storage engine remain future work. List queries preserve order and duplicates. A query alone does not guarantee a speedup.
 
 [Try this query](./environment/?example=queries) · [How the pieces fit together](./guide.html#one-computation-across-the-stack) · [Query measurements](./performance.html#ordered-query-expressions)

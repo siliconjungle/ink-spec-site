@@ -310,8 +310,8 @@ checkpoint loads as data at startup; weights are not yet baked into generated co
 
 The new CLI is ahead of this page's pinned playground distribution. Automatic
 differentiation now propagates through supported pure helpers, structured state
-and bounded loops. Broader neural libraries, reverse mode and frozen-weight
-specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
+and bounded loops. Authored reverse graphs and neural libraries are also available;
+general source reverse AD and frozen-weight specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
 constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md).
 
 Initial numeric preparation also shares invariant tables inside one invocation.
@@ -358,6 +358,53 @@ They strengthen concrete checks without proving the whole AD transform or backen
 Unsigned inference now also crosses bounded helper-call graphs. Two new database
 laws replay exact definition contexts and bit-vector proofs; changed callees
 invalidate their summaries. [Source-bound call facts](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/docs/interprocedural-word-facts.md).
+
+## Prepare a model and learn through it
+
+The CLI now includes ordinary `std:autodiff`, `std:neural` and `std:learning`
+libraries. A ReGLU network can be prepared once, then evaluated and differentiated
+with changing weights and complete explicit context:
+
+```text
+let model = nn.network(10, [6,6], 4, 10000)?;
+let update = nn.mse_gradient(model, weights, context, target)?;
+```
+
+The complete example learns 244 parameters, with all derivatives checked against
+an independent dense-network oracle. Preparation keeps the selected graph roots;
+fused affine/ReGLU nodes express the authored arithmetic. It fits Ink's broader
+stack compression goal: model preparation, numeric computation, state updates and
+recovery share the language's types and transaction boundaries. Graph execution
+and optimizer updates currently run on CPU hosts.
+
+Learning state includes Adam's two moments, step count and learning-rate control.
+A rejected candidate frame restores moments with weights. An outer action failure
+rolls back all state and events. `ink train ... --restore prior.snapshot` continues
+from the exact complete state. Hard-step estimators, indexed backward differences
+and stopping at zero cotangents are explicit policies; none supplies an
+approximation or convergence proof. The F32 optimizer differs from Handwired's
+binary64 moment arithmetic.
+
+This delivers a prepared graph interface, not automatic reverse differentiation
+of every source program. [Interfaces, runnable example and assurance scope](https://github.com/siliconjungle/ink-lang/blob/e47ad29de8ea2161d984e78e80a3aeaa1a054c28/docs/reverse-learning.md)
+· [Matched performance and remaining gaps](./performance.html#prepared-reverse-models).
+The pinned playground remains behind these new CLI libraries.
+
+Programmers control training through ordinary logic. A checked two-learner example
+uses one model's loss to choose another model's rate, invokes its training action,
+and supports explicit pause and step budgets. Nested actions share rollback of
+models, configuration and events. Pure policies compute decisions; declared
+learning actions apply them. These controls should compose across phases.
+[Runnable orchestration example](https://github.com/siliconjungle/ink-lang/blob/e47ad29de8ea2161d984e78e80a3aeaa1a054c28/examples/learning-orchestration.ink).
+
+Training must span the lifecycle: fitting before compilation, an explicit training
+stage during builds, adaptation on runtime feedback, and continuous learning while
+serving. The current CLI supplies offline replay and explicit online updates.
+Integrated build-stage packaging and a continuous service—with observation queues,
+budgets, atomic model publication, cancellation and exact recovery—remain required
+work. These phases share the full objective and optimizer lineage; continuous
+learning is not considered complete merely because a host can repeat an update.
+[Lifecycle contract and implementation status](https://github.com/siliconjungle/ink-lang/blob/e47ad29de8ea2161d984e78e80a3aeaa1a054c28/docs/learning-lifecycle.md).
 
 ## See what growing knowledge changes
 

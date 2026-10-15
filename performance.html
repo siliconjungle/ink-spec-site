@@ -488,6 +488,53 @@ profiles take precedence; missing comparable gains retains the baseline.</p>
 <section class="chapter" id="compact-reader-specialization" aria-labelledby="title-compact-reader-specialization"><h2 id="title-compact-reader-specialization">Compact reader specialization</h2><div class="prose"><p>The checked compact reader now tracks depth with a counter. Portable values keep their frame-end stack; compact values still check complete-buffer bounds, node/depth limits, canonical counts, tags, Unicode and full consumption. Invalid inputs replay the independent validator for established diagnostics.</p>
 <p>Three paired fresh processes measure 11–14% less time for complete fused compact decoding and re-encoding of a 512-member document. This is an Ink-versus-Ink result, not a new Frontier ranking. The initial module used exact support substitution; fresh compiler emission later verified the identical ABI support, and its newer emitter passed full JavaScript tests and 422 additional malformed-input/resource/value checks. Complete modules differ because JavaScript main advanced independently.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/ede1da12f4adefbb89ea5c91bc13670745d50027/reports/frontier-json-2026-10-13/compact-reader-355-360/README.md">Exact reader cohorts and provenance</a></p>
+</div></section>
+<section class="chapter" id="prepared-reverse-models" aria-labelledby="title-prepared-reverse-models"><h2 id="title-prepared-reverse-models">Prepared reverse models</h2><div class="prose"><p>The current CLI can construct a 244-parameter ReGLU model, prepare its graph once
+and compute a fresh forward pass plus an ordered reverse pass for changing weights
+and context. The matched JavaScript comparison consumes all four outputs, the loss
+and all 244 gradients, checking exact agreement against Handwired&#39;s own executor
+and an independent graph interpreter. It includes a stronger Handwired control
+with checked <code>[0,1]</code> source ranges and smaller multiply expansions.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Complete forward + reverse call</th>
+<th align="right">Development (µs)</th>
+<th align="right">Holdout (µs)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ink, prepared graph</td>
+<td align="right">39.32</td>
+<td align="right">40.36</td>
+</tr>
+<tr>
+<td>Handwired, unknown ranges</td>
+<td align="right">29.36</td>
+<td align="right">29.48</td>
+</tr>
+<tr>
+<td>Handwired, checked source ranges</td>
+<td align="right">23.58</td>
+<td align="right">23.83</td>
+</tr>
+<tr>
+<td>Direct typed-array interpreter</td>
+<td align="right">10.08</td>
+<td align="right">9.72</td>
+</tr>
+</tbody></table>
+</div><p>Median of three fresh-process medians per cohort; eleven interleaved samples per process. Ink takes 1.69× the ranged Handwired latency on the holdout cohort.</p>
+<p>These are warm CPU calls on one host, with fresh arrays inside each call. Graph
+setup has separate cold observations; import/compilation, peak memory, full gallery
+training and UI rendering are outside this comparison. Handwired&#39;s gallery can
+also specialize fixed positional features, unlike this dynamic-context task.
+Optimizer arithmetic is a separate comparison: Ink currently uses F32 moments.
+The matched speed target and device reverse execution remain open.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/e47ad29de8ea2161d984e78e80a3aeaa1a054c28/bench/reverse-learning/README.md">Raw samples, complete controls and reproduction</a>.
+Full-target validation separately compares values/errors/events/exact snapshots,
+including backtracking and failed updates. An unrelated eligible numeric kernel
+confirms one actual GPU dispatch; it does not establish GPU training.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>
