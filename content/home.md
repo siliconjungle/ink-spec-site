@@ -65,6 +65,11 @@ derived collection once, then reuse it while its checked inputs stay unchanged.
 Training may continue to change the weights. This connects ordinary derived state
 to prepared computation, with automatic invalidation and explicit recovery.
 [Reuse and its costs](./guide.html#reuse-prepared-computation).
+Prepared defaults can now seed mutable model state too. Stable construction is
+reused while weights, optimizer moments and application controls continue to
+change. This is another step toward compiling preparation, execution and learning
+as one connected program; automatic graph specialization remains open.
+
 
 Today, ordered list queries and eligible GPU execution work; external database pushdown, out-of-core query execution and an Ink-native storage engine remain future work. List queries preserve order and duplicates. A query alone does not guarantee a speedup.
 

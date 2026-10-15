@@ -53,7 +53,11 @@ hosts. <a href="./guide.html#prepare-a-model-and-learn-through-it">Learning thro
 derived collection once, then reuse it while its checked inputs stay unchanged.
 Training may continue to change the weights. This connects ordinary derived state
 to prepared computation, with automatic invalidation and explicit recovery.
-<a href="./guide.html#reuse-prepared-computation">Reuse and its costs</a>.</p>
+<a href="./guide.html#reuse-prepared-computation">Reuse and its costs</a>.
+Prepared defaults can now seed mutable model state too. Stable construction is
+reused while weights, optimizer moments and application controls continue to
+change. This is another step toward compiling preparation, execution and learning
+as one connected program; automatic graph specialization remains open.</p>
 <p>Today, ordered list queries and eligible GPU execution work; external database pushdown, out-of-core query execution and an Ink-native storage engine remain future work. List queries preserve order and duplicates. A query alone does not guarantee a speedup.</p>
 <p><a href="./environment/?example=queries">Try this query</a> · <a href="./guide.html#one-computation-across-the-stack">How the pieces fit together</a> · <a href="./performance.html#ordered-query-expressions">Query measurements</a></p>
 </div></section>

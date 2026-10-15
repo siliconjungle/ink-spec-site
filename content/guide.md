@@ -392,6 +392,23 @@ compile the syntax above but predates this structured retention implementation.
 
 [Mechanism and ownership](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/docs/structured-preparation.md) · [Runnable neural example](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/examples/prepared-neural.ink) · [Gains and regressions](./performance.html#structured-preparation-lifecycle).
 
+The current CLI also accepts an explicitly kept default for a mutable value cell.
+For example, `keep Seed:List<u32>=[2,3];` can initialize
+`trainable state Model:List<u32>=Seed;`. Its transitive dependencies must contain
+no state or action access. The live cell remains mutable; the prepared default
+stays private, with ordinary rollback and recovery. This avoids rebuilding an
+unused default optimizer on every model read. No new keyword is needed.
+
+The complete staged neural example improves held-out JavaScript prediction from
+11.12 to 9.38 µs in its matched study, a further 1.19× beyond structured keeps.
+Cold prediction and observed heap use increase. Each source retains its own
+checkpoint identity, while complete trained logical state and call results agree.
+The pinned playground predates this initializer extension; these are current CLI
+capabilities. Explicit freezing is additionally checked through compiled startup,
+inference, writer withdrawal and restore.
+
+[Default preparation and ownership](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/docs/prepared-initializers.md) · [Complete staged model](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/examples/staged-neural.ink) · [Retained lifecycle evidence](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/reports/prepared-initializers-2026-10-16/README.md).
+
 ## Prepare a model and learn through it
 
 The CLI now includes ordinary `std:autodiff`, `std:neural` and `std:learning`

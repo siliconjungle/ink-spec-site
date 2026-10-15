@@ -282,6 +282,20 @@ keep does not guarantee a profitable lifecycle. Automatic cost-aware staging,
 graph specialization and GPU training remain open. The pinned playground can
 compile the syntax above but predates this structured retention implementation.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/docs/structured-preparation.md">Mechanism and ownership</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/examples/prepared-neural.ink">Runnable neural example</a> · <a href="./performance.html#structured-preparation-lifecycle">Gains and regressions</a>.</p>
+<p>The current CLI also accepts an explicitly kept default for a mutable value cell.
+For example, <code>keep Seed:List&lt;u32&gt;=[2,3];</code> can initialize
+<code>trainable state Model:List&lt;u32&gt;=Seed;</code>. Its transitive dependencies must contain
+no state or action access. The live cell remains mutable; the prepared default
+stays private, with ordinary rollback and recovery. This avoids rebuilding an
+unused default optimizer on every model read. No new keyword is needed.</p>
+<p>The complete staged neural example improves held-out JavaScript prediction from
+11.12 to 9.38 µs in its matched study, a further 1.19× beyond structured keeps.
+Cold prediction and observed heap use increase. Each source retains its own
+checkpoint identity, while complete trained logical state and call results agree.
+The pinned playground predates this initializer extension; these are current CLI
+capabilities. Explicit freezing is additionally checked through compiled startup,
+inference, writer withdrawal and restore.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/docs/prepared-initializers.md">Default preparation and ownership</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/examples/staged-neural.ink">Complete staged model</a> · <a href="https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/reports/prepared-initializers-2026-10-16/README.md">Retained lifecycle evidence</a>.</p>
 </div></section>
 <section class="chapter" id="prepare-a-model-and-learn-through-it" aria-labelledby="title-prepare-a-model-and-learn-through-it"><h2 id="title-prepare-a-model-and-learn-through-it">Prepare a model and learn through it</h2><div class="prose"><p>The CLI now includes ordinary <code>std:autodiff</code>, <code>std:neural</code> and <code>std:learning</code>
 libraries. A ReGLU network can be prepared once, then evaluated and differentiated

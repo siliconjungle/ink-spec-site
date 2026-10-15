@@ -434,3 +434,45 @@ here. These observations support stable-input reuse and retain the cases where
 it loses; they grant no automatic profitability authority.
 
 [Retained samples, controls and validation](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/reports/structured-preparation-2026-10-16/README.md) · [Reproduction](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/bench/structured-preparation/README.md).
+
+
+## Prepared defaults for mutable models
+
+Explicit keeps can now supply value-state defaults, so repeated reads reuse a
+default while live training state continues to change. This is authored source
+staging with a distinct source identity. Both deployments were fitted independently
+from the same twelve-frame trace, and their complete typed logical state agrees.
+The two earlier emitter controls retain their shared source and checkpoint.
+
+M4 Pro / Node 25.3.0; medians of three holdout-process medians, with eleven
+mixed-order samples per cell and complete output consumption:
+
+| Complete prediction | Latency |
+| --- | ---: |
+| Scalar-only keep retention | 38.08 µs |
+| Structured keeps | 11.12 µs |
+| Prepared defaults | 9.38 µs |
+
+The additional gain over structured keeps is **1.19×**; the gain over the scalar
+control is **4.06×**. A separate dense kernel takes about 0.34 µs with a narrower
+boundary, leaving a roughly 28× gap. This adds no Handwired parity claim.
+
+| Predictions per training turn | Structured keeps | Prepared defaults |
+| --- | ---: | ---: |
+| 0 | 221.32 µs | 214.40 µs |
+| 4 | 281.85 µs | 264.30 µs |
+| 16 | 467.00 µs | 425.46 µs |
+
+These histories include two Adam steps per turn and an extra rolled-back frame
+every fourth turn. Restore, snapshot comparison and hashing are outside timing;
+input capture, replies/events and predictions are included. Outcomes and full
+state payloads agree across serving cadences. The earlier study's training-only
+regression remains evidence for its different contexts and histories.
+
+Costs remain visible. The observed first prediction increases from 3.64 to
+3.77 ms. Separate-process heap deltas have medians of 326,256 and 333,056 bytes,
+including engine/JIT effects after explicit collection. These are neither memory
+bounds nor allocation counts. Automatic profitable staging, native performance
+ranking, graph/arithmetic specialization and device training remain open.
+
+[Raw measurements, source bindings and validation](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/reports/prepared-initializers-2026-10-16/README.md) · [Reproduction](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/bench/staged-initializers/README.md).
