@@ -832,6 +832,20 @@ binary64 and text target histories also pass, including an actual eligible F32
 GPU dispatch. These checks do not prove compiler correctness or device training.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/reports/prepared-loops-2026-10-16/README.md">Raw samples, exact package/source bindings, lifecycle costs and validation</a> ·
 <a href="https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/bench/prepared-loops/README.md">Reproduction</a>.</p>
+</div></section>
+<section class="chapter" id="finite-binary64-constants" aria-labelledby="title-finite-binary64-constants"><h2 id="title-finite-binary64-constants">Finite binary64 constants</h2><div class="prose"><p>A later JavaScript emitter change removes repeated bit conversion for finite
+binary64 literals, preserving signed zero, arithmetic order and explicit NaN
+payload transport. The same checked text counter is compared with the callback
+emitter above, using three fresh processes and the pinned Pretext control.</p>
+<p>At 512 segments, median complete prepared calls improve from 14.54 µs to 9.41 µs
+(paired gain 1.49×); Pretext takes 0.79 µs. At 8 and 64 segments, paired gains are
+about 1.17×. Ordinary 8-segment calls regress in the same short sample. This is a
+designed diagnostic, with setup and first calls retained separately; it does not
+establish broad numeric performance or full text fidelity. Pretext still leads by
+about twelve times on the large counter.</p>
+<p>The standalone backend suite passes 50 tests, including 2,210 raw-bit cases across
+pure, compiled, prepared and action execution. Binary64 and text target histories
+also pass. <a href="https://github.com/siliconjungle/ink-lang/blob/8a041d45f25bfcd1d3e8e860f9529365eeb377ba/reports/binary64-literals-2026-10-16/README.md">Exact artifacts, raw samples, exploratory profile and validation</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

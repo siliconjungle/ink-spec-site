@@ -591,3 +591,21 @@ GPU dispatch. These checks do not prove compiler correctness or device training.
 
 [Raw samples, exact package/source bindings, lifecycle costs and validation](https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/reports/prepared-loops-2026-10-16/README.md) ·
 [Reproduction](https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/bench/prepared-loops/README.md).
+
+## Finite binary64 constants
+
+A later JavaScript emitter change removes repeated bit conversion for finite
+binary64 literals, preserving signed zero, arithmetic order and explicit NaN
+payload transport. The same checked text counter is compared with the callback
+emitter above, using three fresh processes and the pinned Pretext control.
+
+At 512 segments, median complete prepared calls improve from 14.54 µs to 9.41 µs
+(paired gain 1.49×); Pretext takes 0.79 µs. At 8 and 64 segments, paired gains are
+about 1.17×. Ordinary 8-segment calls regress in the same short sample. This is a
+designed diagnostic, with setup and first calls retained separately; it does not
+establish broad numeric performance or full text fidelity. Pretext still leads by
+about twelve times on the large counter.
+
+The standalone backend suite passes 50 tests, including 2,210 raw-bit cases across
+pure, compiled, prepared and action execution. Binary64 and text target histories
+also pass. [Exact artifacts, raw samples, exploratory profile and validation](https://github.com/siliconjungle/ink-lang/blob/8a041d45f25bfcd1d3e8e860f9529365eeb377ba/reports/binary64-literals-2026-10-16/README.md).
