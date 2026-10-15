@@ -402,11 +402,26 @@ stage during builds, adaptation on runtime feedback, and continuous learning whi
 serving. The current CLI supplies offline replay and explicit online updates.
 A model/observation-generic session now adds bounded feedback, serving/candidate
 separation, work budgets, publication cadence and stale-version rejection. The
-compiled JavaScript service serves predictions between cooperative training turns
+compiled JavaScript/Wasm service serves predictions between cooperative training turns
 and durably recovers queued/candidate progress, including an offline CLI bootstrap.
-Build-stage packaging/freezing, parallel worker promotion and device training
-remain open. These phases share the full objective and optimizer lineage.
-[Lifecycle contract and implementation status](https://github.com/siliconjungle/ink-lang/blob/652b497446c83a77674a8cb1479ed6bfb3b98353/docs/learning-lifecycle.md).
+An explicit build stage now packages that complete state for adaptive deployment.
+Frozen specialization, trained implementation selection, parallel worker promotion
+and device training remain open. These phases share the full objective and optimizer lineage.
+[Lifecycle contract and implementation status](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/learning-lifecycle.md).
+
+```sh
+ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
+    --target javascript -o build/fitted-layout
+ink verify-model build/fitted-layout --replay
+```
+
+The build captures the checked source and explicit trace, executes authored learning
+actions, then compiles a startup factory from the complete fitted checkpoint. Targets
+include JavaScript, native, Rust projects, Wasm and mixed GPU modules. Runtime learning
+stays enabled; existing durable stores retain their newer state. Verification binds
+the package's inputs and files, with optional reference training replay. It establishes
+neither artifact authenticity nor compiler correctness.
+[Build-stage training, startup interfaces and limits](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/trained-builds.md).
 
 A continuous learner remains ordinary source logic. The application can pause a
 session, change its budget or cadence, advance a candidate, publish it, cancel it
@@ -416,7 +431,7 @@ model. Tests compare 39 lifecycle cases across targets and four compiled durable
 histories against exact reference checkpoints, including storage failures before
 and after publication. This is a cooperative CPU-host service; one synchronous
 work turn still blocks its event loop until it returns.
-[Runnable service, contracts and limitations](https://github.com/siliconjungle/ink-lang/blob/652b497446c83a77674a8cb1479ed6bfb3b98353/docs/continuous-learning.md).
+[Runnable service, contracts and limitations](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/continuous-learning.md).
 
 ## See what growing knowledge changes
 

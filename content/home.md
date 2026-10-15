@@ -91,6 +91,8 @@ Ink is an open-source working prototype, not a production-ready promise. The lan
 
 Prepared learning can also stay within that stack: ordinary source sessions queue
 feedback, train a candidate while serving an accepted version, validate publication
-and retain exact progress through durable recovery. The current continuous service
-uses cooperative compiled JavaScript on CPU hosts; parallel/device training and
-build-stage freezing remain work in progress.
+and retain exact progress through durable recovery. Explicit build-stage training
+packages the full learned application state for deployment, where learning can
+continue. The current continuous service uses cooperative compiled JavaScript or
+Wasm on CPU hosts; parallel/device training and frozen specialization remain work
+in progress.

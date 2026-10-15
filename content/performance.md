@@ -394,4 +394,13 @@ and four compiled durable histories check queue/progress, serving versions,
 cancellation, offline bootstrap and storage failure recovery. These checks establish
 neither a training-throughput ranking nor a latency guarantee. The model training
 and Handwired comparison above still run on CPU hosts.
-[Continuous service scope](https://github.com/siliconjungle/ink-lang/blob/652b497446c83a77674a8cb1479ed6bfb3b98353/docs/continuous-learning.md).
+[Continuous service scope](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/continuous-learning.md).
+
+Build-stage validation additionally covers trained startup and continued learning
+on JavaScript, native, Rust and Wasm; full Adam checkpoint resume; durable store
+precedence; package corruption; and a trained mixed module with actual native and
+browser GPU numeric dispatch. Both JavaScript and Wasm build-stage candidates
+continue through the cooperative service to exact expected checkpoints. This is
+adaptive deployment, with CPU-host training; it adds no throughput or memory claim
+to the comparison above.
+[Retained package and validation evidence](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/reports/trained-builds-2026-10-15/README.md).
