@@ -592,6 +592,17 @@ CLI feature is ahead of the browser editor's separately pinned compiler.
 
 ## What runs today
 
+The CLI also exposes `std:prepared_text`: ordinary Ink algorithms for Pretext's
+simple prepared line walkers. Immutable measured facts are separate from changing
+widths. Count/height requests avoid line strings and ranges; full geometry returns
+exact binary64 widths and segment/grapheme cursors. This initial domain matches
+232 pinned upstream oracle cases and a 182-observation compiled history with
+resizes, edits, cursor continuation, rollback and restore. Complex break kinds
+reject explicitly. Font measurement, segmentation, the full complex walker and
+upstream speed parity remain open; the first diagnostic still shows a substantial
+gap to Pretext's direct loop. This CLI library is ahead of the browser compiler.
+[Interfaces, evidence and scope](https://github.com/siliconjungle/ink-lang/blob/eb1d3f0a45886d999171f49ff0c4e88203a87f59/docs/prepared-text.md).
+
 Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include Rust, JavaScript and Rust/Wasm, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.
 
 | Use | Current boundary |

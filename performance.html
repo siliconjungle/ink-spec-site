@@ -760,6 +760,21 @@ claim, F64 AD, binary64 proof domain or complete Pretext port. The source-pinned
 F32 measurements above remain historical results for their named emitters, not
 performance claims for every later compiler revision.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/reports/binary64-2026-10-16/README.md">Exact sources, isolated core/package checks and target receipts</a>.</p>
+</div></section>
+<section class="chapter" id="prepared-text-fidelity-baseline" aria-labelledby="title-prepared-text-fidelity-baseline"><h2 id="title-prepared-text-fidelity-baseline">Prepared text fidelity baseline</h2><div class="prose"><p>The initial <code>std:prepared_text</code> source port preserves Pretext&#39;s simple prepared
+counter and full line geometry on 232 upstream oracle cases. A separate
+182-observation compiled history includes cursor continuation, edits, resizes,
+rollback and restore. These use synthetic measured facts; they do not establish
+browser or font accuracy. The complex walker and measurement preparation remain
+open.</p>
+<p>The first short JavaScript diagnostic still places Ink well behind the upstream
+direct loop: at 512 segments, median complete count calls measured about 16.6 µs
+for Ink&#39;s prepared lane and 0.81 µs for Pretext. Setup, capture and first-call costs
+are retained separately. One process with short samples does not establish a
+portable ranking or broad speed claim. Moving validation into explicit contracts
+did not consistently improve calls. This is a measured remaining execution gap,
+not completion of the performance target.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/eb1d3f0a45886d999171f49ff0c4e88203a87f59/reports/prepared-text-2026-10-16/README.md">Exact source/artifacts, oracle, raw samples and target history</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/ec5319f2772fa78fe96803cadfa406bde31a4951">Editor ec5319f</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

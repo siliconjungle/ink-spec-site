@@ -534,3 +534,22 @@ F32 measurements above remain historical results for their named emitters, not
 performance claims for every later compiler revision.
 
 [Exact sources, isolated core/package checks and target receipts](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/reports/binary64-2026-10-16/README.md).
+
+## Prepared text fidelity baseline
+
+The initial `std:prepared_text` source port preserves Pretext's simple prepared
+counter and full line geometry on 232 upstream oracle cases. A separate
+182-observation compiled history includes cursor continuation, edits, resizes,
+rollback and restore. These use synthetic measured facts; they do not establish
+browser or font accuracy. The complex walker and measurement preparation remain
+open.
+
+The first short JavaScript diagnostic still places Ink well behind the upstream
+direct loop: at 512 segments, median complete count calls measured about 16.6 µs
+for Ink's prepared lane and 0.81 µs for Pretext. Setup, capture and first-call costs
+are retained separately. One process with short samples does not establish a
+portable ranking or broad speed claim. Moving validation into explicit contracts
+did not consistently improve calls. This is a measured remaining execution gap,
+not completion of the performance target.
+
+[Exact source/artifacts, oracle, raw samples and target history](https://github.com/siliconjungle/ink-lang/blob/eb1d3f0a45886d999171f49ff0c4e88203a87f59/reports/prepared-text-2026-10-16/README.md).
