@@ -142,6 +142,23 @@ includes all 24 paired processes, complete plans, initialized artifacts, source
 reproduction, GPU prefix history, planning-corpus funnels and the failed
 512-operation proof-budget probe.
 
+### Proof construction scales to 512 operations
+
+Suffix-parametric prefix proofs reduce the 128-operation plan from 3,292,182
+to 836,086 bytes with byte-identical selected core and JavaScript. Six alternating
+pairs measure about 2.6/1.1 seconds for complete previous/new proof construction
+and normal checks (2.41× paired geometric improvement). Corpus evaluation ran
+concurrently; this is a workstation build diagnostic, not a serving speedup.
+
+The formerly rejected 512-operation case now produces a 1.92 MB plan under
+unchanged budgets. It passes full CPU-target/GPU-host histories and 432
+initialized browser comparisons. The model runs on the CPU; a separate numeric
+control confirms actual GPU dispatch. A fresh committed-source rebuild recreates
+its JavaScript baseline and selected artifact images byte for byte. No new warm
+serving, whole-model GPU or convergence claim follows.
+
+[Complete plans, all authoring samples, negative controls and reproducibility](https://github.com/siliconjungle/ink-lang/blob/fc714b545d1fc56896d397d96dc8b20095278ddb/reports/parametric-prefix-proofs-2026-10-16/README.md).
+
 ## Ordered query expressions
 
 

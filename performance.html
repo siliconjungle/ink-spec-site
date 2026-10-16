@@ -208,6 +208,19 @@ retains its original results. The <a href="https://github.com/siliconjungle/ink-
 includes all 24 paired processes, complete plans, initialized artifacts, source
 reproduction, GPU prefix history, planning-corpus funnels and the failed
 512-operation proof-budget probe.</p>
+<h3>Proof construction scales to 512 operations</h3>
+<p>Suffix-parametric prefix proofs reduce the 128-operation plan from 3,292,182
+to 836,086 bytes with byte-identical selected core and JavaScript. Six alternating
+pairs measure about 2.6/1.1 seconds for complete previous/new proof construction
+and normal checks (2.41× paired geometric improvement). Corpus evaluation ran
+concurrently; this is a workstation build diagnostic, not a serving speedup.</p>
+<p>The formerly rejected 512-operation case now produces a 1.92 MB plan under
+unchanged budgets. It passes full CPU-target/GPU-host histories and 432
+initialized browser comparisons. The model runs on the CPU; a separate numeric
+control confirms actual GPU dispatch. A fresh committed-source rebuild recreates
+its JavaScript baseline and selected artifact images byte for byte. No new warm
+serving, whole-model GPU or convergence claim follows.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/fc714b545d1fc56896d397d96dc8b20095278ddb/reports/parametric-prefix-proofs-2026-10-16/README.md">Complete plans, all authoring samples, negative controls and reproducibility</a>.</p>
 </div></section>
 <section class="chapter" id="ordered-query-expressions" aria-labelledby="title-ordered-query-expressions"><h2 id="title-ordered-query-expressions">Ordered query expressions</h2><div class="prose"><p>The first ordered-query milestone compares query syntax, ordinary Ink pipelines/loops and handwritten Rust/JavaScript controls. The following held-out times are microseconds per complete warm call including output consumption, using three fresh processes and eleven samples per process on one macOS arm64 host.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>

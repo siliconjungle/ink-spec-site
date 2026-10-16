@@ -447,7 +447,7 @@ verification-capacity improvement, with no new serving-speed measurement.
 
 ### Longer frozen programs
 
-Explicit specialization now compiles 32- and 128-operation programs while their
+Explicit specialization now compiles 32-, 128- and 512-operation programs while their
 weights and live application state keep updating. Typed helpers share repeated
 code in a balanced call graph, and ordinary proofs check every complete action. Browser histories also
 reject altered frozen code without changing live state.
@@ -468,9 +468,18 @@ classes. Complete stateful serving and training remain CPU work; the 128-op pure
 root still exceeds the current graph-stage budget. Broader capture shapes,
 graph fusion, general graph/tape compilation and device training remain work.
 
-[Compile the longer program](https://github.com/siliconjungle/ink-lang/blob/97b1852052c00a364895c444c03d0852945b8183/docs/frozen-composition.md) ·
+Universal prefix proofs now share the same helper equation across remaining
+tails, while separate witnesses bind the exact frozen code. The 128-operation
+plan shrinks from 3.29 MB to 836 KB, and the previously rejected 512-operation
+case now checks under the existing budgets. Its initialized package passes
+432 browser comparisons, including live updates and exact checkpoints; model
+execution remains CPU work. This improves proof/build scalability. The
+32/128-operation runtime code and its serving measurements are unchanged.
+The opcode sequence in these examples is configured explicitly, not learned.
+
+[Compile the longer program](https://github.com/siliconjungle/ink-lang/blob/fc714b545d1fc56896d397d96dc8b20095278ddb/docs/frozen-composition.md) ·
 [Measurements and startup costs](./performance.html#longer-frozen-programs) ·
-[Exact plans, source checks and browser histories](https://github.com/siliconjungle/ink-lang/blob/97b1852052c00a364895c444c03d0852945b8183/reports/shared-helper-code-2026-10-16/README.md).
+[Exact prefix proofs, source checks and browser histories](https://github.com/siliconjungle/ink-lang/blob/fc714b545d1fc56896d397d96dc8b20095278ddb/reports/parametric-prefix-proofs-2026-10-16/README.md).
 
 ## Give the planner an authored goal
 
