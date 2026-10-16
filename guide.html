@@ -350,18 +350,25 @@ action proof, including when training replay is disabled. JavaScript, native,
 Rust, Wasm and WebGPU-host artifacts retain live learning capabilities; browser
 CPU fallback binaries are included in composed WebGPU packages. A 64-operation
 pure model prefix also passes actual GPU calls for eleven raw F32 input/weight
-classes. Complete stateful serving and training remain CPU work; the 128-op pure
-root still exceeds the current graph-stage budget. Broader capture shapes,
-graph fusion, general graph/tape compilation and device training remain work.</p>
+classes. Pure 32/128/512-operation model roots now also run on the actual GPU:
+eligible scalar statements share one ordered stage, with exact arithmetic and
+no budget increase. Complete stateful serving and training remain CPU work.
+Broader capture shapes, query/state fusion, general graph/tape compilation and
+device training remain work.</p>
 <p>Universal prefix proofs now share the same helper equation across remaining
 tails, while separate witnesses bind the exact frozen code. The 128-operation
 plan shrinks from 3.29 MB to 836 KB, and the previously rejected 512-operation
 case now checks under the existing budgets. Its initialized package passes
-432 browser comparisons, including live updates and exact checkpoints; model
-execution remains CPU work. This improves proof/build scalability. The
+465 browser comparisons, including eleven complete-model GPU cases, live
+updates and exact checkpoints; stateful serving/training remain CPU work. This improves proof/build scalability. The
 32/128-operation runtime code and its serving measurements are unchanged.
 The opcode sequence in these examples is configured explicitly, not learned.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/fc714b545d1fc56896d397d96dc8b20095278ddb/docs/frozen-composition.md">Compile the longer program</a> ·
+<p>The 64-operation GPU helper now uses one stage instead of 64. Six paired browser
+processes measure 1.84× faster complete GPU calls. Single scalar requests still
+strongly favor CPU/JavaScript; batching and residency need their own measurements.
+No automatic profitable placement follows from GPU eligibility.
+<a href="https://github.com/siliconjungle/ink-lang/blob/43648be78625e60b1dc3022f74b551aabc6cd556/reports/scalar-gpu-stages-2026-10-16/README.md">Device checks, timings and clean-source shader images</a>.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/43648be78625e60b1dc3022f74b551aabc6cd556/docs/frozen-composition.md">Compile the longer program</a> ·
 <a href="./performance.html#longer-frozen-programs">Measurements and startup costs</a> ·
 <a href="https://github.com/siliconjungle/ink-lang/blob/fc714b545d1fc56896d397d96dc8b20095278ddb/reports/parametric-prefix-proofs-2026-10-16/README.md">Exact prefix proofs, source checks and browser histories</a>.</p>
 </div></section>

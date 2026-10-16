@@ -131,8 +131,8 @@ short-session advantage. Every raw sample is retained, without exclusions.
 Both sizes pass full CPU-target histories with exact checkpoints. A browser
 history adds 465 comparisons and twelve actual GPU calls, eleven of them for a
 64-operation model prefix with raw F32 inputs/weights. Complete 128-operation
-stateful serving and training execute on the CPU; its pure root still exceeds
-the graph-stage budget. A fresh committed compiler recreates the initialized
+stateful serving and training execute on the CPU. At that milestone its pure
+root exceeded the graph-stage budget; scalar grouping below removes that limit. A fresh committed compiler recreates the initialized
 128-op JavaScript images. These are internal operation-sequence results, with no
 claim of neural convergence, GPU training or matched upstream-library parity.
 
@@ -152,12 +152,49 @@ concurrently; this is a workstation build diagnostic, not a serving speedup.
 
 The formerly rejected 512-operation case now produces a 1.92 MB plan under
 unchanged budgets. It passes full CPU-target/GPU-host histories and 432
-initialized browser comparisons. The model runs on the CPU; a separate numeric
-control confirms actual GPU dispatch. A fresh committed-source rebuild recreates
+initialized browser comparisons at that milestone. The later scalar grouping
+below executes complete pure model roots on the GPU; serving actions and
+training still execute on the CPU. A fresh committed-source rebuild recreates
 its JavaScript baseline and selected artifact images byte for byte. No new warm
 serving, whole-model GPU or convergence claim follows.
 
 [Complete plans, all authoring samples, negative controls and reproducibility](https://github.com/siliconjungle/ink-lang/blob/fc714b545d1fc56896d397d96dc8b20095278ddb/reports/parametric-prefix-proofs-2026-10-16/README.md).
+
+### Scalar GPU stages
+
+Pure scalar statements and helper calls can now share one literal ordered shader
+stage. The 64-operation model helper falls from 64 stages to one, while the
+previously unsupported 128/256/512-operation helpers each become one stage.
+Collection stages and arithmetic meanings stay unchanged; no budget was raised.
+
+Six fresh Chrome processes, alternating case order, measure complete warm async
+calls including input capture, upload, dispatch, readback, decoding and full
+reference-value checking. Medians of process medians on Apple M4 Pro:
+
+| Explicit backend / operations | Microseconds |
+| --- | ---: |
+| Previous GPU / 64 | 975.94 |
+| Grouped GPU / 64 | 508.54 |
+| Grouped GPU / 512 | 498.96 |
+| Wasm CPU / 512 | 7.60 |
+| JavaScript / 512 | 6.46 |
+
+The paired geometric GPU64 improvement is **1.84×**. Single scalar calls still
+strongly favor CPU/JavaScript. Imports and initial shader setup are outside these
+samples and retained separately. This async boundary differs from the earlier
+bound-state serving measurements. The first six pairs overlapped GPU conformance;
+both that set and the second six-pair acquisition are retained, with every raw
+sample. No exclusive-machine, cold-start or automatic-profitability claim follows.
+
+Full 32/128/512-operation pure roots pass eleven raw F32 input/weight classes
+on actual GPU execution. The initialized 512-operation package passes 465 browser
+comparisons, including twelve device calls. Wide words, signed wrapping, records
+and lazy-default cases add 38 device calls. A private pinned-source rebuild
+reproduces all 30 WGSL shaders and 140 host/descriptor images byte for byte.
+Serving actions and learning remain CPU work; device training and broader
+batched/resident/upstream workloads remain open.
+
+[Full stage graphs, timings, artifacts and implementation assurance](https://github.com/siliconjungle/ink-lang/blob/43648be78625e60b1dc3022f74b551aabc6cd556/reports/scalar-gpu-stages-2026-10-16/README.md).
 
 ## Ordered query expressions
 
