@@ -76,7 +76,8 @@ function page(title, body, skip = "guide", landing = false) {
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="${implementation.repository}/tree/${implementation.revision}">Language ${implementation.revision.slice(0, 7)}</a><a href="${environment.repository}/tree/${environment.revision}">Editor ${environment.revision.slice(0, 7)}</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
-const homeBody = `<h1 id="ink-title">ink</h1>
+const homeBody = `<figure class="trailer"><video controls playsinline preload="none" poster="%BASE_URL%ink-trailer-poster.jpg" aria-label="ink trailer, one minute"><source src="%BASE_URL%ink-trailer.mp4" type="video/mp4"></video></figure>
+<h1 id="ink-title">ink</h1>
 <div class="intro" id="purpose"><p><strong>State is a program. Compile it.</strong></p>
 <p>Ink is a typed language for data and the computation around it. Define state, derived results and atomic changes, then compile them together. Selected state can learn from feedback, under objectives and constraints you define.</p>
 <p>Ordinary code and queries can describe one connected computation. The ambition is to optimise across application logic, storage and CPU/Wasm/GPU execution, reducing the work and data movement between layers.</p>

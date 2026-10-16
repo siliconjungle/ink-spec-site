@@ -47,6 +47,17 @@ pre:focus-visible,
   margin: auto;
   padding: 58px 40px 48px;
 }
+.trailer {
+  margin: 0 0 48px;
+}
+.trailer video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: #0c0805;
+  border-radius: 4px;
+}
 h1 {
   font-size: 184px;
   font-weight: 700;
