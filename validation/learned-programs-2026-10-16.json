@@ -1,0 +1,24 @@
+{
+  "cli_revision": "76a810f9af2a79f3a5aff795d7145490fbd63acd",
+  "browser_reference_revision": "ede1da12f4adefbb89ea5c91bc13670745d50027",
+  "checks": [
+    {
+      "command": "npm run build:pages",
+      "result": "passed: TypeScript, Freerange and Vite build"
+    },
+    {
+      "command": "npm run check:reference -- ../ink-environment/compiler/target/debug/ink-browser-check ../ink-lang/target/debug/ink",
+      "result": "16 complete examples checked; bound JavaScript calls and checkpoint/restore passed"
+    },
+    {
+      "command": "../ink-lang/target/debug/ink check public/learned-program.ink",
+      "result": "44 functions, 5 states, 10 actions/queries checked"
+    }
+  ],
+  "local_browser": "Homepage adaptive section and linked instruction-learning guide inspected in the in-app browser; highlighted CLI declarations and commands rendered correctly.",
+  "files": {
+    "public/learned-program.ink": "10170a71eacdff3a9bb2f5efca246bec8af5b139dbf9d680aca5ddfb5db83b57",
+    "public/learned-program-training.json": "cd5d0afb63fb55b3b6bca950ecd2102bdd72c5c8a4ea155268485675c04b3a16"
+  },
+  "scope": "Current CLI guide/downloads and measured results; the reference and browser editor retain their existing matched distribution. Training and arbitrary learned-program compilation are not added to the pinned browser compiler by this documentation update."
+}

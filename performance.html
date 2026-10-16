@@ -272,6 +272,60 @@ reproduces all 30 WGSL shaders and 140 host/descriptor images byte for byte.
 Serving actions and learning remain CPU work; device training and broader
 batched/resident/upstream workloads remain open.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/43648be78625e60b1dc3022f74b551aabc6cd556/reports/scalar-gpu-stages-2026-10-16/README.md">Full stage graphs, timings, artifacts and implementation assurance</a>.</p>
+<h3>Learning a program, then compiling it</h3>
+<p>The current CLI example learns a 32-operation program from a complete-output
+objective over an authored finite instruction grammar. On one seed and seven
+training pairs, the probability mass on matching programs rises from 4.30% to
+85.16%. This measures fitting on those samples, with no held-out accuracy or
+convergence claim.</p>
+<p>Six fresh Node processes on Apple M4 Pro compare the same learned checkpoint
+before and after explicit checked specialization. Warm complete bound requests,
+with output and final checkpoint checks:</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Request</th>
+<th align="right">Baseline ns</th>
+<th align="right">Selected ns</th>
+<th align="right">Paired ratio</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Serve</td>
+<td align="right">244.20</td>
+<td align="right">177.37</td>
+<td align="right">1.386×</td>
+</tr>
+<tr>
+<td>Serve, weight update every 16 requests</td>
+<td align="right">309.30</td>
+<td align="right">235.55</td>
+<td align="right">1.316×</td>
+</tr>
+<tr>
+<td>Loss over seven rows</td>
+<td align="right">1,521.05</td>
+<td align="right">1,486.81</td>
+<td align="right">1.031×</td>
+</tr>
+<tr>
+<td>Loss, goal reset every 64 requests</td>
+<td align="right">748.01</td>
+<td align="right">875.20</td>
+<td align="right">0.855×</td>
+</tr>
+</tbody></table>
+</div><p>The goal-reset case is about 17% slower. Setup and proof construction are outside
+these serving samples. Artifact inventories grow from 1.30 MB to 9.16 MB including
+proof files; runtime heap and transfers are separate measurements. This remains
+an explicit proposal with no automatic profitable-selection claim.</p>
+<p>The retained checks include exact training resume, runtime goal changes and
+rollback, 99 browser comparisons with 12 actual GPU calls, 466 private core tests,
+and 20 reproduced images from a clean committed-source compiler build. Training
+executes on CPU hosts. General learned representations, device training and the
+upstream performance targets remain open.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/76a810f9af2a79f3a5aff795d7145490fbd63acd/reports/learned-programs-2026-10-16/README.md">Raw samples, regression, complete artifacts and limits</a> ·
+<a href="./guide.html#learn-instruction-sequences">Learn instruction sequences</a>.</p>
 </div></section>
 <section class="chapter" id="ordered-query-expressions" aria-labelledby="title-ordered-query-expressions"><h2 id="title-ordered-query-expressions">Ordered query expressions</h2><div class="prose"><p>The first ordered-query milestone compares query syntax, ordinary Ink pipelines/loops and handwritten Rust/JavaScript controls. The following held-out times are microseconds per complete warm call including output consumption, using three fresh processes and eleven samples per process on one macOS arm64 host.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>

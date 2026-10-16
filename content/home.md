@@ -68,6 +68,12 @@ then use checked specialization to remove its unused serving branches. Objective
 can be authored and reconfigured too, with explicit rules for old feedback.
 [Learn a program structure](./guide.html#learn-a-program-structure).
 
+Ink also has an example that learns a 32-operation instruction sequence from
+whole-computation output targets, then compiles the frozen sequence with checked
+proofs. Weights, goals and live inputs can still change. The instruction grammar
+and objective belong to the application.
+[Learn instruction sequences](./guide.html#learn-instruction-sequences).
+
 The planner's goal can be authored code too. A learner can change how already
 checked variants are ranked—for latency, memory or application-defined utility—
 within the program's permitted choices and constraints.

@@ -401,6 +401,45 @@ claim. A broader audit still has historical column-layout fixture failures.
 [Configuration trace](https://github.com/siliconjungle/ink-lang/blob/4755313b185f070111f40c372fec565f10595a2b/examples/frozen-numeric-structure-training.json) ·
 [Proofs, execution checks and limits](https://github.com/siliconjungle/ink-lang/blob/4755313b185f070111f40c372fec565f10595a2b/reports/frozen-numeric-structure-2026-10-16/README.md).
 
+## Learn instruction sequences
+
+A whole-computation objective can train discrete instruction choices as well as
+numeric parameters. The [learned-program example](./learned-program.ink) searches
+all 256 four-instruction motifs, repeated into a 32-operation program. Its loss
+evaluates the complete candidate on authored input/target pairs and includes an
+explicit instruction-count preference. That preference is not measured latency.
+
+The application controls the legal coefficients, random inputs, optimizer,
+accepted candidates and target versions. It can train offline, resume its complete
+Adam state or invoke the same learning action during runtime. A retargeting action
+can reset the other learner's optimizer. Errors roll back the complete update.
+
+```ink-cli
+// After importing std:learning and declaring the example's types:
+trainable state Structure:Table<u64,List<Op>>=Table.empty();
+trainable state Weights:Table<u64,Coefficients>=Table.empty();
+trainable state Policy:Table<u64,learning.Adam>=Table.empty();
+trainable state Target:Table<u64,Goal>=Table.empty();
+```
+
+Use the complete downloadable source and [recorded training inputs](./learned-program-training.json)
+with the current CLI:
+
+```sh
+ink build-model learned-program.ink learned-program-training.json \
+  --freeze-roots Structure --specialize-frozen --target javascript \
+  -o build/learned-program
+ink verify-model build/learned-program --replay
+```
+
+Freezing the exact instruction rows withdraws their writers. Checked specialization
+then preserves runtime weights, goal changes, errors and events, including loss
+calculations over changing workload data. This finite authored grammar does not
+imply arbitrary application-to-network conversion, device training, convergence
+or automatic profitable planner selection.
+
+[Scoring API, proof boundary and runnable examples](https://github.com/siliconjungle/ink-lang/blob/76a810f9af2a79f3a5aff795d7145490fbd63acd/docs/learned-programs.md).
+
 ## Compile structure, keep learning weights
 
 Program structure and numeric parameters can have separate degrees of freedom.

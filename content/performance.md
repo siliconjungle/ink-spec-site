@@ -196,6 +196,39 @@ batched/resident/upstream workloads remain open.
 
 [Full stage graphs, timings, artifacts and implementation assurance](https://github.com/siliconjungle/ink-lang/blob/43648be78625e60b1dc3022f74b551aabc6cd556/reports/scalar-gpu-stages-2026-10-16/README.md).
 
+### Learning a program, then compiling it
+
+The current CLI example learns a 32-operation program from a complete-output
+objective over an authored finite instruction grammar. On one seed and seven
+training pairs, the probability mass on matching programs rises from 4.30% to
+85.16%. This measures fitting on those samples, with no held-out accuracy or
+convergence claim.
+
+Six fresh Node processes on Apple M4 Pro compare the same learned checkpoint
+before and after explicit checked specialization. Warm complete bound requests,
+with output and final checkpoint checks:
+
+| Request | Baseline ns | Selected ns | Paired ratio |
+| --- | ---: | ---: | ---: |
+| Serve | 244.20 | 177.37 | 1.386× |
+| Serve, weight update every 16 requests | 309.30 | 235.55 | 1.316× |
+| Loss over seven rows | 1,521.05 | 1,486.81 | 1.031× |
+| Loss, goal reset every 64 requests | 748.01 | 875.20 | 0.855× |
+
+The goal-reset case is about 17% slower. Setup and proof construction are outside
+these serving samples. Artifact inventories grow from 1.30 MB to 9.16 MB including
+proof files; runtime heap and transfers are separate measurements. This remains
+an explicit proposal with no automatic profitable-selection claim.
+
+The retained checks include exact training resume, runtime goal changes and
+rollback, 99 browser comparisons with 12 actual GPU calls, 466 private core tests,
+and 20 reproduced images from a clean committed-source compiler build. Training
+executes on CPU hosts. General learned representations, device training and the
+upstream performance targets remain open.
+
+[Raw samples, regression, complete artifacts and limits](https://github.com/siliconjungle/ink-lang/blob/76a810f9af2a79f3a5aff795d7145490fbd63acd/reports/learned-programs-2026-10-16/README.md) ·
+[Learn instruction sequences](./guide.html#learn-instruction-sequences).
+
 ## Ordered query expressions
 
 
