@@ -363,6 +363,11 @@ their exact values and every arithmetic rounding point. The latest checker
 follow-up restores the existing frozen-program proof within its original budget.
 <a href="./performance.html#exact-javascript-constants-and-checker-follow-up">Current validation and bounded update-kernel measurements</a>
 describe these CLI/package changes; the browser editor keeps its separate pin.</p>
+<p>Smaller state can now compose with freezing a graph&#39;s instruction structure while
+its weights keep changing. That legal variant is faster in the measured native
+Rust workload and slower in JavaScript; the projected loop wins there instead.
+<a href="./performance.html#composed-graph-variants-across-backends">Composed graph variants and exact results</a>
+show why a checked rewrite and a profitable backend choice are separate decisions.</p>
 </div></section>
 <section class="chapter" id="compile-structure-keep-learning-weights" aria-labelledby="title-compile-structure-keep-learning-weights"><h2 id="title-compile-structure-keep-learning-weights">Compile structure, keep learning weights</h2><div class="prose"><p>Program structure and numeric parameters can have separate degrees of freedom.
 The current CLI can freeze an operation sequence while leaving its weights

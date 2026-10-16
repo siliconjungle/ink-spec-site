@@ -52,17 +52,51 @@ checksum, and final exact snapshots match. Median paired speedups are:
 
 One pair has substantial timing noise, including a 0.37× loss. Every raw sample
 is retained. The earlier unrolled record layout was slower in its two-process
-pilot; projecting and unrolling together still exhausts proof resources at the
-tested owned leaf widths. These are workload-specific observations, with no
+pilot; its initial combined projection/unrolling proposals exhausted proof
+resources. The follow-up below now checks that composition. These are workload-specific observations, with no
 Handwired parity claim or automatically enabled selection.
 
 The U32 source example passes 111 reference/native Rust/JavaScript/Wasm action
 comparisons, including events, rollback and exact checkpoints. The F32 projection
-matches 175 independent reference histories. The bounded checker extension has
-486 passing standalone core tests; implementations and the toolchain remain
+matches 175 independent reference histories. That report records 486 passing
+standalone core tests; implementations and the toolchain remain
 trusted. This is not device-training or general neural-graph coverage.
 
 [All samples, slower pilot, source/proof artifacts and limits](https://github.com/siliconjungle/ink-lang/blob/b5f6d9373ab5518ca26c2788b338057c115763e6/reports/owned-graph-projection-2026-10-17/README.md).
+
+## Composed graph variants across backends
+
+The current CLI can compose smaller owned working state with frozen graph
+specialization while numeric weights remain live. Ordinary source-wrapper and
+forwarding-helper equations make the complete four-step plan check with the
+same core and resource limits. The new test matches 88 reference/native
+Rust/JavaScript/Wasm outcomes, including five restores, exceptional float bits,
+events and rollback. All 175 separate JavaScript history steps also match.
+
+Six rotated fresh-process triples per backend measure the same 32-node graph,
+250,000 requests after 10,000 warmups and three weight-update schedules. On the
+Apple M4 Pro host, the preferred implementation differs by backend:
+
+| Backend | Projected fold throughput / baseline | Projection + unrolling throughput / baseline |
+| --- | ---: | ---: |
+| Node 22.22.1 | 1.144–1.159× | 0.876–0.907× |
+| Native Rust, release | 0.991–1.004× | 1.744–1.811× |
+
+Every native checksum and complete checkpoint matches its JavaScript counterpart.
+The Rust comparison uses typed state calls and one benchmark image containing
+all three implementations. These are comparisons within each backend, with no
+Rust-versus-Node or Handwired parity claim. Every sample, including JavaScript
+timing noise, is retained. Cold startup, peak memory and general lifecycle
+profitability remain unmeasured; no automatic selection is enabled.
+
+The bounded frozen corpus completes all ten unchanged programs and admits
+alternatives, but all retain baseline at the measurement-evidence gate. The
+graph remains a development example, without demonstrated held-out benefit for
+this combination. A source-checked Cargo rebuild reproduces every measured
+JavaScript/Rust image byte for byte. General mutable-graph staging and device
+training remain open.
+
+[Complete plan, all samples, corpus receipts, source reproduction and limits](https://github.com/siliconjungle/ink-lang/blob/5797083782134538d9b069ea72177a718128fd8f/reports/composed-frozen-graph-2026-10-17/README.md).
 
 ## Exact JavaScript constants and checker follow-up
 
@@ -78,8 +112,8 @@ All 44 JavaScript integration targets pass, including 4,265 constant bit pattern
 A fresh build from published packages reproduces the measured module exactly.
 The checker follow-up also repairs a CI proof-budget regression without raising
 limits: all 488 standalone core tests and the existing 144-outcome
-reference/Rust/JavaScript/Wasm history pass locally. General graph compilation
-and the larger combined projection/unrolling proof remain open. Local checks
+reference/Rust/JavaScript/Wasm history pass locally. The composition follow-up
+above closes that bounded graph proof; general graph compilation remains open. Local checks
 do not establish a green distribution CI run.
 
 [Complete results, retained failures, exact pins and reproduction](https://github.com/siliconjungle/ink-lang/blob/77398ac8f93b944b1aa6b5ce7becd877629a336f/reports/conversion-and-f32-literals-2026-10-17/README.md).

@@ -489,6 +489,12 @@ follow-up restores the existing frozen-program proof within its original budget.
 [Current validation and bounded update-kernel measurements](./performance.html#exact-javascript-constants-and-checker-follow-up)
 describe these CLI/package changes; the browser editor keeps its separate pin.
 
+Smaller state can now compose with freezing a graph's instruction structure while
+its weights keep changing. That legal variant is faster in the measured native
+Rust workload and slower in JavaScript; the projected loop wins there instead.
+[Composed graph variants and exact results](./performance.html#composed-graph-variants-across-backends)
+show why a checked rewrite and a profitable backend choice are separate decisions.
+
 ## Compile structure, keep learning weights
 
 Program structure and numeric parameters can have separate degrees of freedom.
