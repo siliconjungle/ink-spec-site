@@ -110,13 +110,35 @@ standalone core passes 503 tests across 83 integration targets; the complete
 JavaScript package passes 59 tests and 24 knowledge regressions pass. Factored
 database proofs run on the ordinary test stack without raising checker limits.
 
-These are correctness results. Latency, memory, guard cost and lifecycle
-profitability for this mutable-graph path have not been measured. The earlier
-frozen-graph ratios above do not establish its performance. Guard generation is
-explicit; automatic discovery and profitable learned representation selection
-remain open.
+The first JavaScript lifecycle comparison now finds that the generated guard
+loses on this workload. Removing an unobserved accumulator field through an
+ordinary checked projection works better. Eight groups of four fresh processes
+compare the same source under generic, guarded, projected and composed plans.
+Ratios below are baseline time / variant time; above one favors the variant.
+
+| Bound state workload | Guard | Projection | Projection + guard |
+| --- | ---: | ---: | ---: |
+| Matching graph, 1 input | 0.657 | 1.106 | 0.745 |
+| Matching graph, 64 inputs | 0.858 | 1.064 | 0.938 |
+| Graph/weight learning, 8 matching reads | 0.872 | 1.072 | 0.941 |
+
+The Apple M4 Pro / Node 22.22.1 comparison also covers early and late mismatches,
+empty graphs, 1024 inputs, short lifetimes and frequent learning writes. Every
+process checks 96 finite reference values and the 335-outcome exact-snapshot
+history. Setup, import, recovery, complete output consumption and whole-process
+peak RSS are retained separately. The shared host was not CPU-isolated; these are
+diagnostics rather than admitted planner evidence or native/GPU speed claims.
+Moving guard preparation to configuration changes and profitable learned
+representation selection remain open. The earlier frozen-graph ratios above do
+not establish this path's performance.
 
 [Complete replayable evidence and limits](https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/reports/guarded-function-specialization-2026-10-17/README.md).
+
+[Lifecycle measurements, all variants and auditor](https://github.com/siliconjungle/ink-lang/blob/7709d6136ef48ea91e9189b256ef65c0c53b3c7d/reports/guarded-specialization-lifecycle-2026-10-17/README.md).
+The external prefix producer now composes the measured six-step plan and passes
+26 related knowledge regressions, including legacy feature versions and rejected
+prefix proofs. This changes the CLI tooling; the browser editor retains its
+separate pin.
 
 ## Exact JavaScript constants and checker follow-up
 

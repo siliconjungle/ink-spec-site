@@ -387,6 +387,12 @@ learned representation choice remain further work. This describes the current
 CLI; the browser editor retains its separate pin.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/docs/modular-action-projection.md#generate-a-guard-and-fallback">Function proof contract and limits</a> ·
 <a href="https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/reports/guarded-function-specialization-2026-10-17/README.md">Complete source, proof and validation evidence</a>.</p>
+<p><code>--prefix-plan build/projection.plan.json</code> composes an earlier checked plan before
+guard generation; the final replay retains every proof step. This enables
+projection and specialization to be tested together. In the current JavaScript
+lifecycle comparison, projection alone helps while adding the guard loses on the
+matching graphs. <a href="./performance.html#mutable-graph-specialization-validation">Measurements and remaining work</a>
+show why the planner still needs profitability evidence.</p>
 </div></section>
 <section class="chapter" id="compile-structure-keep-learning-weights" aria-labelledby="title-compile-structure-keep-learning-weights"><h2 id="title-compile-structure-keep-learning-weights">Compile structure, keep learning weights</h2><div class="prose"><p>Program structure and numeric parameters can have separate degrees of freedom.
 The current CLI can freeze an operation sequence while leaving its weights

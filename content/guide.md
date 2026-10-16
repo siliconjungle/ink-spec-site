@@ -522,6 +522,13 @@ CLI; the browser editor retains its separate pin.
 [Function proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/docs/modular-action-projection.md#generate-a-guard-and-fallback) ·
 [Complete source, proof and validation evidence](https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/reports/guarded-function-specialization-2026-10-17/README.md).
 
+`--prefix-plan build/projection.plan.json` composes an earlier checked plan before
+guard generation; the final replay retains every proof step. This enables
+projection and specialization to be tested together. In the current JavaScript
+lifecycle comparison, projection alone helps while adding the guard loses on the
+matching graphs. [Measurements and remaining work](./performance.html#mutable-graph-specialization-validation)
+show why the planner still needs profitability evidence.
+
 ## Compile structure, keep learning weights
 
 Program structure and numeric parameters can have separate degrees of freedom.
