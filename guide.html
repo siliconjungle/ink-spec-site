@@ -731,10 +731,24 @@ ordinary calls as the fallback when expansion is too large. It supplies no new
 syntax, proof or profitable-selection authority and is ahead of the pinned
 browser build.</p>
 <p>The retained text study has large-case gains alongside substantial small-call
-losses. The neural module remains byte-identical, so deeper model representation
-and graph/tape specialization remain open.
+losses. That record/helper change leaves the neural module byte-identical. The
+later F32 carrier work below improves derivative execution; deeper model
+representation and graph/tape specialization remain open.
 <a href="https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/docs/local-record-helpers.md">Execution contract</a> ·
 <a href="./performance.html#local-record-and-helper-execution">Gains, losses and controls</a>.</p>
+</div></section>
+<section class="chapter" id="normalize-f32-values-once" aria-labelledby="title-normalize-f32-values-once"><h2 id="title-normalize-f32-values-once">Normalize F32 values once</h2><div class="prose"><p>The latest CLI JavaScript emitter tracks values already in Ink&#39;s internal F32
+representation: rounded binary32 Numbers or exact NaN tags. Scalar parameters,
+immutable aliases and scalar loop slots with normalized writes can avoid repeated
+carrier conversion. Arithmetic still rounds in its original order. Borrowed host
+fields retain every typed read, getter and error position; mutable values retain
+their snapshots.</p>
+<p>This requires no new syntax. It improves complete derivative evaluation in the
+matched neural workload, while prediction remains mixed. Binary64 text modules
+are unchanged. The capability is ahead of the pinned playground, and supplies no
+graph rewrite or automatic profitable-selection authority.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/48ab606425d7c38d131bdd656ce4f231a724f4fd/docs/normalized-f32-carriers.md">Execution contract</a> ·
+<a href="./performance.html#normalized-f32-neural-execution">Neural results and controls</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/813867210c78a61d8cc7f6682820067ca6815539">Editor 8138672</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

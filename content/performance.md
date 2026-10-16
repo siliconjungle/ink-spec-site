@@ -745,3 +745,46 @@ make record execution a GPU feature.
 
 [Raw samples, exact images, full validation and audit](https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/reports/record-helpers-2026-10-16/README.md) ·
 [Mechanism and bounds](https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/docs/local-record-helpers.md).
+
+## Normalized F32 neural execution
+
+A later CLI JavaScript emitter avoids repeated normalization of already internal
+F32 values. Exact NaN tags, arithmetic rounding and operation order remain intact;
+borrowed host fields still normalize at each typed read. There is no new syntax,
+model algorithm, arithmetic rewrite or automatic selection rule.
+
+Six fresh Node 25.3.0 / Apple M4 Pro processes compare identical checked core bytes
+through the previous and current emitters, alternating order across three seeds.
+Each task/lane warms for 4,096 calls and records eleven randomized samples.
+Complete detached outputs are consumed and checked against an independent ordered
+F32 executor, including loss, four outputs and all 244 gradients. Weights, context
+and targets vary; input capture, import, graph/token construction and first calls
+remain separate retained costs.
+
+Median process medians in microseconds:
+
+| Task | Lane | Previous | Current | Paired speed ratios |
+| --- | --- | ---: | ---: | --- |
+| Prediction | Ordinary | 10.679 | 10.188 | 0.994–1.086× |
+| Prediction | Prepared | 9.181 | 8.732 | 0.971–1.063× |
+| Complete derivatives | Ordinary | 26.241 | 22.502 | 1.166–1.228× |
+| Complete derivatives | Prepared | 24.399 | 20.611 | 1.100–1.208× |
+
+Derivative gains hold in every process pair. Prediction includes a slower pair.
+On the same current processes, Handwired's ordinary/ranged prediction medians are
+10.757/4.578 µs and complete derivatives 33.125/24.499 µs. The independent direct
+graph is faster at derivatives (19.154 µs), and a dense prediction control takes
+0.363 µs. These controls bound the conclusion to this workload and these CPU
+executors; broad Handwired parity and device training remain open.
+
+The module shrinks from 839,419 to 837,601 bytes. Simple and complex text images
+are byte-identical across this change, so it establishes no new text speed gain.
+All 56 JavaScript tests pass, including 29,820 independent-reference
+compiled/prepared calls in the new fixture, with raw-host/getter/contract checks.
+Required-target validation compares 295 complete results and snapshots; 169
+eligible calls execute on the GPU. Other cases retain CPU host execution. Fresh
+neural, source-reverse and binary64 controls pass. These checks do not prove the
+emitter or toolchain, and deeper learned structural specialization remains open.
+
+[Raw samples, exact images, cold costs and audit](https://github.com/siliconjungle/ink-lang/blob/48ab606425d7c38d131bdd656ce4f231a724f4fd/reports/normalized-f32-2026-10-16/README.md) ·
+[Execution contract](https://github.com/siliconjungle/ink-lang/blob/48ab606425d7c38d131bdd656ce4f231a724f4fd/docs/normalized-f32-carriers.md).

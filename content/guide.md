@@ -905,7 +905,25 @@ syntax, proof or profitable-selection authority and is ahead of the pinned
 browser build.
 
 The retained text study has large-case gains alongside substantial small-call
-losses. The neural module remains byte-identical, so deeper model representation
-and graph/tape specialization remain open.
+losses. That record/helper change leaves the neural module byte-identical. The
+later F32 carrier work below improves derivative execution; deeper model
+representation and graph/tape specialization remain open.
 [Execution contract](https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/docs/local-record-helpers.md) ·
 [Gains, losses and controls](./performance.html#local-record-and-helper-execution).
+
+## Normalize F32 values once
+
+The latest CLI JavaScript emitter tracks values already in Ink's internal F32
+representation: rounded binary32 Numbers or exact NaN tags. Scalar parameters,
+immutable aliases and scalar loop slots with normalized writes can avoid repeated
+carrier conversion. Arithmetic still rounds in its original order. Borrowed host
+fields retain every typed read, getter and error position; mutable values retain
+their snapshots.
+
+This requires no new syntax. It improves complete derivative evaluation in the
+matched neural workload, while prediction remains mixed. Binary64 text modules
+are unchanged. The capability is ahead of the pinned playground, and supplies no
+graph rewrite or automatic profitable-selection authority.
+
+[Execution contract](https://github.com/siliconjungle/ink-lang/blob/48ab606425d7c38d131bdd656ce4f231a724f4fd/docs/normalized-f32-carriers.md) ·
+[Neural results and controls](./performance.html#normalized-f32-neural-execution).
