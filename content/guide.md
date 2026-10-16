@@ -879,3 +879,33 @@ representation and helper optimization remain open.
 
 [Execution contract and captured-payload example](https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md) ·
 [Measurements and validation](./performance.html#optional-and-result-callback-preparation).
+
+## Keep record fields local through helpers
+
+The latest CLI can keep immutable record fields in local variables through
+JavaScript value loops and bounded pure helpers. Conditional results inside an
+expanded helper can merge their fields directly. The source keeps its ordinary
+record interface:
+
+```text
+module points;
+record Pair { x:u32,y:u32, }
+fn advance(p:Pair)->Pair {return Pair{x:p.y,y:p.x+1};}
+fn run(n:u32)->Pair {
+    let initial=Pair{x:1,y:2};
+    return repeat_until(n,initial,fn(p)=>false,fn(i)=>fn(p)=>advance(p));
+}
+```
+
+Whole-value uses reconstruct the ordinary record. Fields and arguments still
+execute in order, branches stay lazy, and owned values retain their storage and
+loan rules. This also supports binary64 and immutable composite fields, with
+ordinary calls as the fallback when expansion is too large. It supplies no new
+syntax, proof or profitable-selection authority and is ahead of the pinned
+browser build.
+
+The retained text study has large-case gains alongside substantial small-call
+losses. The neural module remains byte-identical, so deeper model representation
+and graph/tape specialization remain open.
+[Execution contract](https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/docs/local-record-helpers.md) ·
+[Gains, losses and controls](./performance.html#local-record-and-helper-execution).

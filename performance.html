@@ -967,6 +967,66 @@ neural controls preserve their independent results. These checks do not prove
 the complete compiler or establish upstream performance parity.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/reports/prepared-sums-2026-10-16/README.md">Exact sources, raw samples, lifecycle costs and validation</a> ·
 <a href="https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md">Execution contract</a>.</p>
+</div></section>
+<section class="chapter" id="local-record-and-helper-execution" aria-labelledby="title-local-record-and-helper-execution"><h2 id="title-local-record-and-helper-execution">Local record and helper execution</h2><div class="prose"><p>A later CLI JavaScript emitter keeps readonly record fields local through value
+loops, bounded helpers and conditional record results. The same checked core
+bytes pass through previous and current emitters. Six fresh Node 25.3.0 / Apple
+M4 Pro processes alternate artifact order over three engine-profile rotations,
+with 2,048 warm-up calls per lane and complete varying count observations.
+Materialization and consumption are timed; capture, token setup and first calls
+remain separate.</p>
+<p>At 512 complex text segments, median process medians in microseconds are:</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Numerical profile</th>
+<th align="right">Previous prepared</th>
+<th align="right">Current prepared</th>
+<th align="right">Pretext direct</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Blink</td>
+<td align="right">155.00</td>
+<td align="right">133.23</td>
+<td align="right">5.89</td>
+</tr>
+<tr>
+<td>Gecko</td>
+<td align="right">153.78</td>
+<td align="right">128.45</td>
+<td align="right">6.07</td>
+</tr>
+<tr>
+<td>WebKit</td>
+<td align="right">157.17</td>
+<td align="right">134.38</td>
+<td align="right">5.85</td>
+</tr>
+</tbody></table>
+</div><p>Prepared process-pair gains range from 1.14–1.21× and ordinary gains from
+1.18–1.24×. The current walker still takes roughly 21–23× the upstream time.
+Synthetic measured facts do not establish browser/font accuracy or full text
+preparation.</p>
+<p>Simple text retains two warm-up regimes, with three fresh processes each. The
+512-segment prepared case gains in every pair, but smaller calls have substantial
+losses. With longer warm-up, ordinary 64-segment calls increase from 3.831 to
+5.725 µs, and prepared 8-segment calls from 1.212 to 1.615 µs. With shorter warm-up,
+prepared 64-segment calls increase from 6.040 to 7.773 µs. Both regimes, full
+outputs and cold/setup observations remain in the report. Pretext still leads.</p>
+<p>The neural comparison emits <strong>byte-identical code</strong> before and after this change.
+Its complete predictions and gradients remain an unchanged-code control, with
+faster ranged and dense implementations retained. It establishes no neural
+code-generation or speed gain. Deeper graph/tape specialization remains required.</p>
+<p>Complex source grows about 5.8%; the simple counter grows about 2.3%. All 55
+standalone JavaScript tests pass, with 7,560 calls in the expanded independent
+record fixture. A distribution fixture compares 253 observations across native,
+JavaScript, Rust-Wasm and the native GPU host, including one actual numeric
+device control. Complete text lifecycle and source-reverse controls preserve
+events and exact snapshots. These checks do not prove the complete compiler or
+make record execution a GPU feature.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/reports/record-helpers-2026-10-16/README.md">Raw samples, exact images, full validation and audit</a> ·
+<a href="https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/docs/local-record-helpers.md">Mechanism and bounds</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/813867210c78a61d8cc7f6682820067ca6815539">Editor 8138672</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

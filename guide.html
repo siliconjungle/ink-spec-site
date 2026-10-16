@@ -698,6 +698,43 @@ retains both large repeated-work gains and a 3–4% complex-text regression; dee
 representation and helper optimization remain open.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md">Execution contract and captured-payload example</a> ·
 <a href="./performance.html#optional-and-result-callback-preparation">Measurements and validation</a>.</p>
+</div></section>
+<section class="chapter" id="keep-record-fields-local-through-helpers" aria-labelledby="title-keep-record-fields-local-through-helpers"><h2 id="title-keep-record-fields-local-through-helpers">Keep record fields local through helpers</h2><div class="prose"><p>The latest CLI can keep immutable record fields in local variables through
+JavaScript value loops and bounded pure helpers. Conditional results inside an
+expanded helper can merge their fields directly. The source keeps its ordinary
+record interface:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · illustrative syntax example" data-copy="code-27">copy</button><pre tabindex="0" aria-label="Ink · illustrative syntax example"><code id="code-27"><span class="tok-keyword">module</span> points;
+
+<span class="tok-keyword">record</span> <span class="tok-type">Pair</span> {
+    <span class="tok-property">x</span>: <span class="tok-type">u32</span>,
+    <span class="tok-property">y</span>: <span class="tok-type">u32</span>,
+}
+
+<span class="tok-keyword">fn</span> <span class="tok-function">advance</span>(<span class="tok-property">p</span>: <span class="tok-type">Pair</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Pair</span> {
+    <span class="tok-keyword">return</span> <span class="tok-type">Pair</span> {
+        <span class="tok-property">x</span>: p.y,
+        <span class="tok-property">y</span>: p.x <span class="tok-operator">+</span> <span class="tok-number">1</span>
+    };
+}
+
+<span class="tok-keyword">fn</span> <span class="tok-function">run</span>(<span class="tok-property">n</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Pair</span> {
+    <span class="tok-keyword">let</span> initial <span class="tok-operator">=</span> <span class="tok-type">Pair</span> {
+        <span class="tok-property">x</span>: <span class="tok-number">1</span>,
+        <span class="tok-property">y</span>: <span class="tok-number">2</span>
+    };
+    <span class="tok-keyword">return</span> <span class="tok-function">repeat_until</span>(n, initial, <span class="tok-keyword">fn</span>(p) <span class="tok-operator">=&gt;</span> <span class="tok-constant">false</span>, <span class="tok-keyword">fn</span>(i) <span class="tok-operator">=&gt;</span> <span class="tok-keyword">fn</span>(p) <span class="tok-operator">=&gt;</span> <span class="tok-function">advance</span>(p));
+}
+</code></pre></div><p>Whole-value uses reconstruct the ordinary record. Fields and arguments still
+execute in order, branches stay lazy, and owned values retain their storage and
+loan rules. This also supports binary64 and immutable composite fields, with
+ordinary calls as the fallback when expansion is too large. It supplies no new
+syntax, proof or profitable-selection authority and is ahead of the pinned
+browser build.</p>
+<p>The retained text study has large-case gains alongside substantial small-call
+losses. The neural module remains byte-identical, so deeper model representation
+and graph/tape specialization remain open.
+<a href="https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/docs/local-record-helpers.md">Execution contract</a> ·
+<a href="./performance.html#local-record-and-helper-execution">Gains, losses and controls</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/813867210c78a61d8cc7f6682820067ca6815539">Editor 8138672</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

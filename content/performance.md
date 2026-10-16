@@ -699,3 +699,49 @@ the complete compiler or establish upstream performance parity.
 
 [Exact sources, raw samples, lifecycle costs and validation](https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/reports/prepared-sums-2026-10-16/README.md) ·
 [Execution contract](https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md).
+
+## Local record and helper execution
+
+A later CLI JavaScript emitter keeps readonly record fields local through value
+loops, bounded helpers and conditional record results. The same checked core
+bytes pass through previous and current emitters. Six fresh Node 25.3.0 / Apple
+M4 Pro processes alternate artifact order over three engine-profile rotations,
+with 2,048 warm-up calls per lane and complete varying count observations.
+Materialization and consumption are timed; capture, token setup and first calls
+remain separate.
+
+At 512 complex text segments, median process medians in microseconds are:
+
+| Numerical profile | Previous prepared | Current prepared | Pretext direct |
+| --- | ---: | ---: | ---: |
+| Blink | 155.00 | 133.23 | 5.89 |
+| Gecko | 153.78 | 128.45 | 6.07 |
+| WebKit | 157.17 | 134.38 | 5.85 |
+
+Prepared process-pair gains range from 1.14–1.21× and ordinary gains from
+1.18–1.24×. The current walker still takes roughly 21–23× the upstream time.
+Synthetic measured facts do not establish browser/font accuracy or full text
+preparation.
+
+Simple text retains two warm-up regimes, with three fresh processes each. The
+512-segment prepared case gains in every pair, but smaller calls have substantial
+losses. With longer warm-up, ordinary 64-segment calls increase from 3.831 to
+5.725 µs, and prepared 8-segment calls from 1.212 to 1.615 µs. With shorter warm-up,
+prepared 64-segment calls increase from 6.040 to 7.773 µs. Both regimes, full
+outputs and cold/setup observations remain in the report. Pretext still leads.
+
+The neural comparison emits **byte-identical code** before and after this change.
+Its complete predictions and gradients remain an unchanged-code control, with
+faster ranged and dense implementations retained. It establishes no neural
+code-generation or speed gain. Deeper graph/tape specialization remains required.
+
+Complex source grows about 5.8%; the simple counter grows about 2.3%. All 55
+standalone JavaScript tests pass, with 7,560 calls in the expanded independent
+record fixture. A distribution fixture compares 253 observations across native,
+JavaScript, Rust-Wasm and the native GPU host, including one actual numeric
+device control. Complete text lifecycle and source-reverse controls preserve
+events and exact snapshots. These checks do not prove the complete compiler or
+make record execution a GPU feature.
+
+[Raw samples, exact images, full validation and audit](https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/reports/record-helpers-2026-10-16/README.md) ·
+[Mechanism and bounds](https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/docs/local-record-helpers.md).
