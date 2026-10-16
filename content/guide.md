@@ -438,7 +438,13 @@ calculations over changing workload data. This finite authored grammar does not
 imply arbitrary application-to-network conversion, device training, convergence
 or automatic profitable planner selection.
 
-[Scoring API, proof boundary and runnable examples](https://github.com/siliconjungle/ink-lang/blob/76a810f9af2a79f3a5aff795d7145490fbd63acd/docs/learned-programs.md).
+The compiler can now turn computations determined entirely by the frozen structure
+into exact constants, including this example's instruction counter. Runtime inputs,
+weights and target workloads stay live. Every proposed numerical result and complete
+action rewrite still passes the ordinary checker. Trained artifacts also retain one
+checked proof package, with a bound local reference in the generated descriptor.
+
+[Scoring API, proof boundary and runnable examples](https://github.com/siliconjungle/ink-lang/blob/67aa3a2ec42149c400ee52d5e1d7ed8b8384a317/docs/learned-programs.md).
 
 ## Compile structure, keep learning weights
 

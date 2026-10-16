@@ -204,29 +204,46 @@ training pairs, the probability mass on matching programs rises from 4.30% to
 85.16%. This measures fitting on those samples, with no held-out accuracy or
 convergence claim.
 
-Six fresh Node processes on Apple M4 Pro compare the same learned checkpoint
-before and after explicit checked specialization. Warm complete bound requests,
-with output and final checkpoint checks:
+The follow-up compiles closed calculations, including the instruction counter,
+into exact constants while keeping weights and goals editable. Ordinary proofs
+still check the complete actions. On Apple M4 Pro with Node 25.3.0, six
+alternating-order pairs use one artifact and one workload per fresh VM, with a
+full warmup block before five measured blocks. The complete request histories
+have equal checksum vectors and final checkpoint digests; separate conformance
+checks compare individual replies and snapshot bytes.
 
-| Request | Baseline ns | Selected ns | Paired ratio |
+| Request | Baseline ns | Selected ns | Geometric paired speedup |
 | --- | ---: | ---: | ---: |
-| Serve | 244.20 | 177.37 | 1.386× |
-| Serve, weight update every 16 requests | 309.30 | 235.55 | 1.316× |
-| Loss over seven rows | 1,521.05 | 1,486.81 | 1.031× |
-| Loss, goal reset every 64 requests | 748.01 | 875.20 | 0.855× |
+| Serve | 237.91 | 172.57 | 1.372× |
+| Serve, weight update every 16 requests | 264.46 | 195.52 | 1.047× |
+| Loss over seven rows | 1,324.28 | 812.22 | 1.630× |
+| Loss, goal reset every 64 requests | 680.07 | 341.56 | 1.986× |
 
-The goal-reset case is about 17% slower. Setup and proof construction are outside
-these serving samples. Artifact inventories grow from 1.30 MB to 9.16 MB including
-proof files; runtime heap and transfers are separate measurements. This remains
-an explicit proposal with no automatic profitable-selection claim.
+Latency columns are medians of process medians; the paired column includes every
+pair. One weight-update pair loses substantially (0.292×), reducing its geometric
+gain despite the displayed medians. The report retains this outlier and earlier
+noisy runs. Isolated Node 22 runs also vary significantly; these results do not
+establish a universal engine win.
 
-The retained checks include exact training resume, runtime goal changes and
-rollback, 99 browser comparisons with 12 actual GPU calls, 466 private core tests,
-and 20 reproduced images from a clean committed-source compiler build. Training
-executes on CPU hosts. General learned representations, device training and the
-upstream performance targets remain open.
+Against the previous specialized layout under the same isolated Node 25 protocol,
+loss evaluation improves by 1.55× and goal-reset requests by 2.21×. Serving remains
+approximately unchanged. The earlier shared-VM study's 17% goal-reset regression
+uses a different protocol and is retained as historical evidence.
 
-[Raw samples, regression, complete artifacts and limits](https://github.com/siliconjungle/ink-lang/blob/76a810f9af2a79f3a5aff795d7145490fbd63acd/reports/learned-programs-2026-10-16/README.md) ·
+The complete artifact inventory falls from 9.16 MB for the previous specialization
+to 2.96 MB, including proofs; the unspecialized baseline is 1.30 MB. The generated
+descriptor now references one checked package instead of embedding another copy.
+These inventories are separate from runtime heap, downloads and setup costs.
+Automatic planner selection still requires comparable profitability evidence.
+
+The retained checks include complete training replay, 7,707 closed scalar
+calculations checked by the kernel, 99 browser comparisons with 12 actual GPU
+calls, 43 hardening tests and 22 reproduced images from a clean committed-source
+compiler build. Training runs on CPU hosts. General learned representations,
+device training and the upstream performance targets remain open.
+
+[Raw samples, controls, proofs and scope](https://github.com/siliconjungle/ink-lang/blob/b2a6272a2ef3bd6a4d72cd5176d5a223070cd69c/reports/closed-learned-computations-2026-10-17/README.md) ·
+[Earlier measurements](https://github.com/siliconjungle/ink-lang/blob/76a810f9af2a79f3a5aff795d7145490fbd63acd/reports/learned-programs-2026-10-16/README.md) ·
 [Learn instruction sequences](./guide.html#learn-instruction-sequences).
 
 ## Ordered query expressions
