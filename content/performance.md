@@ -88,6 +88,16 @@ Fresh committed sources reproduce the measured eight-op executable images byte
 for byte, but these additional checks do not rerun the timings or establish a
 speedup for the larger model. [Bound browser images, proof replay and correction](https://github.com/siliconjungle/ink-lang/blob/431d24fc7bb1f69ff32ed88672eee672cdf026c3/reports/frozen-literal-sharing-2026-10-16/README.md).
 
+Factored closed-data proofs subsequently extend complete exceptional F32 lists
+through 512 values. The runnable 244-value package preserves live training and
+passes 99 browser comparisons, including three atomic rejections of an altered
+frozen checkpoint. Compacting its complete proof-bearing plan reduces selected
+inventoried bytes from 4,131,526 to 1,704,472; the compact baseline is 296,952
+bytes. Every JSON field remains, and executable images and proof bytes are
+unchanged by serialization. Fresh committed sources reproduce the executable
+images. This acquisition measures package size and correctness, with no new
+runtime speedup claim. [Exact artifacts, checks and remaining limits](https://github.com/siliconjungle/ink-lang/blob/5fe4eb6a962b0ff7d4a9e8734796a612ca17e4b4/reports/factored-literal-proofs-2026-10-16/README.md).
+
 ## Ordered query expressions
 
 

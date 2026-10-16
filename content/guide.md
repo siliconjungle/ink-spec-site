@@ -427,17 +427,19 @@ and general neural graphs, long generated computations and learned physical/devi
 choices remain further work. This is explicit CLI specialization; the pinned
 browser editor remains on its separately documented distribution.
 
-Shared mathematical data now removes the first depth bottleneck for larger
-frozen models. Complete finite parameter lists specialize through 512 values,
-and a 244-value model returns its whole parameter set while a separate learner
-continues updating. Small transparent definitions keep proof data shared; source
-checks still bind every value exactly. Explicit browser replays cover complete
-results, events and checkpoints with a separate actual WebGPU control. General
-graph/tape compilation and factored proofs for some long exceptional-value
-literals still need work; this extension adds no new speed measurement.
+Shared mathematical data and reusable closed lemmas now remove proof bottlenecks
+for larger frozen models. Complete finite and exceptional F32 lists specialize
+through 512 values. A runnable 244-value example freezes its model while a
+separate trainable cell stays live. Ordinary proofs bind every raw bit, including
+NaN payloads and signed zero. Browser replays check complete results, events and
+checkpoints, and reject altered frozen payloads without changing live state;
+a separate pure control actually runs on WebGPU. General graph/tape compilation,
+long generated computations and learned device choices remain open. This is a
+verification-capacity improvement, with no new serving-speed measurement.
 
-[Shared model data, proofs and remaining limits](https://github.com/siliconjungle/ink-lang/blob/431d24fc7bb1f69ff32ed88672eee672cdf026c3/docs/frozen-literal-sharing.md) ·
-[Retained source checks and browser replays](https://github.com/siliconjungle/ink-lang/blob/431d24fc7bb1f69ff32ed88672eee672cdf026c3/reports/frozen-literal-sharing-2026-10-16/README.md).
+[Run the configured model](https://github.com/siliconjungle/ink-lang/blob/5fe4eb6a962b0ff7d4a9e8734796a612ca17e4b4/examples/frozen-parameters.ink) ·
+[Factored proofs and build commands](https://github.com/siliconjungle/ink-lang/blob/5fe4eb6a962b0ff7d4a9e8734796a612ca17e4b4/docs/factored-literal-proofs.md) ·
+[Retained source checks, package costs and browser replays](https://github.com/siliconjungle/ink-lang/blob/5fe4eb6a962b0ff7d4a9e8734796a612ca17e4b4/reports/factored-literal-proofs-2026-10-16/README.md).
 
 [Complete operation-sequence example](https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/examples/frozen-program.ink) ·
 [Measurements, costs and source checks](./performance.html#frozen-program-with-live-weights) ·
