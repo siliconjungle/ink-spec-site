@@ -121,6 +121,14 @@ neural graph compilation or upstream neural/GPU performance parity. Automatic
 selection still needs comparable lifecycle evidence.</p>
 <p><a href="./guide.html#compile-structure-keep-learning-weights">Compile structure while weights stay live</a> ·
 <a href="https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/reports/frozen-program-2026-10-16/README.md">Exact artifacts, raw samples, regression and costs</a>.</p>
+<p>A later correctness acquisition adds 450 isolated core tests and explicit browser
+replays: 432 comparisons for the operation sequence and 99 for a separate
+244-value model with live learning state. Both include an actual WebGPU control;
+stateful work remains on the CPU host. This corrects the earlier report&#39;s browser
+coverage wording, whose retained receipts established native wgpu execution.
+Fresh committed sources reproduce the measured eight-op executable images byte
+for byte, but these additional checks do not rerun the timings or establish a
+speedup for the larger model. <a href="https://github.com/siliconjungle/ink-lang/blob/431d24fc7bb1f69ff32ed88672eee672cdf026c3/reports/frozen-literal-sharing-2026-10-16/README.md">Bound browser images, proof replay and correction</a>.</p>
 </div></section>
 <section class="chapter" id="ordered-query-expressions" aria-labelledby="title-ordered-query-expressions"><h2 id="title-ordered-query-expressions">Ordered query expressions</h2><div class="prose"><p>The first ordered-query milestone compares query syntax, ordinary Ink pipelines/loops and handwritten Rust/JavaScript controls. The following held-out times are microseconds per complete warm call including output consumption, using three fresh processes and eleven samples per process on one macOS arm64 host.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>

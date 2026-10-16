@@ -423,9 +423,21 @@ configures the sequence. It does not demonstrate fitting that sequence.
 
 The final JavaScript serving path measured 1.57× faster in six paired processes,
 or 1.13× with a weight update every request. The proof-bearing package is larger,
-and general neural graphs, large frozen structures and learned physical/device
+and general neural graphs, long generated computations and learned physical/device
 choices remain further work. This is explicit CLI specialization; the pinned
 browser editor remains on its separately documented distribution.
+
+Shared mathematical data now removes the first depth bottleneck for larger
+frozen models. Complete finite parameter lists specialize through 512 values,
+and a 244-value model returns its whole parameter set while a separate learner
+continues updating. Small transparent definitions keep proof data shared; source
+checks still bind every value exactly. Explicit browser replays cover complete
+results, events and checkpoints with a separate actual WebGPU control. General
+graph/tape compilation and factored proofs for some long exceptional-value
+literals still need work; this extension adds no new speed measurement.
+
+[Shared model data, proofs and remaining limits](https://github.com/siliconjungle/ink-lang/blob/431d24fc7bb1f69ff32ed88672eee672cdf026c3/docs/frozen-literal-sharing.md) ·
+[Retained source checks and browser replays](https://github.com/siliconjungle/ink-lang/blob/431d24fc7bb1f69ff32ed88672eee672cdf026c3/reports/frozen-literal-sharing-2026-10-16/README.md).
 
 [Complete operation-sequence example](https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/examples/frozen-program.ink) ·
 [Measurements, costs and source checks](./performance.html#frozen-program-with-live-weights) ·

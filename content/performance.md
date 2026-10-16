@@ -79,6 +79,15 @@ selection still needs comparable lifecycle evidence.
 [Compile structure while weights stay live](./guide.html#compile-structure-keep-learning-weights) ·
 [Exact artifacts, raw samples, regression and costs](https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/reports/frozen-program-2026-10-16/README.md).
 
+A later correctness acquisition adds 450 isolated core tests and explicit browser
+replays: 432 comparisons for the operation sequence and 99 for a separate
+244-value model with live learning state. Both include an actual WebGPU control;
+stateful work remains on the CPU host. This corrects the earlier report's browser
+coverage wording, whose retained receipts established native wgpu execution.
+Fresh committed sources reproduce the measured eight-op executable images byte
+for byte, but these additional checks do not rerun the timings or establish a
+speedup for the larger model. [Bound browser images, proof replay and correction](https://github.com/siliconjungle/ink-lang/blob/431d24fc7bb1f69ff32ed88672eee672cdf026c3/reports/frozen-literal-sharing-2026-10-16/README.md).
+
 ## Ordered query expressions
 
 
