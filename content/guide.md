@@ -447,7 +447,7 @@ verification-capacity improvement, with no new serving-speed measurement.
 
 ### Longer frozen programs
 
-An explicit CLI plan now compiles 32- and 128-operation programs while their
+Explicit specialization now compiles 32- and 128-operation programs while their
 weights and live application state keep updating. Typed helpers form a balanced
 tree, and ordinary proofs check every complete action. Browser histories also
 reject altered frozen code without changing live state.
@@ -455,10 +455,14 @@ reject altered frozen code without changing live state.
 Six paired Node processes per size measure about 1.38× and 1.30× faster warm serving,
 including complete query calls. Updating weights every request measures 1.17×
 and 1.23×. Generated code is larger, and import/first binding are slower.
-This is an explicit composed-plan path; integration into normal trained-artifact
-publication, broader capture shapes and general graph/tape compilation remain work.
+`build-model --specialize-frozen` now packages that checked plan with the trained
+initial state. Artifact verification replays every helper extension and complete
+action proof, including when training replay is disabled. JavaScript, native,
+Rust, Wasm and WebGPU-host artifacts retain live learning capabilities; browser
+CPU fallback binaries are included in composed WebGPU packages. Broader capture
+shapes, general graph/tape compilation and device training remain work.
 
-[Compile the longer program](https://github.com/siliconjungle/ink-lang/blob/09688f9d5853f7c30fc7b5d24526c8af5bfdcd64/docs/frozen-composition.md) ·
+[Compile the longer program](https://github.com/siliconjungle/ink-lang/blob/8042dcf22db78751ce5807cbfeaf98ef03b88748/docs/frozen-composition.md) ·
 [Measurements and startup costs](./performance.html#longer-frozen-programs) ·
 [Exact plans, source checks and browser histories](https://github.com/siliconjungle/ink-lang/blob/09688f9d5853f7c30fc7b5d24526c8af5bfdcd64/reports/frozen-composition-2026-10-16/README.md).
 
