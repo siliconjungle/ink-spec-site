@@ -98,6 +98,37 @@ unchanged by serialization. Fresh committed sources reproduce the executable
 images. This acquisition measures package size and correctness, with no new
 runtime speedup claim. [Exact artifacts, checks and remaining limits](https://github.com/siliconjungle/ink-lang/blob/5fe4eb6a962b0ff7d4a9e8734796a612ca17e4b4/reports/factored-literal-proofs-2026-10-16/README.md).
 
+### Longer frozen programs
+
+Balanced helper composition extends the explicit CLI path to 32 and 128 ordered
+operations with live weights. Six fresh Node 25.3 processes per size on an Apple M4 Pro
+alternate variant order. Each row measures five samples of 25,000 complete bound
+requests after 2,500 warmup reads; update rows include weight changes and event
+acknowledgement. Values are geometric means of paired process medians.
+
+| Operations | Weight updates | Baseline ns/request | Selected ns/request | Speedup |
+| --- | --- | ---: | ---: | ---: |
+| 32 | None | 333.36 | 242.28 | 1.376× |
+| 32 | Every request | 543.35 | 466.03 | 1.166× |
+| 128 | None | 1136.35 | 874.39 | 1.300× |
+| 128 | Every request | 1081.95 | 881.28 | 1.228× |
+
+The selected JavaScript grows from 226.6 to 245.2 KB and from 227.7 to 313.0 KB,
+respectively. Import and first binding/call are slower. Source/proof construction,
+compilation and startup are outside these warm samples, so this does not establish
+a cold-start or short-session advantage. The initial shorter probe was mixed and
+is retained with the final samples.
+
+Validation includes 458 isolated core tests, twelve frozen-state integration
+tests and 864 complete browser comparisons with exact checkpoints. Each longer
+case includes an actual pure WebGPU control; serving/training execute on the CPU
+host. Fresh committed sources reproduce the exact 128-op plan and measured
+JavaScript. This is one internal operation-sequence workload, with no new claim
+of neural fitting, general graph compilation or upstream-library parity.
+
+[Compile and retain live learning](./guide.html#longer-frozen-programs) ·
+[Every sample, proof, image and startup observation](https://github.com/siliconjungle/ink-lang/blob/09688f9d5853f7c30fc7b5d24526c8af5bfdcd64/reports/frozen-composition-2026-10-16/README.md).
+
 ## Ordered query expressions
 
 

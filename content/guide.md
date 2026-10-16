@@ -445,6 +445,23 @@ verification-capacity improvement, with no new serving-speed measurement.
 [Measurements, costs and source checks](./performance.html#frozen-program-with-live-weights) ·
 [Proof domain and remaining limits](https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/docs/frozen-structural-specialization.md#compile-a-frozen-program-while-weights-remain-trainable).
 
+### Longer frozen programs
+
+An explicit CLI plan now compiles 32- and 128-operation programs while their
+weights and live application state keep updating. Typed helpers form a balanced
+tree, and ordinary proofs check every complete action. Browser histories also
+reject altered frozen code without changing live state.
+
+Six paired Node processes per size measure about 1.38× and 1.30× faster warm serving,
+including complete query calls. Updating weights every request measures 1.17×
+and 1.23×. Generated code is larger, and import/first binding are slower.
+This is an explicit composed-plan path; integration into normal trained-artifact
+publication, broader capture shapes and general graph/tape compilation remain work.
+
+[Compile the longer program](https://github.com/siliconjungle/ink-lang/blob/09688f9d5853f7c30fc7b5d24526c8af5bfdcd64/docs/frozen-composition.md) ·
+[Measurements and startup costs](./performance.html#longer-frozen-programs) ·
+[Exact plans, source checks and browser histories](https://github.com/siliconjungle/ink-lang/blob/09688f9d5853f7c30fc7b5d24526c8af5bfdcd64/reports/frozen-composition-2026-10-16/README.md).
+
 ## Give the planner an authored goal
 
 The CLI and adaptive host can now rank already checked compiled variants using

@@ -138,6 +138,64 @@ bytes. Every JSON field remains, and executable images and proof bytes are
 unchanged by serialization. Fresh committed sources reproduce the executable
 images. This acquisition measures package size and correctness, with no new
 runtime speedup claim. <a href="https://github.com/siliconjungle/ink-lang/blob/5fe4eb6a962b0ff7d4a9e8734796a612ca17e4b4/reports/factored-literal-proofs-2026-10-16/README.md">Exact artifacts, checks and remaining limits</a>.</p>
+<h3>Longer frozen programs</h3>
+<p>Balanced helper composition extends the explicit CLI path to 32 and 128 ordered
+operations with live weights. Six fresh Node 25.3 processes per size on an Apple M4 Pro
+alternate variant order. Each row measures five samples of 25,000 complete bound
+requests after 2,500 warmup reads; update rows include weight changes and event
+acknowledgement. Values are geometric means of paired process medians.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Operations</th>
+<th>Weight updates</th>
+<th align="right">Baseline ns/request</th>
+<th align="right">Selected ns/request</th>
+<th align="right">Speedup</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>32</td>
+<td>None</td>
+<td align="right">333.36</td>
+<td align="right">242.28</td>
+<td align="right">1.376×</td>
+</tr>
+<tr>
+<td>32</td>
+<td>Every request</td>
+<td align="right">543.35</td>
+<td align="right">466.03</td>
+<td align="right">1.166×</td>
+</tr>
+<tr>
+<td>128</td>
+<td>None</td>
+<td align="right">1136.35</td>
+<td align="right">874.39</td>
+<td align="right">1.300×</td>
+</tr>
+<tr>
+<td>128</td>
+<td>Every request</td>
+<td align="right">1081.95</td>
+<td align="right">881.28</td>
+<td align="right">1.228×</td>
+</tr>
+</tbody></table>
+</div><p>The selected JavaScript grows from 226.6 to 245.2 KB and from 227.7 to 313.0 KB,
+respectively. Import and first binding/call are slower. Source/proof construction,
+compilation and startup are outside these warm samples, so this does not establish
+a cold-start or short-session advantage. The initial shorter probe was mixed and
+is retained with the final samples.</p>
+<p>Validation includes 458 isolated core tests, twelve frozen-state integration
+tests and 864 complete browser comparisons with exact checkpoints. Each longer
+case includes an actual pure WebGPU control; serving/training execute on the CPU
+host. Fresh committed sources reproduce the exact 128-op plan and measured
+JavaScript. This is one internal operation-sequence workload, with no new claim
+of neural fitting, general graph compilation or upstream-library parity.</p>
+<p><a href="./guide.html#longer-frozen-programs">Compile and retain live learning</a> ·
+<a href="https://github.com/siliconjungle/ink-lang/blob/09688f9d5853f7c30fc7b5d24526c8af5bfdcd64/reports/frozen-composition-2026-10-16/README.md">Every sample, proof, image and startup observation</a>.</p>
 </div></section>
 <section class="chapter" id="ordered-query-expressions" aria-labelledby="title-ordered-query-expressions"><h2 id="title-ordered-query-expressions">Ordered query expressions</h2><div class="prose"><p>The first ordered-query milestone compares query syntax, ordinary Ink pipelines/loops and handwritten Rust/JavaScript controls. The following held-out times are microseconds per complete warm call including output consumption, using three fresh processes and eleven samples per process on one macOS arm64 host.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
