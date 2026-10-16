@@ -100,19 +100,23 @@ training remain open.
 
 ## Mutable graph specialization validation
 
-A staged branch can now be specialized while its graph and weights remain
-mutable. The authored guard retains the generic evaluator for other graph shapes.
+A generated exact guard now selects a specialized branch while its graph and
+weights remain trainable, retaining the generic evaluator for other graph shapes.
 The 32-node owned F32 case passes 335 reference/Rust/JavaScript/Wasm observations,
 including events, rollback, exact snapshots and six restores. Seeded JavaScript
-startup also matches. The combined standalone core passes 501 tests across 83
-integration targets.
+startup also matches. Learning updates change both structure and weights. The
+hand-written guard control passes its separate 335-outcome history. The aligned
+standalone core passes 503 tests across 83 integration targets; the complete
+JavaScript package passes 59 tests and 24 knowledge regressions pass. Factored
+database proofs run on the ordinary test stack without raising checker limits.
 
 These are correctness results. Latency, memory, guard cost and lifecycle
 profitability for this mutable-graph path have not been measured. The earlier
-frozen-graph ratios above do not establish its performance. Automatic guard
-insertion and profitable learned representation selection remain open.
+frozen-graph ratios above do not establish its performance. Guard generation is
+explicit; automatic discovery and profitable learned representation selection
+remain open.
 
-[Complete replayable evidence and limits](https://github.com/siliconjungle/ink-lang/blob/7e3b35353b5dc37e988e2e67f578f1508c3a2ed0/reports/mutable-function-specialization-2026-10-17/summary.json).
+[Complete replayable evidence and limits](https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/reports/guarded-function-specialization-2026-10-17/README.md).
 
 ## Exact JavaScript constants and checker follow-up
 

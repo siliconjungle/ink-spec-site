@@ -369,21 +369,24 @@ Rust workload and slower in JavaScript; the projected loop wins there instead.
 <a href="./performance.html#composed-graph-variants-across-backends">Composed graph variants and exact results</a>
 show why a checked rewrite and a profitable backend choice are separate decisions.</p>
 </div></section>
-<section class="chapter" id="specialize-branches-in-a-mutable-graph" aria-labelledby="title-specialize-branches-in-a-mutable-graph"><h2 id="title-specialize-branches-in-a-mutable-graph">Specialize branches in a mutable graph</h2><div class="prose"><p>The current CLI can specialize a pure function&#39;s closed call arguments while its
-other inputs remain live. An authored structural guard can send a matching graph
-to that staged branch and use the generic evaluator for other graphs. Code and
-weights can both keep changing at runtime.</p>
-<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-20">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-20">python3 knowledge/producers/function_specialization.py build/source.core.json \
-  --functions chosen --ink target/debug/ink -o build/variants.plan.json
-ink compile build/source.core.json --core --plan build/variants.plan.json \
-  --target javascript -o build/selected.mjs</code></pre></div><p>Every changed function requires a source-bound equality for every input, after
-ordinary helper admission. The mutable 32-node owned graph matches 335 complete
-reference/Rust/JavaScript/Wasm outcomes and six restores; seeded JavaScript startup
-also matches. The combined core passes 501 tests. Automatic guard insertion and
-measured profitable selection remain further work. This describes the current
+<section class="chapter" id="specialize-branches-in-a-mutable-graph" aria-labelledby="title-specialize-branches-in-a-mutable-graph"><h2 id="title-specialize-branches-in-a-mutable-graph">Specialize branches in a mutable graph</h2><div class="prose"><p>The current CLI can generate an exact configuration guard, specialize the matching
+branch of a pure function and retain its original computation as fallback. Code
+and weights can both keep learning at runtime: another graph takes the generic
+branch, and fresh weights and inputs still drive the arithmetic.</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Terminal example" data-copy="code-20">copy</button><pre tabindex="0" aria-label="Terminal example"><code id="code-20">python3 knowledge/producers/guarded_specialization.py build/source.core.json \
+  --function evaluate --parameter code --value build/configuration.json \
+  --ink target/debug/ink -o build/guarded.plan.json
+ink compile build/source.core.json --core --plan build/guarded.plan.json \
+  --target javascript -o build/selected.mjs</code></pre></div><p>The configuration nominates an opportunity; every rewrite and changed function
+still requires an ordinary checked equality. The 32-node owned graph matches 335
+complete reference/Rust/JavaScript/Wasm outcomes and six restores, including
+learning updates to both structure and weights. Initialized JavaScript startup
+also matches. The aligned standalone core passes 503 tests. This is explicit
+proposal generation: automatic discovery, measured profitable selection and
+learned representation choice remain further work. This describes the current
 CLI; the browser editor retains its separate pin.</p>
-<p><a href="https://github.com/siliconjungle/ink-lang/blob/7e3b35353b5dc37e988e2e67f578f1508c3a2ed0/docs/modular-action-projection.md#pure-function-correspondence">Function proof contract and limits</a> ·
-<a href="https://github.com/siliconjungle/ink-lang/blob/7e3b35353b5dc37e988e2e67f578f1508c3a2ed0/reports/mutable-function-specialization-2026-10-17/summary.json">Complete source, proof and validation evidence</a>.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/docs/modular-action-projection.md#generate-a-guard-and-fallback">Function proof contract and limits</a> ·
+<a href="https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/reports/guarded-function-specialization-2026-10-17/README.md">Complete source, proof and validation evidence</a>.</p>
 </div></section>
 <section class="chapter" id="compile-structure-keep-learning-weights" aria-labelledby="title-compile-structure-keep-learning-weights"><h2 id="title-compile-structure-keep-learning-weights">Compile structure, keep learning weights</h2><div class="prose"><p>Program structure and numeric parameters can have separate degrees of freedom.
 The current CLI can freeze an operation sequence while leaving its weights

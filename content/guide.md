@@ -497,27 +497,30 @@ show why a checked rewrite and a profitable backend choice are separate decision
 
 ## Specialize branches in a mutable graph
 
-The current CLI can specialize a pure function's closed call arguments while its
-other inputs remain live. An authored structural guard can send a matching graph
-to that staged branch and use the generic evaluator for other graphs. Code and
-weights can both keep changing at runtime.
+The current CLI can generate an exact configuration guard, specialize the matching
+branch of a pure function and retain its original computation as fallback. Code
+and weights can both keep learning at runtime: another graph takes the generic
+branch, and fresh weights and inputs still drive the arithmetic.
 
 ```sh
-python3 knowledge/producers/function_specialization.py build/source.core.json \
-  --functions chosen --ink target/debug/ink -o build/variants.plan.json
-ink compile build/source.core.json --core --plan build/variants.plan.json \
+python3 knowledge/producers/guarded_specialization.py build/source.core.json \
+  --function evaluate --parameter code --value build/configuration.json \
+  --ink target/debug/ink -o build/guarded.plan.json
+ink compile build/source.core.json --core --plan build/guarded.plan.json \
   --target javascript -o build/selected.mjs
 ```
 
-Every changed function requires a source-bound equality for every input, after
-ordinary helper admission. The mutable 32-node owned graph matches 335 complete
-reference/Rust/JavaScript/Wasm outcomes and six restores; seeded JavaScript startup
-also matches. The combined core passes 501 tests. Automatic guard insertion and
-measured profitable selection remain further work. This describes the current
+The configuration nominates an opportunity; every rewrite and changed function
+still requires an ordinary checked equality. The 32-node owned graph matches 335
+complete reference/Rust/JavaScript/Wasm outcomes and six restores, including
+learning updates to both structure and weights. Initialized JavaScript startup
+also matches. The aligned standalone core passes 503 tests. This is explicit
+proposal generation: automatic discovery, measured profitable selection and
+learned representation choice remain further work. This describes the current
 CLI; the browser editor retains its separate pin.
 
-[Function proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/7e3b35353b5dc37e988e2e67f578f1508c3a2ed0/docs/modular-action-projection.md#pure-function-correspondence) ·
-[Complete source, proof and validation evidence](https://github.com/siliconjungle/ink-lang/blob/7e3b35353b5dc37e988e2e67f578f1508c3a2ed0/reports/mutable-function-specialization-2026-10-17/summary.json).
+[Function proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/docs/modular-action-projection.md#generate-a-guard-and-fallback) ·
+[Complete source, proof and validation evidence](https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/reports/guarded-function-specialization-2026-10-17/README.md).
 
 ## Compile structure, keep learning weights
 
