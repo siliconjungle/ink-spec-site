@@ -100,34 +100,47 @@ runtime speedup claim. [Exact artifacts, checks and remaining limits](https://gi
 
 ### Longer frozen programs
 
-Balanced helper composition extends the explicit CLI path to 32 and 128 ordered
-operations with live weights. Six fresh Node 25.3 processes per size on an Apple M4 Pro
-alternate variant order. Each row measures five samples of 25,000 complete bound
-requests after 2,500 warmup reads; update rows include weight changes and event
-acknowledgement. Values are geometric means of paired process medians.
+Shared typed helpers extend explicit CLI specialization to 32 and 128 ordered
+operations with live weights. Six fresh Node 25.3 processes per size and
+comparison on an Apple M4 Pro alternate variant order. Each process records five
+samples of 25,000 complete bound requests after 2,500 warmup reads; update rows
+include weight changes and event acknowledgement. Values are geometric means of
+paired process medians. Every output is consumed and ending checkpoints agree.
 
-| Operations | Weight updates | Baseline ns/request | Selected ns/request | Speedup |
+| Operations | Weight updates | Baseline ns/request | Shared ns/request | Speedup |
 | --- | --- | ---: | ---: | ---: |
-| 32 | None | 333.36 | 242.28 | 1.376× |
-| 32 | Every request | 543.35 | 466.03 | 1.166× |
-| 128 | None | 1136.35 | 874.39 | 1.300× |
-| 128 | Every request | 1081.95 | 881.28 | 1.228× |
+| 32 | None | 325.94 | 222.50 | 1.465× |
+| 32 | Every request | 545.44 | 460.04 | 1.186× |
+| 128 | None | 1113.37 | 734.25 | 1.516× |
+| 128 | Every request | 1067.35 | 798.47 | 1.337× |
 
-The selected JavaScript grows from 226.6 to 245.2 KB and from 227.7 to 313.0 KB,
-respectively. Import and first binding/call are slower. Source/proof construction,
-compilation and startup are outside these warm samples, so this does not establish
-a cold-start or short-session advantage. The initial shorter probe was mixed and
-is retained with the final samples.
+A separate six-pair comparison against the earlier expanded selected layout
+measures 1.06×/1.17× for reads and 1.03×/1.09× with every-request weight updates.
+Sharing retains every call and operation; repeated code needs 3/5 definitions
+instead of 7/31. Both layouts require complete proofs; expanded code remains an
+explicit proposal option for other target/objective tradeoffs.
 
-Validation includes 458 isolated core tests, twelve frozen-state integration
-tests and 864 complete browser comparisons with exact checkpoints. Each longer
-case includes an actual pure WebGPU control; serving/training execute on the CPU
-host. Fresh committed sources reproduce the exact 128-op plan and measured
-JavaScript. This is one internal operation-sequence workload, with no new claim
-of neural fitting, general graph compilation or upstream-library parity.
+At 128 operations, JavaScript falls from 313.0 to 241.8 KB. The initialized
+WebGPU-host inventory falls from 86.6 to 22.1 MB, including generated sources and
+compiled CPU fallbacks. These are file bytes, not compressed downloads or heap
+measurements. Import and first-binding diagnostics improve over expanded code,
+but still favor the unspecialized baseline. Source/proof construction, compilation
+and startup are outside warm samples; this does not establish a cold-start or
+short-session advantage. Every raw sample is retained, without exclusions.
 
-[Compile and retain live learning](./guide.html#longer-frozen-programs) ·
-[Every sample, proof, image and startup observation](https://github.com/siliconjungle/ink-lang/blob/09688f9d5853f7c30fc7b5d24526c8af5bfdcd64/reports/frozen-composition-2026-10-16/README.md).
+Both sizes pass full CPU-target histories with exact checkpoints. A browser
+history adds 465 comparisons and twelve actual GPU calls, eleven of them for a
+64-operation model prefix with raw F32 inputs/weights. Complete 128-operation
+stateful serving and training execute on the CPU; its pure root still exceeds
+the graph-stage budget. A fresh committed compiler recreates the initialized
+128-op JavaScript images. These are internal operation-sequence results, with no
+claim of neural convergence, GPU training or matched upstream-library parity.
+
+[The earlier expanded-layout acquisition](https://github.com/siliconjungle/ink-lang/blob/09688f9d5853f7c30fc7b5d24526c8af5bfdcd64/reports/frozen-composition-2026-10-16/README.md)
+retains its original results. The [new acquisition](https://github.com/siliconjungle/ink-lang/blob/97b1852052c00a364895c444c03d0852945b8183/reports/shared-helper-code-2026-10-16/README.md)
+includes all 24 paired processes, complete plans, initialized artifacts, source
+reproduction, GPU prefix history, planning-corpus funnels and the failed
+512-operation proof-budget probe.
 
 ## Ordered query expressions
 

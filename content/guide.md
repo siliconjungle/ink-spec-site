@@ -448,23 +448,29 @@ verification-capacity improvement, with no new serving-speed measurement.
 ### Longer frozen programs
 
 Explicit specialization now compiles 32- and 128-operation programs while their
-weights and live application state keep updating. Typed helpers form a balanced
-tree, and ordinary proofs check every complete action. Browser histories also
+weights and live application state keep updating. Typed helpers share repeated
+code in a balanced call graph, and ordinary proofs check every complete action. Browser histories also
 reject altered frozen code without changing live state.
 
-Six paired Node processes per size measure about 1.38× and 1.30× faster warm serving,
-including complete query calls. Updating weights every request measures 1.17×
-and 1.23×. Generated code is larger, and import/first binding are slower.
+The repeated 32/128-operation examples now use 3/5 helper definitions rather than
+7/31. Six paired Node processes per size measure about 1.46×/1.52× faster warm
+serving than the unspecialized baseline, or 1.19×/1.34× with weight updates every
+request. At 128 operations, generated JavaScript is 23% smaller than the earlier
+expanded layout. Startup improves against that layout but still trails baseline.
+Expanded code remains an explicit checked proposal option.
 `build-model --specialize-frozen` now packages that checked plan with the trained
 initial state. Artifact verification replays every helper extension and complete
 action proof, including when training replay is disabled. JavaScript, native,
 Rust, Wasm and WebGPU-host artifacts retain live learning capabilities; browser
-CPU fallback binaries are included in composed WebGPU packages. Broader capture
-shapes, general graph/tape compilation and device training remain work.
+CPU fallback binaries are included in composed WebGPU packages. A 64-operation
+pure model prefix also passes actual GPU calls for eleven raw F32 input/weight
+classes. Complete stateful serving and training remain CPU work; the 128-op pure
+root still exceeds the current graph-stage budget. Broader capture shapes,
+graph fusion, general graph/tape compilation and device training remain work.
 
-[Compile the longer program](https://github.com/siliconjungle/ink-lang/blob/8042dcf22db78751ce5807cbfeaf98ef03b88748/docs/frozen-composition.md) ·
+[Compile the longer program](https://github.com/siliconjungle/ink-lang/blob/97b1852052c00a364895c444c03d0852945b8183/docs/frozen-composition.md) ·
 [Measurements and startup costs](./performance.html#longer-frozen-programs) ·
-[Exact plans, source checks and browser histories](https://github.com/siliconjungle/ink-lang/blob/09688f9d5853f7c30fc7b5d24526c8af5bfdcd64/reports/frozen-composition-2026-10-16/README.md).
+[Exact plans, source checks and browser histories](https://github.com/siliconjungle/ink-lang/blob/97b1852052c00a364895c444c03d0852945b8183/reports/shared-helper-code-2026-10-16/README.md).
 
 ## Give the planner an authored goal
 
