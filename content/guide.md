@@ -380,12 +380,19 @@ rejects stale updates and restarts selection confirmations. Correctness proofs,
 resource limits, migration checks and switch budgets still apply. Each application
 action runs once.
 
+The current goal can itself be a controlled degree of freedom. An authored
+controller can learn how to prioritize memory, latency or application-defined
+utility as context changes, then publish a fresh goal revision. The application
+still defines which updates are permitted and how their outcomes are judged.
+Changing the scoring rule alone does not establish improvement; feedback and
+comparisons need their goal identities.
+
 This is opt-in portfolio ranking for offline and runtime planning. General compiler
 search does not yet learn its objective automatically, and a model's score is not a
 certified prediction. Binary64 goal code uses CPU fallback on GPU hosts.
 
 [Complete source example](./programmable-objective.ink) ·
-[Host APIs, offline command and limits](https://github.com/siliconjungle/ink-lang/blob/8724aeb5a0cfa4b4a7456adb4d39844bca36a403/docs/programmable-objectives.md).
+[Host APIs, offline command and limits](https://github.com/siliconjungle/ink-lang/blob/509441c691e83e6f607c87049f01d883f0cc0996/docs/programmable-objectives.md).
 This feature is available through the current CLI, ahead of the embedded playground.
 
 ## Guide compiler search with a learned policy
@@ -824,9 +831,18 @@ callbacks retain ordinary execution. Stateful learning does not automatically
 adopt this pure-call capability. This CLI feature is ahead of the pinned browser
 playground.
 
+Fixed data can also travel in the same immutable record as changing queries,
+weights or inputs. Bounded field tracking through constructors and helper returns
+preserves that distinction, so a readonly index or coefficient table can persist.
+Unused dynamic arguments, fields and guards still execute in source order;
+iteration inputs and new model primals stay live. The
+[matched record study](https://github.com/siliconjungle/ink-lang/blob/509441c691e83e6f607c87049f01d883f0cc0996/reports/prepared-fields-2026-10-16/README.md)
+retains complete results, setup, memory and VM warm-up sensitivity. Its gains over
+the prior emitter do not close the substantial Pretext performance gap.
+
 The same mechanism applies to queries, layout helpers and model code, but its
 benefit depends on reusable work. The retained study has large repeated-index
 wins alongside small-case losses and extra retained memory; neural and text
 controls still expose substantial gaps.
-[Execution contract and runnable source](https://github.com/siliconjungle/ink-lang/blob/bcee35d43e3439a89ad7cd8c804d28cd678ef07c/docs/prepared-loop-callbacks.md) ·
+[Execution contract and runnable source](https://github.com/siliconjungle/ink-lang/blob/509441c691e83e6f607c87049f01d883f0cc0996/docs/prepared-loop-callbacks.md) ·
 [Measured gains and remaining gaps](./performance.html#sequential-callback-preparation).
