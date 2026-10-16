@@ -33,6 +33,20 @@ histories and 93 browser observations with an actual eligible WebGPU call.
 Stateful work remains on the host. [Learned choices and objectives](./guide.html#learn-a-program-structure) ·
 [Exact artifacts, raw samples, setup costs and limits](https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/reports/frozen-structure-2026-10-16/README.md).
 
+## Whole neural computation proof capacity
+
+The staged 244-parameter neural application now exports all six actions, including
+mutable optimizer/control state, as 316 ordinary checked mathematical definitions.
+The complete canonical model is 5,073,076 bytes. These are proof-data counts and
+sizes, with no new runtime speed measurement. The source-to-proof implementation
+remains trusted.
+
+The identical standalone core source passed 480 tests across all 80 integration
+targets, library checks, example builds and doctests. Three earlier compiled
+artifacts replay their source-bound selections with the new core. This expands
+the optimization proof domain; graph specialization and profitable selection
+remain further work. [Retained complete model, source identities and test logs](https://github.com/siliconjungle/ink-lang/blob/1f5e4e2d1e9582254ce9791e5257094dfd27af69/reports/modular-action-projection-2026-10-17/README.md).
+
 ## Frozen program with live weights
 
 An eight-operation F32 program can now compile its frozen operation sequence into

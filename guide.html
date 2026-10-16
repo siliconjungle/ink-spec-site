@@ -331,6 +331,20 @@ action rewrite still passes the ordinary checker. Trained artifacts also retain 
 checked proof package, with a bound local reference in the generated descriptor.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/67aa3a2ec42149c400ee52d5e1d7ed8b8384a317/docs/learned-programs.md">Scoring API, proof boundary and runnable examples</a>.</p>
 </div></section>
+<section class="chapter" id="check-whole-neural-computations" aria-labelledby="title-check-whole-neural-computations"><h2 id="title-check-whole-neural-computations">Check whole neural computations</h2><div class="prose"><p>The current CLI can export a complete mathematical model of the staged neural
+example: 244 parameters, six actions, mutable optimizer/control state and frozen
+architecture. Typed shared definitions preserve branch exits, caller captures,
+ordered events and rollback while keeping larger computations within the proof
+transport limits.</p>
+<p>This gives proof authors a complete graph to work with. Faster executable graphs,
+learned representations and profitable device choices still need their own proofs
+and measurements. The change passed 480 core tests across all 80 integration
+targets; three retained source-bound compiled artifacts also replay with it.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/1f5e4e2d1e9582254ce9791e5257094dfd27af69/docs/modular-action-projection.md">Whole neural computation model and limits</a> ·
+<a href="https://github.com/siliconjungle/ink-lang/blob/1f5e4e2d1e9582254ce9791e5257094dfd27af69/reports/modular-action-projection-2026-10-17/README.md">Complete model and validation report</a>.
+This describes the current CLI; the embedded browser editor retains its separately
+pinned distribution.</p>
+</div></section>
 <section class="chapter" id="compile-structure-keep-learning-weights" aria-labelledby="title-compile-structure-keep-learning-weights"><h2 id="title-compile-structure-keep-learning-weights">Compile structure, keep learning weights</h2><div class="prose"><p>Program structure and numeric parameters can have separate degrees of freedom.
 The current CLI can freeze an operation sequence while leaving its weights
 trainable. In the eight-operation example, the serving action loses its list

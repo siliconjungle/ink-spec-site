@@ -446,6 +446,24 @@ checked proof package, with a bound local reference in the generated descriptor.
 
 [Scoring API, proof boundary and runnable examples](https://github.com/siliconjungle/ink-lang/blob/67aa3a2ec42149c400ee52d5e1d7ed8b8384a317/docs/learned-programs.md).
 
+## Check whole neural computations
+
+The current CLI can export a complete mathematical model of the staged neural
+example: 244 parameters, six actions, mutable optimizer/control state and frozen
+architecture. Typed shared definitions preserve branch exits, caller captures,
+ordered events and rollback while keeping larger computations within the proof
+transport limits.
+
+This gives proof authors a complete graph to work with. Faster executable graphs,
+learned representations and profitable device choices still need their own proofs
+and measurements. The change passed 480 core tests across all 80 integration
+targets; three retained source-bound compiled artifacts also replay with it.
+
+[Whole neural computation model and limits](https://github.com/siliconjungle/ink-lang/blob/1f5e4e2d1e9582254ce9791e5257094dfd27af69/docs/modular-action-projection.md) ·
+[Complete model and validation report](https://github.com/siliconjungle/ink-lang/blob/1f5e4e2d1e9582254ce9791e5257094dfd27af69/reports/modular-action-projection-2026-10-17/README.md).
+This describes the current CLI; the embedded browser editor retains its separately
+pinned distribution.
+
 ## Compile structure, keep learning weights
 
 Program structure and numeric parameters can have separate degrees of freedom.
