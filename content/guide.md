@@ -388,6 +388,29 @@ certified prediction. Binary64 goal code uses CPU fallback on GPU hosts.
 [Host APIs, offline command and limits](https://github.com/siliconjungle/ink-lang/blob/8724aeb5a0cfa4b4a7456adb4d39844bca36a403/docs/programmable-objectives.md).
 This feature is available through the current CLI, ahead of the embedded playground.
 
+## Guide compiler search with a learned policy
+
+An Ink model can now order the compiled planner's search frontier using the
+complete checked program structure and captured typed context. A flat node-and-edge
+document exposes source, representation, fact and routing information without
+deep recursive transport. Exact numeric tokens stay exact.
+
+The complete CLI example includes an authored model, trainable Adam state and
+explicit feedback. Publishing its context for a new compilation can change which
+intermediate structures are explored. A test reaches a useful rewrite within the
+same proof budget after training; its labels are synthetic, so this demonstrates
+programmable exploration rather than measured search quality or speed.
+
+Every proposed edge still needs proof replay. Runtime measurements and final
+deployment selection keep their existing gates. A failed or timed-out model falls
+back to ordinary frontier ordering. Inner semantic search, recipe scheduling and
+broader learned optimization remain further work.
+
+[Complete CLI policy and training example](./search-policy.ink) ·
+[Initial example context](./search-context.json) ·
+[Options, replay, budgets and validation](https://github.com/siliconjungle/ink-lang/blob/4b2dfe79b7e14c01f94765a47394bfc22d47c734/docs/learned-search.md).
+This CLI feature is ahead of the embedded playground.
+
 ## Train through authored computation
 
 An application-wide objective can use the complete explicit context and evaluate

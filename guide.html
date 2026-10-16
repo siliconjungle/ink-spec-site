@@ -296,6 +296,24 @@ certified prediction. Binary64 goal code uses CPU fallback on GPU hosts.</p>
 <a href="https://github.com/siliconjungle/ink-lang/blob/8724aeb5a0cfa4b4a7456adb4d39844bca36a403/docs/programmable-objectives.md">Host APIs, offline command and limits</a>.
 This feature is available through the current CLI, ahead of the embedded playground.</p>
 </div></section>
+<section class="chapter" id="guide-compiler-search-with-a-learned-policy" aria-labelledby="title-guide-compiler-search-with-a-learned-policy"><h2 id="title-guide-compiler-search-with-a-learned-policy">Guide compiler search with a learned policy</h2><div class="prose"><p>An Ink model can now order the compiled planner&#39;s search frontier using the
+complete checked program structure and captured typed context. A flat node-and-edge
+document exposes source, representation, fact and routing information without
+deep recursive transport. Exact numeric tokens stay exact.</p>
+<p>The complete CLI example includes an authored model, trainable Adam state and
+explicit feedback. Publishing its context for a new compilation can change which
+intermediate structures are explored. A test reaches a useful rewrite within the
+same proof budget after training; its labels are synthetic, so this demonstrates
+programmable exploration rather than measured search quality or speed.</p>
+<p>Every proposed edge still needs proof replay. Runtime measurements and final
+deployment selection keep their existing gates. A failed or timed-out model falls
+back to ordinary frontier ordering. Inner semantic search, recipe scheduling and
+broader learned optimization remain further work.</p>
+<p><a href="./search-policy.ink">Complete CLI policy and training example</a> ·
+<a href="./search-context.json">Initial example context</a> ·
+<a href="https://github.com/siliconjungle/ink-lang/blob/4b2dfe79b7e14c01f94765a47394bfc22d47c734/docs/learned-search.md">Options, replay, budgets and validation</a>.
+This CLI feature is ahead of the embedded playground.</p>
+</div></section>
 <section class="chapter" id="train-through-authored-computation" aria-labelledby="title-train-through-authored-computation"><h2 id="title-train-through-authored-computation">Train through authored computation</h2><div class="prose"><p>An application-wide objective can use the complete explicit context and evaluate
 the final result of supported computation. Ink can differentiate through that
 pure computation, or use authored rewards to learn from outcomes of a
