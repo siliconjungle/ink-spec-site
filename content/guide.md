@@ -357,13 +357,48 @@ For the packed choice, the serving action becomes `(x & 255) + offset`.
 The choice lookup, dispatch and expanded-circuit call disappear; application rows
 stay mutable. Complete transition proofs preserve results, errors, events and
 checkpoints. Freezing withdraws the choice's writers. Live structural switching,
-general floating-point specialization and physical-layout migration need further
+general graph/tape specialization and physical-layout migration need further
 implementation and proofs.
 
 [Complete CLI example](./adaptive-structure.ink) ·
 [Training observations](./adaptive-structure-training.json) ·
 [Proof domain and limits](https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/docs/frozen-structural-specialization.md).
 This explicit build request does not establish a profitable automatic choice.
+
+## Compile frozen numeric structure
+
+The latest CLI can also specialize frozen F32 coefficients inside records and
+authored representation choices. In the complete numeric example, a configured
+affine kernel becomes this serving expression:
+
+```ink-cli
+((x * 0.5) + 0.25) + Live.get(0).unwrap_or(0.0)
+```
+
+The frozen model lookup, kind dispatch and helper call disappear. Live data stays
+mutable, and each F32 operation keeps its original order and rounding. Signed
+zero, subnormals and exact NaN payloads remain supported; floating comparisons
+stay ordinary IEEE operations. Freezing withdraws the model's writer and binds
+its exact rows into the checkpoint namespace.
+
+```sh
+ink build-model frozen-numeric-structure.ink frozen-numeric-structure-training.json \
+    --freeze-roots Model --specialize-frozen \
+    --target javascript -o build/numeric
+ink verify-model build/numeric --replay
+```
+
+The supplied trace configures the model explicitly; a learner can produce that
+same typed state. Every proposed computation must pass complete transition-proof
+replay against the restricted source. This is ahead of the pinned browser
+build and adds no new syntax, general graph unrolling, device training or automatic
+profitability decision. The retained checks include built-package execution,
+rollback, exact snapshots and a separate numeric GPU control, without a new speed
+claim. A broader audit still has historical column-layout fixture failures.
+
+[Complete CLI example](https://github.com/siliconjungle/ink-lang/blob/4755313b185f070111f40c372fec565f10595a2b/examples/frozen-numeric-structure.ink) ·
+[Configuration trace](https://github.com/siliconjungle/ink-lang/blob/4755313b185f070111f40c372fec565f10595a2b/examples/frozen-numeric-structure-training.json) ·
+[Proofs, execution checks and limits](https://github.com/siliconjungle/ink-lang/blob/4755313b185f070111f40c372fec565f10595a2b/reports/frozen-numeric-structure-2026-10-16/README.md).
 
 ## Give the planner an authored goal
 
