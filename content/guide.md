@@ -483,6 +483,12 @@ evidence. The embedded browser editor retains its separately pinned distribution
 [Source example, proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/b5f6d9373ab5518ca26c2788b338057c115763e6/docs/fold-state-projection.md) ·
 [Measurements and complete validation](./performance.html#owned-graph-state-projection).
 
+Pure JavaScript numeric code also emits finite F32 constants directly, preserving
+their exact values and every arithmetic rounding point. The latest checker
+follow-up restores the existing frozen-program proof within its original budget.
+[Current validation and bounded update-kernel measurements](./performance.html#exact-javascript-constants-and-checker-follow-up)
+describe these CLI/package changes; the browser editor keeps its separate pin.
+
 ## Compile structure, keep learning weights
 
 Program structure and numeric parameters can have separate degrees of freedom.

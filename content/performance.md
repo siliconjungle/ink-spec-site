@@ -64,6 +64,26 @@ trusted. This is not device-training or general neural-graph coverage.
 
 [All samples, slower pilot, source/proof artifacts and limits](https://github.com/siliconjungle/ink-lang/blob/b5f6d9373ab5518ca26c2788b338057c115763e6/reports/owned-graph-projection-2026-10-17/README.md).
 
+## Exact JavaScript constants and checker follow-up
+
+Pure JavaScript modules now emit finite F32 constants directly as their exact
+binary64 values. Nonfinite values retain bit constructors; arithmetic rounding
+and stateful bit carriers are unchanged. Six alternating Node process pairs
+measure 1.068× median throughput for a 244-parameter Adam update kernel. Small
+affine-map differences are within the scale of control variation. The measured
+module shrinks from 217,765 to 216,838 bytes. This is update-kernel evidence,
+with no end-to-end training or Handwired parity claim.
+
+All 44 JavaScript integration targets pass, including 4,265 constant bit patterns.
+A fresh build from published packages reproduces the measured module exactly.
+The checker follow-up also repairs a CI proof-budget regression without raising
+limits: all 488 standalone core tests and the existing 144-outcome
+reference/Rust/JavaScript/Wasm history pass locally. General graph compilation
+and the larger combined projection/unrolling proof remain open. Local checks
+do not establish a green distribution CI run.
+
+[Complete results, retained failures, exact pins and reproduction](https://github.com/siliconjungle/ink-lang/blob/77398ac8f93b944b1aa6b5ce7becd877629a336f/reports/conversion-and-f32-literals-2026-10-17/README.md).
+
 ## Whole neural computation proof capacity
 
 The staged 244-parameter neural application now exports all six actions, including

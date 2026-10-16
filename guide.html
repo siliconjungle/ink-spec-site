@@ -358,6 +358,11 @@ no special neural instruction. Automatic selection still requires performance
 evidence. The embedded browser editor retains its separately pinned distribution.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/b5f6d9373ab5518ca26c2788b338057c115763e6/docs/fold-state-projection.md">Source example, proof contract and limits</a> ·
 <a href="./performance.html#owned-graph-state-projection">Measurements and complete validation</a>.</p>
+<p>Pure JavaScript numeric code also emits finite F32 constants directly, preserving
+their exact values and every arithmetic rounding point. The latest checker
+follow-up restores the existing frozen-program proof within its original budget.
+<a href="./performance.html#exact-javascript-constants-and-checker-follow-up">Current validation and bounded update-kernel measurements</a>
+describe these CLI/package changes; the browser editor keeps its separate pin.</p>
 </div></section>
 <section class="chapter" id="compile-structure-keep-learning-weights" aria-labelledby="title-compile-structure-keep-learning-weights"><h2 id="title-compile-structure-keep-learning-weights">Compile structure, keep learning weights</h2><div class="prose"><p>Program structure and numeric parameters can have separate degrees of freedom.
 The current CLI can freeze an operation sequence while leaving its weights
