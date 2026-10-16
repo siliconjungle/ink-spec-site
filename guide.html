@@ -671,6 +671,33 @@ wins alongside small-case losses and extra retained memory; neural and text
 controls still expose substantial gaps.
 <a href="https://github.com/siliconjungle/ink-lang/blob/509441c691e83e6f607c87049f01d883f0cc0996/docs/prepared-loop-callbacks.md">Execution contract and runnable source</a> ·
 <a href="./performance.html#sequential-callback-preparation">Measured gains and remaining gaps</a>.</p>
+</div></section>
+<section class="chapter" id="prepare-through-optional-and-result-branches" aria-labelledby="title-prepare-through-optional-and-result-branches"><h2 id="title-prepare-through-optional-and-result-branches">Prepare through optional and result branches</h2><div class="prose"><p>The current CLI also carries captured immutable data through <code>Option.fold</code>,
+<code>Option.map</code>, <code>Result.fold</code>, <code>Result.map</code> and <code>Result.map_err</code> callbacks. A changing
+optional query can reuse an index built from fixed keys:</p>
+<div class="code-panel"><button type="button" class="copy" aria-label="Copy Ink · illustrative syntax example" data-copy="code-26">copy</button><pre tabindex="0" aria-label="Ink · illustrative syntax example"><code id="code-26"><span class="tok-keyword">module</span> optional_index;
+
+<span class="tok-keyword">fn</span> <span class="tok-function">member</span>(<span class="tok-property">keys</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-keyword">query</span>: <span class="tok-type">u32</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Bool</span> {
+    <span class="tok-keyword">let</span> <span class="tok-property">index</span>: <span class="tok-type">Map</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span>, <span class="tok-type">Bool</span><span class="tok-operator">&gt;=</span> <span class="tok-function">foldr</span>(keys, <span class="tok-type">Map</span>.<span class="tok-function">empty</span>(), <span class="tok-keyword">fn</span>(k) <span class="tok-operator">=&gt;</span> <span class="tok-keyword">fn</span>(m) <span class="tok-operator">=&gt;</span> m.<span class="tok-function">set</span>(k, <span class="tok-constant">true</span>));
+    <span class="tok-keyword">return</span> index.<span class="tok-function">contains</span>(<span class="tok-keyword">query</span>);
+}
+
+<span class="tok-keyword">fn</span> <span class="tok-function">selected</span>(<span class="tok-property">keys</span>: <span class="tok-type">List</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>, <span class="tok-keyword">query</span>: <span class="tok-type">Option</span><span class="tok-operator">&lt;</span><span class="tok-type">u32</span><span class="tok-operator">&gt;</span>) <span class="tok-operator">-&gt;</span> <span class="tok-type">Bool</span> {
+    <span class="tok-keyword">return</span> <span class="tok-keyword">query</span>.<span class="tok-function">fold</span>(<span class="tok-keyword">fn</span>(q) <span class="tok-operator">=&gt;</span> <span class="tok-function">member</span>(keys, q), <span class="tok-keyword">fn</span>(unit) <span class="tok-operator">=&gt;</span> <span class="tok-constant">false</span>);
+}
+</code></pre></div><p>Using the prepared-call interface above to bind <code>keys</code>, <code>None</code> builds no index;
+the first reached <code>Some</code> builds it, and later queries reuse it. Capturing a complete
+immutable <code>Some</code> or <code>Ok</code> value also fixes its payload. An uncaptured sum keeps its
+payload changing. This lets a fixed model structure remain reusable through
+fallible helpers while weights and inputs still require fresh computation.</p>
+<p>The receiver runs once, unvisited arms remain lazy, thrown failures retry, and
+owned values retain ordinary execution and loan checks. Bounded work analysis can
+skip optional preparation; it grants no proof or measured profitability. This
+pure-call CLI capability is ahead of the pinned playground. The matched study
+retains both large repeated-work gains and a 3–4% complex-text regression; deeper
+representation and helper optimization remain open.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md">Execution contract and captured-payload example</a> ·
+<a href="./performance.html#optional-and-result-callback-preparation">Measurements and validation</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/813867210c78a61d8cc7f6682820067ca6815539">Editor 8138672</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

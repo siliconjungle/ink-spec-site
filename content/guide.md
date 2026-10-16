@@ -846,3 +846,36 @@ wins alongside small-case losses and extra retained memory; neural and text
 controls still expose substantial gaps.
 [Execution contract and runnable source](https://github.com/siliconjungle/ink-lang/blob/509441c691e83e6f607c87049f01d883f0cc0996/docs/prepared-loop-callbacks.md) ·
 [Measured gains and remaining gaps](./performance.html#sequential-callback-preparation).
+
+## Prepare through optional and result branches
+
+The current CLI also carries captured immutable data through `Option.fold`,
+`Option.map`, `Result.fold`, `Result.map` and `Result.map_err` callbacks. A changing
+optional query can reuse an index built from fixed keys:
+
+```text
+module optional_index;
+fn member(keys:List<u32>,query:u32)->Bool {
+    let index:Map<u32,Bool>=foldr(keys,Map.empty(),fn(k)=>fn(m)=>m.set(k,true));
+    return index.contains(query);
+}
+fn selected(keys:List<u32>,query:Option<u32>)->Bool {
+    return query.fold(fn(q)=>member(keys,q),fn(unit)=>false);
+}
+```
+
+Using the prepared-call interface above to bind `keys`, `None` builds no index;
+the first reached `Some` builds it, and later queries reuse it. Capturing a complete
+immutable `Some` or `Ok` value also fixes its payload. An uncaptured sum keeps its
+payload changing. This lets a fixed model structure remain reusable through
+fallible helpers while weights and inputs still require fresh computation.
+
+The receiver runs once, unvisited arms remain lazy, thrown failures retry, and
+owned values retain ordinary execution and loan checks. Bounded work analysis can
+skip optional preparation; it grants no proof or measured profitability. This
+pure-call CLI capability is ahead of the pinned playground. The matched study
+retains both large repeated-work gains and a 3–4% complex-text regression; deeper
+representation and helper optimization remain open.
+
+[Execution contract and captured-payload example](https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md) ·
+[Measurements and validation](./performance.html#optional-and-result-callback-preparation).

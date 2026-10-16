@@ -907,6 +907,66 @@ alias/snapshot cases. Required-target histories and browser replay preserve
 results, events and checkpoints, with separate actual GPU kernels. Source tapes
 still execute on CPU hosts. <a href="https://github.com/siliconjungle/ink-lang/blob/66a2c4c6896a5f961e5fa3a3232ad21af8fdedc3/reports/immutable-bindings-2026-10-16/README.md">Complete observations, controls, package pins and
 validation</a>.</p>
+</div></section>
+<section class="chapter" id="optional-and-result-callback-preparation" aria-labelledby="title-optional-and-result-callback-preparation"><h2 id="title-optional-and-result-callback-preparation">Optional and result callback preparation</h2><div class="prose"><p>A later JavaScript emitter can reuse immutable captured work inside selected
+<code>Option</code>/<code>Result</code> callbacks, including captured payloads and partial record fields.
+The same checked source bytes pass through the previous and current emitters.
+Three fresh Node 25.3.0 processes use randomized lane order, 1,536 warm-up calls
+per lane and complete varying array outputs, including materialization and
+consumption. Capture, token setup and first calls are retained separately.</p>
+<p>Pooled median complete calls at 512 fixed inputs, in microseconds:</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Workload behind a changing sum arm</th>
+<th align="right">Previous prepared</th>
+<th align="right">Current prepared</th>
+<th align="right">Direct prepared JS</th>
+<th align="right">Previous/current</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Membership index</td>
+<td align="right">198.09</td>
+<td align="right">1.371</td>
+<td align="right">0.748</td>
+<td align="right">144.5×</td>
+</tr>
+<tr>
+<td>Grouped aggregates</td>
+<td align="right">282.30</td>
+<td align="right">1.942</td>
+<td align="right">0.747</td>
+<td align="right">145.4×</td>
+</tr>
+<tr>
+<td>Numeric coefficient table</td>
+<td align="right">18.45</td>
+<td align="right">1.183</td>
+<td align="right">0.436</td>
+<td align="right">15.6×</td>
+</tr>
+</tbody></table>
+</div><p>These are designed reuse workloads; direct controls remain faster. Ordinary
+512-input calls regress about 1%, 1% and 4.9%. One forced-GC observation records
+60,408 additional retained heap bytes and first singleton work increasing from
+0.480 to 0.591 ms. Those observations establish neither allocation counts nor
+memory bounds, and short sessions may lose on preparation costs.</p>
+<p>The simple text counter improves about 1.8% at 512 segments, from 9.460 to
+9.288 µs; pinned Pretext takes 0.783 µs. The complex walker regresses 3.3–4.1%
+across six fresh alternating-order processes and still takes roughly 24–26× the
+upstream time. Record/helper execution and deeper representation specialization
+remain performance targets. No neural speed gain is claimed for this change.</p>
+<p>All 54 standalone JavaScript tests pass. New coverage compares 111 independent
+reference cases through 6,660 prepared calls across two physical sum layouts and
+both F32 carriers. A distribution fixture compares 112 observations on native
+Rust, JavaScript, Rust-Wasm and the native GPU host, plus 672 prepared JS calls.
+One numeric control confirms actual device execution; sum preparation itself
+remains a JavaScript feature. Complete complex geometry and changing-weight
+neural controls preserve their independent results. These checks do not prove
+the complete compiler or establish upstream performance parity.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/reports/prepared-sums-2026-10-16/README.md">Exact sources, raw samples, lifecycle costs and validation</a> ·
+<a href="https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md">Execution contract</a>.</p>
 </div></section></div>
 <footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="https://github.com/siliconjungle/ink-lang/tree/ede1da12f4adefbb89ea5c91bc13670745d50027">Language ede1da1</a><a href="https://github.com/siliconjungle/ink-environment/tree/813867210c78a61d8cc7f6682820067ca6815539">Editor 8138672</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>

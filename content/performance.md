@@ -658,3 +658,44 @@ alias/snapshot cases. Required-target histories and browser replay preserve
 results, events and checkpoints, with separate actual GPU kernels. Source tapes
 still execute on CPU hosts. [Complete observations, controls, package pins and
 validation](https://github.com/siliconjungle/ink-lang/blob/66a2c4c6896a5f961e5fa3a3232ad21af8fdedc3/reports/immutable-bindings-2026-10-16/README.md).
+
+## Optional and result callback preparation
+
+A later JavaScript emitter can reuse immutable captured work inside selected
+`Option`/`Result` callbacks, including captured payloads and partial record fields.
+The same checked source bytes pass through the previous and current emitters.
+Three fresh Node 25.3.0 processes use randomized lane order, 1,536 warm-up calls
+per lane and complete varying array outputs, including materialization and
+consumption. Capture, token setup and first calls are retained separately.
+
+Pooled median complete calls at 512 fixed inputs, in microseconds:
+
+| Workload behind a changing sum arm | Previous prepared | Current prepared | Direct prepared JS | Previous/current |
+| --- | ---: | ---: | ---: | ---: |
+| Membership index | 198.09 | 1.371 | 0.748 | 144.5× |
+| Grouped aggregates | 282.30 | 1.942 | 0.747 | 145.4× |
+| Numeric coefficient table | 18.45 | 1.183 | 0.436 | 15.6× |
+
+These are designed reuse workloads; direct controls remain faster. Ordinary
+512-input calls regress about 1%, 1% and 4.9%. One forced-GC observation records
+60,408 additional retained heap bytes and first singleton work increasing from
+0.480 to 0.591 ms. Those observations establish neither allocation counts nor
+memory bounds, and short sessions may lose on preparation costs.
+
+The simple text counter improves about 1.8% at 512 segments, from 9.460 to
+9.288 µs; pinned Pretext takes 0.783 µs. The complex walker regresses 3.3–4.1%
+across six fresh alternating-order processes and still takes roughly 24–26× the
+upstream time. Record/helper execution and deeper representation specialization
+remain performance targets. No neural speed gain is claimed for this change.
+
+All 54 standalone JavaScript tests pass. New coverage compares 111 independent
+reference cases through 6,660 prepared calls across two physical sum layouts and
+both F32 carriers. A distribution fixture compares 112 observations on native
+Rust, JavaScript, Rust-Wasm and the native GPU host, plus 672 prepared JS calls.
+One numeric control confirms actual device execution; sum preparation itself
+remains a JavaScript feature. Complete complex geometry and changing-weight
+neural controls preserve their independent results. These checks do not prove
+the complete compiler or establish upstream performance parity.
+
+[Exact sources, raw samples, lifecycle costs and validation](https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/reports/prepared-sums-2026-10-16/README.md) ·
+[Execution contract](https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md).
