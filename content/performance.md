@@ -98,6 +98,22 @@ training remain open.
 
 [Complete plan, all samples, corpus receipts, source reproduction and limits](https://github.com/siliconjungle/ink-lang/blob/5797083782134538d9b069ea72177a718128fd8f/reports/composed-frozen-graph-2026-10-17/README.md).
 
+## Mutable graph specialization validation
+
+A staged branch can now be specialized while its graph and weights remain
+mutable. The authored guard retains the generic evaluator for other graph shapes.
+The 32-node owned F32 case passes 335 reference/Rust/JavaScript/Wasm observations,
+including events, rollback, exact snapshots and six restores. Seeded JavaScript
+startup also matches. The combined standalone core passes 501 tests across 83
+integration targets.
+
+These are correctness results. Latency, memory, guard cost and lifecycle
+profitability for this mutable-graph path have not been measured. The earlier
+frozen-graph ratios above do not establish its performance. Automatic guard
+insertion and profitable learned representation selection remain open.
+
+[Complete replayable evidence and limits](https://github.com/siliconjungle/ink-lang/blob/7e3b35353b5dc37e988e2e67f578f1508c3a2ed0/reports/mutable-function-specialization-2026-10-17/summary.json).
+
 ## Exact JavaScript constants and checker follow-up
 
 Pure JavaScript modules now emit finite F32 constants directly as their exact

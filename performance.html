@@ -133,6 +133,18 @@ JavaScript/Rust image byte for byte. General mutable-graph staging and device
 training remain open.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/5797083782134538d9b069ea72177a718128fd8f/reports/composed-frozen-graph-2026-10-17/README.md">Complete plan, all samples, corpus receipts, source reproduction and limits</a>.</p>
 </div></section>
+<section class="chapter" id="mutable-graph-specialization-validation" aria-labelledby="title-mutable-graph-specialization-validation"><h2 id="title-mutable-graph-specialization-validation">Mutable graph specialization validation</h2><div class="prose"><p>A staged branch can now be specialized while its graph and weights remain
+mutable. The authored guard retains the generic evaluator for other graph shapes.
+The 32-node owned F32 case passes 335 reference/Rust/JavaScript/Wasm observations,
+including events, rollback, exact snapshots and six restores. Seeded JavaScript
+startup also matches. The combined standalone core passes 501 tests across 83
+integration targets.</p>
+<p>These are correctness results. Latency, memory, guard cost and lifecycle
+profitability for this mutable-graph path have not been measured. The earlier
+frozen-graph ratios above do not establish its performance. Automatic guard
+insertion and profitable learned representation selection remain open.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/7e3b35353b5dc37e988e2e67f578f1508c3a2ed0/reports/mutable-function-specialization-2026-10-17/summary.json">Complete replayable evidence and limits</a>.</p>
+</div></section>
 <section class="chapter" id="exact-javascript-constants-and-checker-follow-up" aria-labelledby="title-exact-javascript-constants-and-checker-follow-up"><h2 id="title-exact-javascript-constants-and-checker-follow-up">Exact JavaScript constants and checker follow-up</h2><div class="prose"><p>Pure JavaScript modules now emit finite F32 constants directly as their exact
 binary64 values. Nonfinite values retain bit constructors; arithmetic rounding
 and stateful bit carriers are unchanged. Six alternating Node process pairs

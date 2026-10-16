@@ -495,6 +495,30 @@ Rust workload and slower in JavaScript; the projected loop wins there instead.
 [Composed graph variants and exact results](./performance.html#composed-graph-variants-across-backends)
 show why a checked rewrite and a profitable backend choice are separate decisions.
 
+## Specialize branches in a mutable graph
+
+The current CLI can specialize a pure function's closed call arguments while its
+other inputs remain live. An authored structural guard can send a matching graph
+to that staged branch and use the generic evaluator for other graphs. Code and
+weights can both keep changing at runtime.
+
+```sh
+python3 knowledge/producers/function_specialization.py build/source.core.json \
+  --functions chosen --ink target/debug/ink -o build/variants.plan.json
+ink compile build/source.core.json --core --plan build/variants.plan.json \
+  --target javascript -o build/selected.mjs
+```
+
+Every changed function requires a source-bound equality for every input, after
+ordinary helper admission. The mutable 32-node owned graph matches 335 complete
+reference/Rust/JavaScript/Wasm outcomes and six restores; seeded JavaScript startup
+also matches. The combined core passes 501 tests. Automatic guard insertion and
+measured profitable selection remain further work. This describes the current
+CLI; the browser editor retains its separate pin.
+
+[Function proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/7e3b35353b5dc37e988e2e67f578f1508c3a2ed0/docs/modular-action-projection.md#pure-function-correspondence) ·
+[Complete source, proof and validation evidence](https://github.com/siliconjungle/ink-lang/blob/7e3b35353b5dc37e988e2e67f578f1508c3a2ed0/reports/mutable-function-specialization-2026-10-17/summary.json).
+
 ## Compile structure, keep learning weights
 
 Program structure and numeric parameters can have separate degrees of freedom.
