@@ -52,6 +52,45 @@ histories and 93 browser observations with an actual eligible WebGPU call.
 Stateful work remains on the host. <a href="./guide.html#learn-a-program-structure">Learned choices and objectives</a> ·
 <a href="https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/reports/frozen-structure-2026-10-16/README.md">Exact artifacts, raw samples, setup costs and limits</a>.</p>
 </div></section>
+<section class="chapter" id="owned-graph-state-projection" aria-labelledby="title-owned-graph-state-projection"><h2 id="title-owned-graph-state-projection">Owned graph state projection</h2><div class="prose"><p>A new knowledge recipe proves that a fold can use smaller working state. In one
+32-instruction F32 graph, it removes an unused total and carries the node-value
+buffer directly. Numeric weights remain live; the checked plan retains the
+original program&#39;s checkpoint namespace.</p>
+<p>Six alternating fresh Node 22.22.1 process pairs measure 250,000 requests after
+10,000 warmup requests per workload. Every returned value contributes to the
+checksum, and final exact snapshots match. Median paired speedups are:</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Workload</th>
+<th align="right">Baseline / projected time</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Read only</td>
+<td align="right">1.14×</td>
+</tr>
+<tr>
+<td>Weight update every eight reads</td>
+<td align="right">1.15×</td>
+</tr>
+<tr>
+<td>Weight update every read</td>
+<td align="right">1.20×</td>
+</tr>
+</tbody></table>
+</div><p>One pair has substantial timing noise, including a 0.37× loss. Every raw sample
+is retained. The earlier unrolled record layout was slower in its two-process
+pilot; projecting and unrolling together still exhausts proof resources at the
+tested owned leaf widths. These are workload-specific observations, with no
+Handwired parity claim or automatically enabled selection.</p>
+<p>The U32 source example passes 111 reference/native Rust/JavaScript/Wasm action
+comparisons, including events, rollback and exact checkpoints. The F32 projection
+matches 175 independent reference histories. The bounded checker extension has
+486 passing standalone core tests; implementations and the toolchain remain
+trusted. This is not device-training or general neural-graph coverage.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/b5f6d9373ab5518ca26c2788b338057c115763e6/reports/owned-graph-projection-2026-10-17/README.md">All samples, slower pilot, source/proof artifacts and limits</a>.</p>
+</div></section>
 <section class="chapter" id="whole-neural-computation-proof-capacity" aria-labelledby="title-whole-neural-computation-proof-capacity"><h2 id="title-whole-neural-computation-proof-capacity">Whole neural computation proof capacity</h2><div class="prose"><p>The staged 244-parameter neural application now exports all six actions, including
 mutable optimizer/control state, as 316 ordinary checked mathematical definitions.
 The complete canonical model is 5,073,076 bytes. These are proof-data counts and

@@ -464,6 +464,25 @@ targets; three retained source-bound compiled artifacts also replay with it.
 This describes the current CLI; the embedded browser editor retains its separately
 pinned distribution.
 
+## Compile smaller working state
+
+The current CLI can propose a smaller working representation while a model's
+weights keep changing. If a fold carries node values and a running total, but
+only the node values affect its result, a checked alternative can carry just the
+values. It removes the unused field's record storage and arithmetic at each step.
+
+This requires a proof for every possible step and state. A training trace or a
+field-liveness guess cannot authorize the change. The source function is rewritten
+once, so its ordinary and transactional callers share the smaller implementation;
+events, rollback and portable checkpoints retain their contracts.
+
+This is an ordinary source/proof transformation using the existing syntax, with
+no special neural instruction. Automatic selection still requires performance
+evidence. The embedded browser editor retains its separately pinned distribution.
+
+[Source example, proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/b5f6d9373ab5518ca26c2788b338057c115763e6/docs/fold-state-projection.md) ·
+[Measurements and complete validation](./performance.html#owned-graph-state-projection).
+
 ## Compile structure, keep learning weights
 
 Program structure and numeric parameters can have separate degrees of freedom.

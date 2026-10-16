@@ -345,6 +345,20 @@ targets; three retained source-bound compiled artifacts also replay with it.</p>
 This describes the current CLI; the embedded browser editor retains its separately
 pinned distribution.</p>
 </div></section>
+<section class="chapter" id="compile-smaller-working-state" aria-labelledby="title-compile-smaller-working-state"><h2 id="title-compile-smaller-working-state">Compile smaller working state</h2><div class="prose"><p>The current CLI can propose a smaller working representation while a model&#39;s
+weights keep changing. If a fold carries node values and a running total, but
+only the node values affect its result, a checked alternative can carry just the
+values. It removes the unused field&#39;s record storage and arithmetic at each step.</p>
+<p>This requires a proof for every possible step and state. A training trace or a
+field-liveness guess cannot authorize the change. The source function is rewritten
+once, so its ordinary and transactional callers share the smaller implementation;
+events, rollback and portable checkpoints retain their contracts.</p>
+<p>This is an ordinary source/proof transformation using the existing syntax, with
+no special neural instruction. Automatic selection still requires performance
+evidence. The embedded browser editor retains its separately pinned distribution.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/b5f6d9373ab5518ca26c2788b338057c115763e6/docs/fold-state-projection.md">Source example, proof contract and limits</a> ·
+<a href="./performance.html#owned-graph-state-projection">Measurements and complete validation</a>.</p>
+</div></section>
 <section class="chapter" id="compile-structure-keep-learning-weights" aria-labelledby="title-compile-structure-keep-learning-weights"><h2 id="title-compile-structure-keep-learning-weights">Compile structure, keep learning weights</h2><div class="prose"><p>Program structure and numeric parameters can have separate degrees of freedom.
 The current CLI can freeze an operation sequence while leaving its weights
 trainable. In the eight-operation example, the serving action loses its list

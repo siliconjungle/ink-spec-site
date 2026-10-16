@@ -33,6 +33,37 @@ histories and 93 browser observations with an actual eligible WebGPU call.
 Stateful work remains on the host. [Learned choices and objectives](./guide.html#learn-a-program-structure) ·
 [Exact artifacts, raw samples, setup costs and limits](https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/reports/frozen-structure-2026-10-16/README.md).
 
+## Owned graph state projection
+
+A new knowledge recipe proves that a fold can use smaller working state. In one
+32-instruction F32 graph, it removes an unused total and carries the node-value
+buffer directly. Numeric weights remain live; the checked plan retains the
+original program's checkpoint namespace.
+
+Six alternating fresh Node 22.22.1 process pairs measure 250,000 requests after
+10,000 warmup requests per workload. Every returned value contributes to the
+checksum, and final exact snapshots match. Median paired speedups are:
+
+| Workload | Baseline / projected time |
+| --- | ---: |
+| Read only | 1.14× |
+| Weight update every eight reads | 1.15× |
+| Weight update every read | 1.20× |
+
+One pair has substantial timing noise, including a 0.37× loss. Every raw sample
+is retained. The earlier unrolled record layout was slower in its two-process
+pilot; projecting and unrolling together still exhausts proof resources at the
+tested owned leaf widths. These are workload-specific observations, with no
+Handwired parity claim or automatically enabled selection.
+
+The U32 source example passes 111 reference/native Rust/JavaScript/Wasm action
+comparisons, including events, rollback and exact checkpoints. The F32 projection
+matches 175 independent reference histories. The bounded checker extension has
+486 passing standalone core tests; implementations and the toolchain remain
+trusted. This is not device-training or general neural-graph coverage.
+
+[All samples, slower pilot, source/proof artifacts and limits](https://github.com/siliconjungle/ink-lang/blob/b5f6d9373ab5518ca26c2788b338057c115763e6/reports/owned-graph-projection-2026-10-17/README.md).
+
 ## Whole neural computation proof capacity
 
 The staged 244-parameter neural application now exports all six actions, including
