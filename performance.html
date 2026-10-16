@@ -6,6 +6,47 @@
 <div id="performance" class="chapters"><section class="chapter" id="read-the-comparisons" aria-labelledby="title-read-the-comparisons"><h2 id="title-read-the-comparisons">Read the comparisons</h2><div class="prose"><p>Every result needs a baseline. Adding knowledge to a fixed compiler, improving the compiler itself and comparing with another library answer different questions. Their speedup factors should not be multiplied together.</p>
 <p>The results below retain separate published experiments. Each report retains its acquisition date, source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.</p>
 </div></section>
+<section class="chapter" id="exact-float-arithmetic-in-learning-workloads" aria-labelledby="title-exact-float-arithmetic-in-learning-workloads"><h2 id="title-exact-float-arithmetic-in-learning-workloads">Exact float arithmetic in learning workloads</h2><div class="prose"><p>Stateful JavaScript now removes redundant conversions between F32 arithmetic
+operations. Every operation retains its original grouping and F32 rounding;
+stored values, snapshots and observable float bits keep their exact contract.
+The same mechanism applies to helpers, queries and actions without new syntax.</p>
+<p>Six paired fresh-process measurements on each of two 244-weight neural examples
+give these median baseline/new time ratios on a shared macOS arm64 host with
+Node 22.22.1. A ratio above one favors the new emitter.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Workload</th>
+<th align="right">Ratio</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Complete neural training, 0 / 4 / 16 predictions between updates</td>
+<td align="right">1.235× / 1.217× / 1.179×</td>
+</tr>
+<tr>
+<td>Training with prepared defaults, same read cadences</td>
+<td align="right">1.161× / 1.134× / 1.152×</td>
+</tr>
+<tr>
+<td>Prediction through public / bound calls</td>
+<td align="right">1.000× / 1.001×</td>
+</tr>
+<tr>
+<td>Prepared-default prediction, public / bound calls</td>
+<td align="right">1.026× / 1.009×</td>
+</tr>
+</tbody></table>
+</div><p>Each process first validates complete reference outcomes and checkpoints, plus
+independent dense predictions. The complete JavaScript suite passes 60 tests;
+the added cross-target history matches 772 outcomes across reference, Rust,
+JavaScript and Wasm, including events, rollback and exact snapshots.</p>
+<p>Prediction is mostly unchanged. Tiny workloads sometimes regress, and earlier
+slower prototypes remain recorded. This is a local CPU training improvement,
+not a GPU training or upstream performance parity claim. The measurements are
+not admitted planner evidence and should not be multiplied by other speedups.
+<a href="https://github.com/siliconjungle/ink-lang/blob/53ca9d121970a2d8a828e7c20fdc1219255368d7/reports/rounded-f32-carriers-2026-10-17/README.md">Retained sources, all cohorts, exact controls and auditor</a>.</p>
+</div></section>
 <section class="chapter" id="learned-structure-specialization" aria-labelledby="title-learned-structure-specialization"><h2 id="title-learned-structure-specialization">Learned structure specialization</h2><div class="prose"><p>An explicit frozen learned choice can now specialize its serving computation.
 In the measured example, a choice lookup, representation dispatch and helper call
 collapse to a packed word operation plus a live-row offset. The baseline already

@@ -4,6 +4,35 @@ Every result needs a baseline. Adding knowledge to a fixed compiler, improving t
 
 The results below retain separate published experiments. Each report retains its acquisition date, source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.
 
+## Exact float arithmetic in learning workloads
+
+Stateful JavaScript now removes redundant conversions between F32 arithmetic
+operations. Every operation retains its original grouping and F32 rounding;
+stored values, snapshots and observable float bits keep their exact contract.
+The same mechanism applies to helpers, queries and actions without new syntax.
+
+Six paired fresh-process measurements on each of two 244-weight neural examples
+give these median baseline/new time ratios on a shared macOS arm64 host with
+Node 22.22.1. A ratio above one favors the new emitter.
+
+| Workload | Ratio |
+| --- | ---: |
+| Complete neural training, 0 / 4 / 16 predictions between updates | 1.235× / 1.217× / 1.179× |
+| Training with prepared defaults, same read cadences | 1.161× / 1.134× / 1.152× |
+| Prediction through public / bound calls | 1.000× / 1.001× |
+| Prepared-default prediction, public / bound calls | 1.026× / 1.009× |
+
+Each process first validates complete reference outcomes and checkpoints, plus
+independent dense predictions. The complete JavaScript suite passes 60 tests;
+the added cross-target history matches 772 outcomes across reference, Rust,
+JavaScript and Wasm, including events, rollback and exact snapshots.
+
+Prediction is mostly unchanged. Tiny workloads sometimes regress, and earlier
+slower prototypes remain recorded. This is a local CPU training improvement,
+not a GPU training or upstream performance parity claim. The measurements are
+not admitted planner evidence and should not be multiplied by other speedups.
+[Retained sources, all cohorts, exact controls and auditor](https://github.com/siliconjungle/ink-lang/blob/53ca9d121970a2d8a828e7c20fdc1219255368d7/reports/rounded-f32-carriers-2026-10-17/README.md).
+
 ## Learned structure specialization
 
 An explicit frozen learned choice can now specialize its serving computation.

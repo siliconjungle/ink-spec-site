@@ -393,6 +393,14 @@ projection and specialization to be tested together. In the current JavaScript
 lifecycle comparison, projection alone helps while adding the guard loses on the
 matching graphs. <a href="./performance.html#mutable-graph-specialization-validation">Measurements and remaining work</a>
 show why the planner still needs profitability evidence.</p>
+<p>Stateful JavaScript also keeps adjacent float arithmetic in rounded Number
+intermediates, preserving each source rounding point and exact stored bits.
+This applies to ordinary helpers, queries and learning actions without extra
+annotations. Two neural training examples improve by 1.13–1.24× in repeated local
+measurements; prediction is mostly unchanged. This does not select a learned
+representation or run training on the GPU.
+<a href="./performance.html#exact-float-arithmetic-in-learning-workloads">Measurements and scope</a>
+retain the slower and unchanged cases as well as the gains.</p>
 </div></section>
 <section class="chapter" id="compile-structure-keep-learning-weights" aria-labelledby="title-compile-structure-keep-learning-weights"><h2 id="title-compile-structure-keep-learning-weights">Compile structure, keep learning weights</h2><div class="prose"><p>Program structure and numeric parameters can have separate degrees of freedom.
 The current CLI can freeze an operation sequence while leaving its weights

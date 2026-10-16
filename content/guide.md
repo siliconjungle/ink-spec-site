@@ -529,6 +529,15 @@ lifecycle comparison, projection alone helps while adding the guard loses on the
 matching graphs. [Measurements and remaining work](./performance.html#mutable-graph-specialization-validation)
 show why the planner still needs profitability evidence.
 
+Stateful JavaScript also keeps adjacent float arithmetic in rounded Number
+intermediates, preserving each source rounding point and exact stored bits.
+This applies to ordinary helpers, queries and learning actions without extra
+annotations. Two neural training examples improve by 1.13–1.24× in repeated local
+measurements; prediction is mostly unchanged. This does not select a learned
+representation or run training on the GPU.
+[Measurements and scope](./performance.html#exact-float-arithmetic-in-learning-workloads)
+retain the slower and unchanged cases as well as the gains.
+
 ## Compile structure, keep learning weights
 
 Program structure and numeric parameters can have separate degrees of freedom.
