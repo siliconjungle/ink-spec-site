@@ -306,14 +306,15 @@ learns width × document-length interactions with an authored squared-error upda
 It keeps legal output bounds in fixed code. `ink train SOURCE TRACE.json -o model.snapshot`
 can fit before compilation/deployment and exports a portable checkpoint plus a
 receipt. Runtime feedback invokes the same explicit learning action. The model
-checkpoint loads as data at startup; weights are not yet baked into generated code.
+checkpoint loads as data at startup. An explicit restricted build can instead
+freeze selected roots and specialize their serving computation, as shown below.
 
 The new CLI is ahead of this page's pinned playground distribution. Automatic
 differentiation now propagates through supported pure helpers, structured state
 and bounded loops. Authored reverse graphs and neural libraries are also available;
 source reverse differentiation now supports dynamic parameter lists and structured
 context. Broader source/contract transport, device tape training and automatic
-frozen-weight arithmetic specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
+large-graph specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
 constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md).
 
 Initial numeric preparation also shares invariant tables inside one invocation.
@@ -399,6 +400,36 @@ claim. A broader audit still has historical column-layout fixture failures.
 [Complete CLI example](https://github.com/siliconjungle/ink-lang/blob/4755313b185f070111f40c372fec565f10595a2b/examples/frozen-numeric-structure.ink) ·
 [Configuration trace](https://github.com/siliconjungle/ink-lang/blob/4755313b185f070111f40c372fec565f10595a2b/examples/frozen-numeric-structure-training.json) ·
 [Proofs, execution checks and limits](https://github.com/siliconjungle/ink-lang/blob/4755313b185f070111f40c372fec565f10595a2b/reports/frozen-numeric-structure-2026-10-16/README.md).
+
+## Compile structure, keep learning weights
+
+Program structure and numeric parameters can have separate degrees of freedom.
+The current CLI can freeze an operation sequence while leaving its weights
+trainable. In the eight-operation example, the serving action loses its list
+traversal, helper call and opcode dispatch. Each request still reads fresh weights
+and live application data; learning actions can keep updating those weights.
+
+```sh
+ink build-model examples/frozen-program.ink examples/frozen-program-training.json \
+    --freeze-roots Structure --specialize-frozen \
+    --target javascript -o build/frozen-program
+ink verify-model build/frozen-program --replay
+```
+
+Freezing withdraws the structure writer. Ordinary complete action proofs must
+validate the specialization; dynamic ReLU decisions, F32 order, failed updates,
+events and portable checkpoints retain their meaning. The supplied trace explicitly
+configures the sequence. It does not demonstrate fitting that sequence.
+
+The final JavaScript serving path measured 1.57× faster in six paired processes,
+or 1.13× with a weight update every request. The proof-bearing package is larger,
+and general neural graphs, large frozen structures and learned physical/device
+choices remain further work. This is explicit CLI specialization; the pinned
+browser editor remains on its separately documented distribution.
+
+[Complete operation-sequence example](https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/examples/frozen-program.ink) ·
+[Measurements, costs and source checks](./performance.html#frozen-program-with-live-weights) ·
+[Proof domain and remaining limits](https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/docs/frozen-structural-specialization.md#compile-a-frozen-program-while-weights-remain-trainable).
 
 ## Give the planner an authored goal
 

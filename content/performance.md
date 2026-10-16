@@ -33,6 +33,52 @@ histories and 93 browser observations with an actual eligible WebGPU call.
 Stateful work remains on the host. [Learned choices and objectives](./guide.html#learn-a-program-structure) ·
 [Exact artifacts, raw samples, setup costs and limits](https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/reports/frozen-structure-2026-10-16/README.md).
 
+## Frozen program with live weights
+
+An eight-operation F32 program can now compile its frozen operation sequence into
+straight-line serving code while its numeric weights remain trainable. Complete
+typed, in-memory JavaScript bound state calls use changing inputs; update phases
+include learning-action execution and event acknowledgement. Every variant must
+match complete result checksums and portable checkpoints.
+
+Six fresh processes on one macOS arm64 host with Node 25.3.0 alternate variant
+order. Each process records five warm samples of 25,000 requests per phase.
+Values below are geometric means of process medians; setup and checking are
+outside these warm serving measurements.
+
+| Weight updates | Baseline ns/request | Selected ns/request | Speedup | Paired range |
+| --- | ---: | ---: | ---: | ---: |
+| None | 162.86 | 103.58 | 1.572× | 1.364–1.711× |
+| Every request | 482.11 | 426.86 | 1.129× | 1.061–1.228× |
+| Every 16 requests | 165.86 | 116.87 | 1.419× | 1.380–1.508× |
+| Every 256 requests | 142.03 | 95.96 | 1.480× | 1.415–1.604× |
+
+Unrolling initially made the same serving workload slower: 136.83 versus 155.80
+ns/request, or 0.878×. General JavaScript binding placement removed nested function
+wrappers and produced the final gain. The report retains both acquisitions, all
+processes and the unchanged selected core. Simpler source alone does not prove
+profitable execution.
+
+The complete package grows from 295,553 baseline bytes to 1,330,441 selected bytes
+because it retains portable proofs and source metadata. Compact checked proofs
+reduced the earlier selected package from 2,102,244 bytes. Generated JavaScript
+source remains similar in size. Startup and separate heap/RSS diagnostics do not
+establish a cold-start or memory improvement; single build observations do not
+establish a compilation-cost advantage.
+
+Independent validation includes 446 private core tests, 57 JavaScript tests and
+144 cross-target observations with exact checkpoints. One eligible pure control
+runs on GPU; stateful serving and training remain on the host. A fresh committed
+compiler/package checkout reproduces executable images and startup state byte for
+byte. This is finite implementation evidence, not whole-compiler correctness.
+
+This configured sequence does not demonstrate learned opcode selection, large
+neural graph compilation or upstream neural/GPU performance parity. Automatic
+selection still needs comparable lifecycle evidence.
+
+[Compile structure while weights stay live](./guide.html#compile-structure-keep-learning-weights) ·
+[Exact artifacts, raw samples, regression and costs](https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/reports/frozen-program-2026-10-16/README.md).
+
 ## Ordered query expressions
 
 

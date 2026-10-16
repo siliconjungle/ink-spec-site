@@ -52,6 +52,76 @@ histories and 93 browser observations with an actual eligible WebGPU call.
 Stateful work remains on the host. <a href="./guide.html#learn-a-program-structure">Learned choices and objectives</a> ·
 <a href="https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/reports/frozen-structure-2026-10-16/README.md">Exact artifacts, raw samples, setup costs and limits</a>.</p>
 </div></section>
+<section class="chapter" id="frozen-program-with-live-weights" aria-labelledby="title-frozen-program-with-live-weights"><h2 id="title-frozen-program-with-live-weights">Frozen program with live weights</h2><div class="prose"><p>An eight-operation F32 program can now compile its frozen operation sequence into
+straight-line serving code while its numeric weights remain trainable. Complete
+typed, in-memory JavaScript bound state calls use changing inputs; update phases
+include learning-action execution and event acknowledgement. Every variant must
+match complete result checksums and portable checkpoints.</p>
+<p>Six fresh processes on one macOS arm64 host with Node 25.3.0 alternate variant
+order. Each process records five warm samples of 25,000 requests per phase.
+Values below are geometric means of process medians; setup and checking are
+outside these warm serving measurements.</p>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
+<thead>
+<tr>
+<th>Weight updates</th>
+<th align="right">Baseline ns/request</th>
+<th align="right">Selected ns/request</th>
+<th align="right">Speedup</th>
+<th align="right">Paired range</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>None</td>
+<td align="right">162.86</td>
+<td align="right">103.58</td>
+<td align="right">1.572×</td>
+<td align="right">1.364–1.711×</td>
+</tr>
+<tr>
+<td>Every request</td>
+<td align="right">482.11</td>
+<td align="right">426.86</td>
+<td align="right">1.129×</td>
+<td align="right">1.061–1.228×</td>
+</tr>
+<tr>
+<td>Every 16 requests</td>
+<td align="right">165.86</td>
+<td align="right">116.87</td>
+<td align="right">1.419×</td>
+<td align="right">1.380–1.508×</td>
+</tr>
+<tr>
+<td>Every 256 requests</td>
+<td align="right">142.03</td>
+<td align="right">95.96</td>
+<td align="right">1.480×</td>
+<td align="right">1.415–1.604×</td>
+</tr>
+</tbody></table>
+</div><p>Unrolling initially made the same serving workload slower: 136.83 versus 155.80
+ns/request, or 0.878×. General JavaScript binding placement removed nested function
+wrappers and produced the final gain. The report retains both acquisitions, all
+processes and the unchanged selected core. Simpler source alone does not prove
+profitable execution.</p>
+<p>The complete package grows from 295,553 baseline bytes to 1,330,441 selected bytes
+because it retains portable proofs and source metadata. Compact checked proofs
+reduced the earlier selected package from 2,102,244 bytes. Generated JavaScript
+source remains similar in size. Startup and separate heap/RSS diagnostics do not
+establish a cold-start or memory improvement; single build observations do not
+establish a compilation-cost advantage.</p>
+<p>Independent validation includes 446 private core tests, 57 JavaScript tests and
+144 cross-target observations with exact checkpoints. One eligible pure control
+runs on GPU; stateful serving and training remain on the host. A fresh committed
+compiler/package checkout reproduces executable images and startup state byte for
+byte. This is finite implementation evidence, not whole-compiler correctness.</p>
+<p>This configured sequence does not demonstrate learned opcode selection, large
+neural graph compilation or upstream neural/GPU performance parity. Automatic
+selection still needs comparable lifecycle evidence.</p>
+<p><a href="./guide.html#compile-structure-keep-learning-weights">Compile structure while weights stay live</a> ·
+<a href="https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/reports/frozen-program-2026-10-16/README.md">Exact artifacts, raw samples, regression and costs</a>.</p>
+</div></section>
 <section class="chapter" id="ordered-query-expressions" aria-labelledby="title-ordered-query-expressions"><h2 id="title-ordered-query-expressions">Ordered query expressions</h2><div class="prose"><p>The first ordered-query milestone compares query syntax, ordinary Ink pipelines/loops and handwritten Rust/JavaScript controls. The following held-out times are microseconds per complete warm call including output consumption, using three fresh processes and eleven samples per process on one macOS arm64 host.</p>
 <div class="table-scroll" role="region" tabindex="0" aria-label="Documentation table"><table>
 <thead>
