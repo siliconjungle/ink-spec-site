@@ -1158,6 +1158,26 @@ representation and helper optimization remain open.
 [Execution contract and captured-payload example](https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md) ·
 [Measurements and validation](./performance.html#optional-and-result-callback-preparation).
 
+## Specialize prepared computation structure
+
+Explicit frozen builds can now follow closed `keep` values through known
+`Option`/`Result` branches and successful `?` operations. This lets prepared
+algorithm or model structure reach the same checked helper-composition path as
+an explicitly supplied operation list, while weights and inputs stay dynamic.
+
+Closed pure-function evaluation supplies candidate literals; complete action
+proofs must still establish every replacement. Changing state reads and strict
+defaults retain ordinary execution. If one training action exceeds the existing
+specialization limits, its original implementation remains available.
+
+The prepared Result/list case works through complete proof replay and execution
+with changing weights. The larger 232-node network now produces a source-checked
+helper proposal, but its complete proof construction still reaches a work limit;
+that full-network specialized executable remains unfinished. This is a
+functionality milestone, with no new performance claim.
+
+[Build interface, guarantees and remaining limits](https://github.com/siliconjungle/ink-lang/blob/9bb7627584f64641c62f9cc885e6f55518ef061a/docs/frozen-composition.md).
+
 ## Keep record fields local through helpers
 
 The latest CLI can keep immutable record fields in local variables through

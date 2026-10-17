@@ -909,6 +909,21 @@ representation and helper optimization remain open.</p>
 <p><a href="https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md">Execution contract and captured-payload example</a> ·
 <a href="./performance.html#optional-and-result-callback-preparation">Measurements and validation</a>.</p>
 </div></section>
+<section class="chapter" id="specialize-prepared-computation-structure" aria-labelledby="title-specialize-prepared-computation-structure"><h2 id="title-specialize-prepared-computation-structure">Specialize prepared computation structure</h2><div class="prose"><p>Explicit frozen builds can now follow closed <code>keep</code> values through known
+<code>Option</code>/<code>Result</code> branches and successful <code>?</code> operations. This lets prepared
+algorithm or model structure reach the same checked helper-composition path as
+an explicitly supplied operation list, while weights and inputs stay dynamic.</p>
+<p>Closed pure-function evaluation supplies candidate literals; complete action
+proofs must still establish every replacement. Changing state reads and strict
+defaults retain ordinary execution. If one training action exceeds the existing
+specialization limits, its original implementation remains available.</p>
+<p>The prepared Result/list case works through complete proof replay and execution
+with changing weights. The larger 232-node network now produces a source-checked
+helper proposal, but its complete proof construction still reaches a work limit;
+that full-network specialized executable remains unfinished. This is a
+functionality milestone, with no new performance claim.</p>
+<p><a href="https://github.com/siliconjungle/ink-lang/blob/9bb7627584f64641c62f9cc885e6f55518ef061a/docs/frozen-composition.md">Build interface, guarantees and remaining limits</a>.</p>
+</div></section>
 <section class="chapter" id="keep-record-fields-local-through-helpers" aria-labelledby="title-keep-record-fields-local-through-helpers"><h2 id="title-keep-record-fields-local-through-helpers">Keep record fields local through helpers</h2><div class="prose"><p>The latest CLI can keep immutable record fields in local variables through
 JavaScript value loops and bounded pure helpers. Conditional results inside an
 expanded helper can merge their fields directly. The source keeps its ordinary
