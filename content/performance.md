@@ -4,6 +4,38 @@ Every result needs a baseline. Adding knowledge to a fixed compiler, improving t
 
 The results below retain separate published experiments. Each report retains its acquisition date, source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.
 
+## Working records in graph and training loops
+
+The JavaScript emitter now keeps working-record fields in local variables across
+bounded helpers and ordered folds, including records that own buffers or maps.
+Source moves, readonly loans, float rounding and logical snapshots stay checked.
+This removes per-step wrapper allocations without new source syntax.
+
+Six paired fresh-process runs per study compare the same checked source before
+and after this change on a shared macOS arm64 host with Node 22.22.1. Ratios above
+one favor the new emitter. The prepared neural example has two repeated studies.
+
+| Workload | Prepared study 1 | Prepared study 2 | Earlier defaults |
+| --- | ---: | ---: | ---: |
+| Prediction, public / bound calls | 1.197× / 1.220× | 1.299× / 1.316× | 1.307× / 1.310× |
+| Training, 0 / 4 / 16 predictions per observation | 1.305× / 1.289× / 1.316× | 1.294× / 1.271× / 1.345× | 1.321× / 1.297× / 1.358× |
+
+The generic mutable-graph study also improves about 1.14× for one input and
+1.08× for 64; empty work is roughly unchanged. Each graph process first checks
+96 finite values and 335 complete reference outcomes. Each neural process checks
+27 complete outcomes/snapshots and sixteen independent dense predictions, then
+compares complete training feedback, events and checkpoints.
+
+An adverse process in prepared study 1 has training ratios around 0.58–0.63.
+It remains recorded; its cause is unresolved. Every pair improves in study 2.
+The standalone package passes all 61 tests, and a new required CPU history matches
+1,251 reference/Rust/JavaScript/Wasm outcomes with exact snapshots.
+
+These measurements start from the rounded-F32 baseline below: the speedup factors
+must not be multiplied. They are shared-host observations, not automatic planner
+evidence, a universal latency guarantee, device training or upstream parity.
+[All sources, preliminary and adverse cohorts, exact controls and auditor](https://github.com/siliconjungle/ink-lang/blob/96979a8561fb885fbcaff9c0ac6f420ac1127b2c/reports/affine-record-carriers-2026-10-17/README.md).
+
 ## Exact float arithmetic in learning workloads
 
 Stateful JavaScript now removes redundant conversions between F32 arithmetic

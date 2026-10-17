@@ -538,6 +538,14 @@ representation or run training on the GPU.
 [Measurements and scope](./performance.html#exact-float-arithmetic-in-learning-workloads)
 retain the slower and unchanged cases as well as the gains.
 
+Working records that own buffers or maps can also stay in local fields across
+bounded helpers and ordered folds. The source's ownership and readonly loans
+still apply, and fold updates remain simultaneous. This helps graph and training
+loops avoid rebuilding a record at every step. The complete package passes 61
+tests; a new required CPU history checks 1,251 complete outcomes across reference,
+Rust, JavaScript and Wasm. [Repeated measurements and remaining limits](./performance.html#working-records-in-graph-and-training-loops)
+include adverse processes and do not establish upstream performance parity.
+
 ## Compile structure, keep learning weights
 
 Program structure and numeric parameters can have separate degrees of freedom.
