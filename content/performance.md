@@ -4,6 +4,37 @@ Every result needs a baseline. Adding knowledge to a fixed compiler, improving t
 
 The results below retain separate published experiments. Each report retains its acquisition date, source revisions, inputs and controls. Updating the documentation or planner does not rerun those experiments.
 
+## Direct Buffer and Map helpers
+
+Small helpers with checked owned parameters can now expand without an already
+split record argument. This lets graph evaluation and adjoint updates cross more
+helper boundaries while retaining private buffer/map handles, source moves,
+readonly loans and shared caller Lists. Expansion limits and the public ABI stay
+the same; recursive and oversized helpers keep ordinary calls.
+
+Two studies each use six paired fresh processes on the same 244-weight neural
+source, checkpoint and inputs. Ratios above one favor the new JavaScript emitter.
+
+| Complete workload | Study 1 | Study 2 |
+| --- | ---: | ---: |
+| Prediction, public / bound calls | 1.185× / 1.150× | 1.135× / 1.145× |
+| Training, 0 / 4 / 16 predictions per observation | 1.040× / 0.949× / 1.058× | 1.022× / 1.167× / 1.161× |
+
+Prediction improves in every pair. Training is mixed: the four-read cadence loses
+in study 1 and improves in study 2. All samples remain recorded, with no established
+cause for the variation. The module grows about 5%; import time and whole-process
+peak RSS remain in the raw data. These shared-host Node 22.22.1 measurements are
+not a universal latency guarantee, automatic planner evidence or Handwired parity.
+Do not multiply their ratios by the earlier improvements below.
+
+All 62 standalone JavaScript tests pass. A required history matches 388 complete
+reference/Rust/JavaScript/Wasm outcomes and exact snapshots, including events,
+rollback and seventeen restores. The native GPU host matches its results and
+final checkpoint with one actual eligible word dispatch; neural training remains
+CPU work. A retained generic graph and complex-text source emit unchanged bytes,
+so this study adds no speed claim for those sources or complete Pretext fidelity.
+[Sources, both studies, adverse cases and replay auditor](https://github.com/siliconjungle/ink-lang/blob/dc19f5a6a33d61f021c88609f6c2b700a4663a56/reports/direct-owned-helpers-2026-10-17/README.md).
+
 ## Working records in graph and training loops
 
 The JavaScript emitter now keeps working-record fields in local variables across

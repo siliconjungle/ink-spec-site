@@ -541,10 +541,19 @@ retain the slower and unchanged cases as well as the gains.
 Working records that own buffers or maps can also stay in local fields across
 bounded helpers and ordered folds. The source's ownership and readonly loans
 still apply, and fold updates remain simultaneous. This helps graph and training
-loops avoid rebuilding a record at every step. The complete package passes 61
-tests; a new required CPU history checks 1,251 complete outcomes across reference,
+loops avoid rebuilding a record at every step. That milestone passed 61 package
+tests and added a required CPU history with 1,251 complete outcomes across reference,
 Rust, JavaScript and Wasm. [Repeated measurements and remaining limits](./performance.html#working-records-in-graph-and-training-loops)
 include adverse processes and do not establish upstream performance parity.
+
+Small helpers taking checked Buffer/Map owners can also expand without a split
+record wrapper. Callee List parameters remain shared, and recursive or oversized
+helpers keep ordinary calls under the same limits. This can improve graph and
+adjoint execution without new syntax or a public owned-storage ABI.
+The package now passes 62 tests, including direct-owner controls, with a new
+388-outcome cross-target history.
+[Complete-model comparisons and scope](./performance.html#direct-buffer-and-map-helpers)
+retain mixed training results as well as prediction gains.
 
 ## Compile structure, keep learning weights
 

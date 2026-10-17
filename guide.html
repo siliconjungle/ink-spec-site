@@ -404,10 +404,18 @@ retain the slower and unchanged cases as well as the gains.</p>
 <p>Working records that own buffers or maps can also stay in local fields across
 bounded helpers and ordered folds. The source&#39;s ownership and readonly loans
 still apply, and fold updates remain simultaneous. This helps graph and training
-loops avoid rebuilding a record at every step. The complete package passes 61
-tests; a new required CPU history checks 1,251 complete outcomes across reference,
+loops avoid rebuilding a record at every step. That milestone passed 61 package
+tests and added a required CPU history with 1,251 complete outcomes across reference,
 Rust, JavaScript and Wasm. <a href="./performance.html#working-records-in-graph-and-training-loops">Repeated measurements and remaining limits</a>
 include adverse processes and do not establish upstream performance parity.</p>
+<p>Small helpers taking checked Buffer/Map owners can also expand without a split
+record wrapper. Callee List parameters remain shared, and recursive or oversized
+helpers keep ordinary calls under the same limits. This can improve graph and
+adjoint execution without new syntax or a public owned-storage ABI.
+The package now passes 62 tests, including direct-owner controls, with a new
+388-outcome cross-target history.
+<a href="./performance.html#direct-buffer-and-map-helpers">Complete-model comparisons and scope</a>
+retain mixed training results as well as prediction gains.</p>
 </div></section>
 <section class="chapter" id="compile-structure-keep-learning-weights" aria-labelledby="title-compile-structure-keep-learning-weights"><h2 id="title-compile-structure-keep-learning-weights">Compile structure, keep learning weights</h2><div class="prose"><p>Program structure and numeric parameters can have separate degrees of freedom.
 The current CLI can freeze an operation sequence while leaving its weights
