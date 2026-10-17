@@ -36,6 +36,22 @@ must not be multiplied. They are shared-host observations, not automatic planner
 evidence, a universal latency guarantee, device training or upstream parity.
 [All sources, preliminary and adverse cohorts, exact controls and auditor](https://github.com/siliconjungle/ink-lang/blob/96979a8561fb885fbcaff9c0ac6f420ac1127b2c/reports/affine-record-carriers-2026-10-17/README.md).
 
+### Further storage experiments
+
+Three subsequent private compiler experiments lose to this published baseline
+in six paired fresh processes each. Numeric/tagged buffers and aliased
+integer/float typed views have prediction ratios of about 0.49× and 0.53×;
+sharing scalar decodings is slightly slower, around 0.97×. Their complete
+training comparisons also favor the published baseline overall. Ratios below one
+favor that baseline; none of these designs changes the default compiler.
+
+Complete neural feedback and checkpoints match, and additional exact-bit tests
+cover buffer partitions, growth, bulk copies and actual workers. These rejected
+experiments show why fewer conversions or a more compact layout still needs a
+whole-workload measurement. They establish no universal layout ranking, planner
+admission or GPU-training capability.
+[Sources, all 36 processes, controls and replay auditor](https://github.com/siliconjungle/ink-lang/blob/725452779c457ac6c95bc63e23ec9bd49515e8ac/reports/f32-storage-experiments-2026-10-17/README.md).
+
 ## Exact float arithmetic in learning workloads
 
 Stateful JavaScript now removes redundant conversions between F32 arithmetic
