@@ -27,9 +27,9 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Install dependencies
         run: npm ci
-      - name: Read exact editor pin
+      - name: Read exact reference and editor pins
         id: pins
-        run: node -e 'const p=require("./content/environment.json"); console.log("environment="+p.revision+"\nlanguage="+p.distribution)' >> "$GITHUB_OUTPUT"
+        run: node -e 'const p=require("./content/environment.json"); const r=require("./content/implementation.json"); console.log("environment="+p.revision+"\nlanguage="+r.revision)' >> "$GITHUB_OUTPUT"
       - name: Build and check specification
         run: npm run build:pages
       - name: Check out pinned Ink environment
@@ -42,7 +42,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-      - name: Check out the matching language for linked examples
+      - name: Check out the reference CLI for documentation examples
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: siliconjungle/ink-lang
@@ -61,11 +61,13 @@ jobs:
       - name: Check the environment
         working-directory: .environment-build
         run: npm test
-      - name: Check documentation examples with the pinned browser compiler
+      - name: Check documentation examples with both pinned compilers
         run: |
           cargo build --locked --manifest-path .environment-build/compiler/Cargo.toml --bin ink-browser-check
           cargo build --locked --manifest-path .language-check/Cargo.toml --bin ink
           npm run check:reference -- .environment-build/compiler/target/debug/ink-browser-check .language-check/target/debug/ink
+      - name: Check current learning, task and inspection examples
+        run: npm run check:current -- .language-check/target/debug/ink
       - name: Compile and execute the pinned JSON flow
         run: |
           .language-check/target/debug/ink build public/documents.ink --target javascript -o dist-pages/json-demo.mjs

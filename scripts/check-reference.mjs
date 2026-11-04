@@ -10,21 +10,27 @@ const languageCompiler = process.argv[3];
 if (!compiler) throw Error('Usage: node scripts/check-reference.mjs /path/to/ink-browser-check');
 const directory = await mkdtemp(join(tmpdir(), 'ink-reference-'));
 let checked = 0;
+let cliChecked = 0;
 try {
   for (const file of ['home.md', 'guide.md', 'readable-spec.md']) {
     const text = await readFile(new URL(`../content/${file}`, import.meta.url), 'utf8');
-    for (const match of text.matchAll(/```ink\n([\s\S]*?)\n```/g)) {
-      const source = match[1];
+    // All complete CLI examples are checked by the reference distribution.
+    // Complete `ink` blocks additionally retain compatibility with the playground.
+    for (const match of text.matchAll(/```(ink|ink-cli)\n([\s\S]*?)\n```/g)) {
+      const source = match[2];
+      if (match[1] === 'ink-cli' && !source.startsWith('module ')) continue;
       if (!source.startsWith('module ')) throw Error(`${file}: supported example must be a complete module`);
-      if (/\bimport\s+"/.test(source)) {
-        if (!languageCompiler) throw Error('Linked examples require the second argument: the pinned Ink CLI');
-        const sourcePath = join(directory, `linked-${checked}.ink`);
+      if (!languageCompiler) throw Error('Example checks require the pinned CLI as the second argument');
+      {
+        const sourcePath = join(directory, `cli-${cliChecked}.ink`);
         await writeFile(sourcePath, source);
-        const linked = spawnSync(resolve(languageCompiler), ['check', sourcePath], {encoding:'utf8'});
-        if (linked.status !== 0) throw Error(`${file}: ${linked.stderr}`);
-        ++checked;
-        continue;
+        const result = spawnSync(resolve(languageCompiler), ['check', sourcePath], {encoding:'utf8'});
+        if (result.status !== 0) throw Error(`${file}: CLI example: ${result.stderr}`);
+        ++cliChecked;
       }
+      if (match[1] === 'ink-cli') continue;
+      // The single-file playground cannot link std imports; the CLI checked them above.
+      if (/\bimport\s+"/.test(source)) continue;
       const result = spawnSync(resolve(compiler), [], {
         input: JSON.stringify({op:'compile', source}), encoding:'utf8', maxBuffer:16*1024*1024,
       });
@@ -105,7 +111,7 @@ try {
       }
     }
   }
-  console.log(`Checked ${checked} complete Ink examples with the pinned browser/CLI compilers, bound JavaScript calls and checkpoint/restore.`);
+  console.log(`Checked ${cliChecked} complete examples with the reference CLI; ${checked} playground-compatible examples, bound JavaScript calls and checkpoint/restore.`);
 } finally {
   await rm(directory, {recursive:true, force:true});
 }

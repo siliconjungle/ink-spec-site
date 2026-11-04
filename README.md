@@ -30,8 +30,8 @@ npm run preview
 - `content/performance.md`: separately attributed compiler/planner, fixed-compiler knowledge, JSON/state and lifecycle results, plus current selection policy. Historical measurements keep their original evidence boundaries.
 - `content/spec.md`: committed compiler draft, with absolute links for the download.
 - `content/implementation.json`: exact published distribution used for the reference review and synced draft.
-- `content/environment.json`: independently versioned editor, with the same distribution revision. The workflow reads this pin; installation checks built provenance.
-- `scripts/check-reference.mjs`: compile every supported Ink example through the pinned browser compiler, then execute the homepage bound calls and checkpoint/restore.
+- `content/environment.json`: independently versioned editor and its own tested distribution revision. The workflow reads this pin; installation checks built provenance. It can lag the current CLI reference.
+- `scripts/check-reference.mjs`: check every complete `ink` and `ink-cli` example with the reference CLI; additionally compile unlinked `ink` blocks with the pinned browser compiler and execute the bound calls and checkpoint/restore. Incomplete `ink-cli` fragments remain illustrative.
 - `scripts/generate.mjs`: semantic HTML, syntax highlighting, downloads and build information.
 - `src/style.css`: reading layout; `src/main.ts`: copying and cached text measurement.
 
@@ -44,7 +44,7 @@ npm run sync:reference -- /path/to/ink-lang origin/main
 npm run build
 ```
 
-Fetch the published compiler branch first. The sync command reads committed Git bytes and records their revision; an optional revision argument selects those bytes. Review the guide and reference against that revision when capabilities change; syncing the draft alone does not rewrite those explanations. Check every supported Ink example and host example before publishing. `public/prices.ink` is generated from the homepage example and can be compiled directly. `public/ink-specification.md` downloads the implementation reference; `public/ink-design-draft.md` downloads the separate source design draft. `build-info.json` records the site commit and linked compiler revision.
+Fetch the published compiler branch first. The sync command reads committed Git bytes and records their revision; an optional revision argument selects those bytes. Review the guide and reference against that revision when capabilities change; syncing the draft alone does not rewrite those explanations. Check every supported Ink example and host example before publishing. `public/prices.ink` is generated from the homepage example and can be compiled directly. `public/learned-choice.ink` and `public/notifications.ink` are complete current-CLI guide examples. The reference checker trains/freezes the first, checks its finite circuit, and executes/replays the task with scripted effect replies. `public/ink-specification.md` downloads the implementation reference; `public/ink-design-draft.md` downloads the separate source design draft. `build-info.json` records the site commit and linked compiler revision.
 
 Pretext measures text after the bundled IBM Plex Mono font loads. FreeRange checks the four numeric layout helpers in `src/layout.ts`; it does not verify browser layout or Ink's compiler. Measurement failure leaves ordinary HTML/CSS readable.
 
@@ -73,11 +73,12 @@ after `npm run build:pages`. Code and inputs stay in the browser.
 
 ## Versioned updates and licensing
 
-Reference links use `{{ink_revision}}`, resolved from `content/implementation.json` at generation, so the footer, body links and downloadable reference describe one reviewed source revision. Syncing the design draft updates its source pin; it does not edit the handwritten guide or reference. Review those files, update the editor and its `ink-pins.json`, set `content/environment.json`, and run the example checks before publishing. The editor and reference distributions must match. Historical research reports retain their acquired revisions.
+Reference links use `{{ink_revision}}`, resolved from `content/implementation.json` at generation, so the footer, body links and downloadable reference describe one reviewed source revision. Syncing the design draft updates its source pin; it does not edit the handwritten guide or reference. Review those files and run the example checks before publishing. The reference CLI and playground are independently pinned: complete `ink-cli` examples may require the newer CLI, while unlinked `ink` examples must pass both compilers. Linked imports use the CLI because the playground is a single-file compiler. Footers and the guide/reference introductions show both compiler revisions. Update the editor and `content/environment.json` only when its compiler migration has been validated; its syntax dependency must continue to match the editor revision. Historical research reports retain their acquired revisions.
 
 ```sh
 cargo build --locked --manifest-path /path/to/ink-environment/compiler/Cargo.toml --bin ink-browser-check
 npm run check:reference -- /path/to/ink-environment/compiler/target/debug/ink-browser-check /path/to/ink-lang/target/debug/ink
+npm run check:current -- /path/to/ink-lang/target/debug/ink
 ```
 
 This site and its project-authored content are [MIT licensed](LICENSE). Font and third-party runtime notices are shipped separately in `third-party-notices.txt`. The independently maintained [editor repository](https://github.com/siliconjungle/ink-environment) is also MIT licensed. Build manifests identify the exact site, language and editor revisions.

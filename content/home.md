@@ -79,6 +79,14 @@ checked variants are ranked—for latency, memory or application-defined utility
 within the program's permitted choices and constraints.
 [Give the planner a goal](./guide.html#give-the-planner-an-authored-goal).
 
+Learned behaviour can now occupy explicitly admitted holes in ordinary code.
+Choice tables and small MLPs have authored failure paths or guards; keyed parameter
+edits can be accepted through measured objectives. Typed tasks also connect Ink to
+external services and model calls, with checked replies and authored fallbacks.
+[Current language additions](./guide.html#current-language-additions) ·
+[Learnable holes](./guide.html#leave-a-checked-place-for-learning) ·
+[Effects and tasks](./guide.html#call-typed-services-and-models).
+
 ## Code and queries, compiled together
 
 A query can sit inside an ordinary function. Its result can feed more computation:

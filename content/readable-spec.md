@@ -99,7 +99,7 @@ Declarations have concrete parameter, result and field types. Local bindings can
 | `Unit`, `Bool` | Unit `()` and Boolean values |
 | `u32`, `u64`, `i32` | Wrapping fixed-width integers; `i32` comparisons are signed |
 | `Int` | Exact arbitrary-precision integer values, subject to host resource limits |
-| `f32` | Binary32 values with specified rounding and bit transport |
+| `f32`, `f64` | Explicit binary32/binary64 computation with specified rounding and raw-bit transport |
 | `Vec2<T>`, `Vec3<T>`, `Vec4<T>` | Fixed numerical vectors of `u32`, `i32` or `f32` |
 | `String` | Immutable UTF-8 text |
 | `Option<T>`, `Result<T,E>` | Explicit absence and recoverable failure |
@@ -135,9 +135,25 @@ Type aliases, type/constant parameters and payload enums are supported through b
 
 `std:json` supplies an ordinary recursive `Json` datatype with Null, Boolean, Number, Text, Array and Object variants. Number stores its exact JSON token; object members are ordered source values. Constructors, accessors, field replacement/removal and projection live in the knowledge library. Checked text adapters reject duplicate keys, invalid number tokens and malformed Unicode. Missing is `None`; present null is `Some(Json.Null)`.
 
-`Nat`, packed `Bytes`, `f64`, the other integer widths, a general dependent `Prop`/`Proof` value language remain design proposals. Source specifications and invariants create checked obligations; database properties can justify erased computations and physical capacity hints. The external library `Set<T>` is an abstract refined record with structural uniqueness and stable enumeration, rather than a built-in unordered carrier. A genuine unordered Bag/Set interface remains future work. See [generic language foundations](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/generic-language-foundations.md) for instantiation, wire and resource limits.
+`Nat`, packed `Bytes`, the other integer widths, a general dependent `Prop`/`Proof` value language remain design proposals. Source specifications and invariants create checked obligations; database properties can justify erased computations and physical capacity hints. The external library `Set<T>` is an abstract refined record with structural uniqueness and stable enumeration, rather than a built-in unordered carrier. A genuine unordered Bag/Set interface remains future work. See [generic language foundations](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/generic-language-foundations.md) for instantiation, wire and resource limits.
 
 Fixed-width `+`, `-` and `*` wrap; `checked_add`, `checked_sub` and `checked_mul` return an overflow result instead. `Int` arithmetic is exact. Conversions are explicit. Scalar `f32` comparisons use IEEE rules, while stored aggregate equality compares contained float bits, including signed zeros and NaN payloads.
+
+The current CLI also supports `f64` in functions, records, lists, state, events and checkpoints. Decimal literals need an explicit suffix, such as `1.0000000000000002f64`; unsuffixed decimals remain F32. Mixed precision needs an explicit conversion. Scalar IEEE equality and structural stored-bit identity remain different. Native, JavaScript and Wasm execute binary64; GPU bundles use CPU fallback for F64. General F64 semantic proof terms fail closed.
+
+```ink-cli
+module precise;
+
+fn scale(width: f64, ratio: f64) -> f64 {
+    return width * ratio;
+}
+
+fn measured() -> f64 {
+    return 1.0000000000000002f64;
+}
+```
+
+[Binary64 operations, transport and proof scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/binary64.md).
 
 Core V11 supplies exact binary32 `sqrt` and division, `is_nan`/`is_finite`, named rounding (`floor`, `ceil`, `trunc`, `round_ties_even`), raw-bit reinterpretation and explicit integer/F32 conversions. Fallible float-to-integer conversions truncate before checking range and return `Option`. `popcount`, `leading_zeros` and `trailing_zeros` use the declared 32/64-bit word width. UTF-8 primitives provide byte length/access, boundary-checked slicing, concatenation and search; their coordinates are bytes. `std:math` and `std:text` supply ordinary algorithms. Bounded transcendental approximations remain explicit source functions, with tested accuracy coverage rather than universal certified error bounds. See [numerical and UTF-8 primitives](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/numeric-text-primitives.md).
 
@@ -188,6 +204,12 @@ fn total(xs: List<u32>) -> u32 {
 Owned buffers/maps support temporary mutation through consuming operations and rebinding. The checker rejects reuse after a move and captured owners consumed by repeated callbacks. `parallel_map` preserves result order; worker scheduling and grain size affect cost, not that order. Scoped `split_at` partitions share disjoint ranges; adjacent rejoining can reuse storage. Partial-range growth detaches before overlap. The consuming `fill_range(start, count, value)` clips writes to a buffer range; `copy_within(start, count, destination)` uses snapshot-copy semantics with clipped ranges. Range arithmetic does not wrap. These mechanisms do not expose mutable references or a general borrow syntax.
 
 See [checked recursion and ordered parallel work](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/parallel-execution.md).
+
+### Differentiating pure computation
+
+Source `gradient`, `jvp` and `linearize` differentiate supported pure objectives in their F32 or F64 precision. Trainable shapes must be homogeneous in that precision. Full forward gradients have at most 32 coordinates; bounded reverse requests support larger admitted shapes with explicit capacity and zero-cotangent policies. The `_piecewise` forms explicitly choose an executed-branch convention.
+
+`compiled_reverse_gradient` and `compiled_reverse_linearize` can elaborate an eligible bounded scalar graph into ordinary checked code; unsupported control/data shapes or exhausted optional limits retain the owned-tape path. This is a trusted source transform, not a proof of derivative correctness or automatic differentiation across transactions, I/O and arbitrary application execution. Neural/Adam library interfaces have their own F32 domain. [Forward differentiation](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/differentiable-computation.md) · [Reverse interfaces](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/source-reverse-differentiation.md) · [Static reverse tapes](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/static-reverse-tapes.md).
 
 ### Ordered query expressions
 
@@ -244,6 +266,14 @@ A `contains` branch can establish the condition for `insert` or `replace`, as in
 
 See [typed actions](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/typed-actions.md) and [action effects](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/action-effects.md).
 
+### Learning and frozen state
+
+`trainable state` declares permitted learned state, `adaptive fn` / `adaptive query` expose authored adaptive computation, and `learn change` publishes transactional updates. Learning rules, objectives, observations and cadence belong to the application. Ordinary readonly queries do not learn implicitly.
+
+Training can run before deployment, as an explicit `build-model` stage, or through live feedback. `std:learning_session` supplies bounded queues, separate serving/candidate versions, explicit promotion and durable cooperative scheduling. This is a serialized service path; parallel training workers and general device optimizer execution remain open.
+
+Explicit `--freeze` / `--freeze-roots` binds selected typed initial state and withdraws its writers. It changes source identity; restore must preserve the frozen rows exactly. Frozen data can support checked specialization, but freezing alone does not authorize arithmetic rewrites or establish profitability. [Learning lifecycle](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/learning-lifecycle.md) · [Trained builds](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/trained-builds.md) · [Frozen state](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/frozen-state.md).
+
 ## 6 Keeping results up to date
 
 `keep name: T = expression;` defines a value derived from state. It cannot perform writes or emit events. Keep/action dependencies cannot form cycles.
@@ -261,6 +291,28 @@ Grouping, stable sets and equijoins are ordinary generic definitions in `knowled
 Time, randomness and external responses must enter as explicit inputs. Source functions and queries do not obtain them from the host.
 
 Durable hosts can persist state and deliver events with retries. Delivery is at least once; the receiver must deduplicate for an exactly-once effect. File and IndexedDB adapters have explicit storage and writer guarantees. These are host contracts, not language-level distributed replication. See [durable state](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/durable-host.md).
+
+### Typed external effects and tasks
+
+`effect` declares a typed request performed by the host. `task` composes effect calls, pure values, queries and changes. Independent unordered effects can overlap; queries, changes and `ordered effect` calls wait for every earlier step. The result and earliest failure follow source order. An unordered request may start speculatively, so outside writes belong in ordered effects.
+
+A bound effect result can use `ensures predicate else fallback`. A bad type, failed contract or handler failure takes that authored fallback; without one, the task ends with a host error. `?` propagates a typed Result error. Each change commits separately: a task is not one transaction, and earlier committed changes survive a later failure.
+
+```ink-cli
+module notifications;
+
+effect summarise(text: String) -> String;
+ordered effect notify(message: String) -> Result<Unit, String>;
+
+task send_summary(text: String) -> Result<String, String> {
+    let summary = summarise(text)
+        ensures string_byte_len(summary) <= 140 else "Summary unavailable";
+    notify(summary)?;
+    return Ok(summary);
+}
+```
+
+`ink emit-tasks` produces a checked dependency manifest. The JavaScript `runTask` host supplies handlers; `modelEffect(complete)` treats a language model as one typed effect. Traces record accepted, fallback, failed and discarded outcomes and replay without contacting the external service. Root-module declarations are supported, with at most 128 effects, 64 tasks and 128 steps per task. Task-level loops/branches and native/Wasm task runners remain open. [Effect/task contract and host API](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/effect-tasks.md).
 
 ## 8 Proofs and contracts
 
@@ -294,6 +346,14 @@ implementation commuted for next { return 1 + x; }
 `ink emit-contract-obligations`, `ink check-contracts` and `--contract-proofs` expose ordinary external proof transport. Public invariant and precondition checks remain at their defined ingress boundaries. [Source contracts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/source-contracts.md) describes the exact supported state observations.
 
 Proof authors and search tools propose evidence. The core checks the actual proof bytes and applicable premises. A solver result, entry name, hash or performance observation cannot replace that check. Lean is not required to compile ordinary programs.
+
+### Learnable holes and measured edits
+
+A named `learn` expression declares an unknown pure function: a finite `choice<T>` table or an `Mlp<I,H..,O>` over F32 features. It is admitted only on an authored failure path or with a function result guard and fallback. A hole cannot silently replace an already handled authored case. `objective` declares a pure F32 loss, with lower values better.
+
+The compiler generates trainable `__learned` parameters and checked accessors. `ink train --objective ... --data ...` searches exact candidates; optional `--method relaxed` trains distributions over choice tables, then retains an exact table. `ink learn-rows` exposes keyed parameters. `ink gate-edit` admits a valid, nontrivial edit only when the supplied objective improves on the supplied data (or does not worsen with explicit `--allow-equal`). Held-out acceptance is a measured gate, not a proof of generalization or semantic equality.
+
+Holes support root-module code, not generic functions, contracts, specifications, invariants or keeps. Choice holes accept 1–8 Bool/payload-free-enum inputs with at most 4,096 entries; MLPs have at most 16,384 weights. Frozen `__learned` roots withdraw their setter. [Syntax and admission](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/learnable-holes.md) · [Rows and gated edits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/learn-rows.md) · [Relaxed training](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/relaxed-meanings.md).
 
 ### Explicit approximation
 
@@ -410,6 +470,10 @@ Core versions describe actual operations and contracts. Current programs may use
 
 `ink-runtime` assembles artifacts and supplies host orchestration. `ink-abi` defines shared transport and decisions; `ink-native-support` supplies emitted value/storage primitives. A browser application can run precompiled code without shipping the optimiser or proof search.
 
+### Inspecting order and placement
+
+`ink emit-mir SOURCE [--simplify] -o program.mir.json` exports the typed dataflow form `ink-mir-v1`. It records data and effect-order dependencies, lazy branch regions, placement preferences and schedules. Per-state effects can expose independent work; task barriers retain their declared order. Placement is descriptive: automatic graph splitting across client/worker/server remains future work. The pure-JavaScript MIR printer is a demonstration and does not replace the pinned production lowering. MIR structure and simplification grant no algebraic rewrite or profitability authority. [Mid-level IR](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/mid-level-ir.md).
+
 ## 18 Execution targets
 
 The Rust toolchain produces native code and WebAssembly. JavaScript emits importable ES modules. WebGPU/wgpu runs eligible pure kernels; transactions and recursive physical state execute on the host.
@@ -417,6 +481,10 @@ The Rust toolchain produces native code and WebAssembly. JavaScript emits import
 Supported `f32` arithmetic rounds in source order to binary32 and produces canonical arithmetic NaNs. Transport and sign-bit negation preserve payload bits. The packed GPU emitter uses integer lanes for this contract; the earlier portable WGSL float description is not the current binary32 contract. Eligible device work does not imply all types or programs run on the GPU.
 
 Some direct pure generated entries use trusted-caller interfaces. Host submission wrappers, state invocation and checkpoint codecs have their own input and resource checks. There is no universal promise that every entry validates arbitrary JavaScript values. Ordinary state invocation and standalone representation invocation also have different contracts.
+
+### Exact finite circuits
+
+`ink emit-circuit SOURCE FUNCTION [--restore MODEL.snapshot] -o output.circuit.json` lowers supported finite functions into affine/ReLU/ReGLU circuits. Bool, payload-free enums and their Options use one-hot values; every input is checked against reference execution, up to a domain of 65,536 inputs. Choice tables appear as lookup weights. F32/word/string computation, lists, records and MLP holes are outside this target. Circuits are not yet differentiable training targets, and this exhaustive conformance check makes no speed claim. [Circuit target and JavaScript host](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/circuit-target.md).
 
 ### JavaScript
 
@@ -498,13 +566,13 @@ See [modules](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/do
 
 Source is UTF-8; identifiers are case-sensitive ASCII names. Statements use semicolons and blocks use braces. Comments use `//` or non-nesting `/* ... */`. Every file begins with `module name;`, optionally using a dotted module name.
 
-Supported application declarations include `id`, `type` aliases, records, enums with optional payloads, functions, table/value `state`, `private state`, keeps, events, queries, changes, specifications, named implementations and invariants. Eligible declarations accept type parameters and literal `u32` constant parameters. Record and enum entries require trailing commas. Pure bodies admit lexical binding, early returns, conditionals and finite loops; action bodies additionally admit permitted state changes and event emission.
+Supported application declarations include `effect`, `ordered effect`, `task`, `objective`, `trainable state`, `adaptive fn`, `adaptive query`, `learn change`, `id`, `type` aliases, records, enums with optional payloads, functions, table/value `state`, `private state`, keeps, events, queries, changes, specifications, named implementations and invariants. Eligible declarations accept type parameters and literal `u32` constant parameters. Record and enum entries require trailing commas. Pure bodies admit lexical binding, early returns, conditionals and finite loops; action bodies additionally admit permitted state changes and event emission.
 
 Expressions include numbers, strings, Booleans, unit, list literals, named calls, record construction, fields, supported methods, inline lambdas, lazy conditional expressions and exhaustive `match`. Matching supports Bool, Option, Result and supported enums. Pure `?` is supported in let initialisers; arbitrary nested pure propagation remains unsupported. There is no general tuple or unchecked index-expression syntax. Empty lists require an expected element type.
 
-Precedence from tightest to loosest is calls/fields/postfix `?`, unary `-`/`!`/`~`, `*`, `+`/`-`, comparisons, equality, word `&`, `^`, `|`, Boolean `&&`, `||`. Binary operators associate left. Parentheses override precedence. Word shifts/rotations use named operations with `u32` counts. Unchecked `/` and `%` are not admitted source operators; `quot_or` and `rem_or` have lazy fallback, and the external integer library provides checked division/remainder.
+Precedence from tightest to loosest is calls/fields/postfix `?`, unary `-`/`!`/`~`, `*`, `+`/`-`, comparisons, equality, word `&`, `^`, `|`, Boolean `&&`, `||`. Binary operators associate left. Parentheses override precedence. Word shifts/rotations use named operations with `u32` counts. Floating `/` is supported with its declared precision; unchecked integer `/` and `%` are not admitted source operators; `quot_or` and `rem_or` have lazy fallback, and the external integer library provides checked division/remainder.
 
-Positive integer literals use contextual numeric types or default to `u64`; an unconstrained unary negative expression defaults to `i32`. Decimal/exponent literals are `f32`. Integer tokens are bounded by `u64`; use `Int` conversions/operations for exact integer computation. Floating literals must be finite. Numeric overflow, inference and conversion rules are checked rather than inherited from JavaScript.
+Positive integer literals use contextual numeric types or default to `u64`; an unconstrained unary negative expression defaults to `i32`. Unsuffixed decimal/exponent literals are `f32`; explicit `f64` suffixes select binary64. Integer tokens are bounded by `u64`; use `Int` conversions/operations for exact integer computation. Floating literals must be finite. Numeric overflow, inference and conversion rules are checked rather than inherited from JavaScript.
 
 The full design draft's grammar also contains unsupported proposals. This section describes the current parser; [the parser source](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/core/src/syntax.rs) is the exact syntax authority for the linked revision.
 

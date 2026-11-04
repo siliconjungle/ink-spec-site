@@ -1,3 +1,167 @@
+## Current language additions
+
+The reference now follows the published CLI revision linked in this page's footer.
+The browser playground remains on its own tested compiler; examples labelled
+“current CLI syntax” can require a local build. The sections below describe new
+interfaces, while performance studies keep their original revisions and controls.
+
+[Learning inside ordinary code](#leave-a-checked-place-for-learning) ·
+[Typed services and tasks](#call-typed-services-and-models) ·
+[Learning lifecycle](#train-publish-and-continue-serving) ·
+[Circuits and IR](#inspect-circuits-order-and-placement) ·
+[Current reference](./reference.html).
+
+## Leave a checked place for learning
+
+A `learn` expression names an unknown pure function. `choice<T>` supplies a finite
+table; `Mlp<I,H..,O>` supplies a dense F32 model. The author controls where learning
+is allowed: an error-path hole handles cases the authored code leaves open, while
+a guarded hole needs an enclosing result predicate and an authored fallback.
+
+```ink-cli
+module learned_choice;
+
+fn authored(flag: Bool) -> Option<Bool> {
+    return choose(flag, Some(true), None);
+}
+
+fn decide(flag: Bool) -> Bool {
+    return authored(flag).unwrap_or(learn recover(flag): choice<Bool>);
+}
+
+query answer(flag: Bool) -> Bool {
+    return decide(flag);
+}
+
+objective mistakes() -> f32 {
+    return choose(decide(false), 0.0, 1.0);
+}
+```
+
+Here, `true` always follows the authored rule. Training may change the answer for
+`false`. Untrained choice rows use the first result value. The generated
+`__learned` state, getter and learn setter use ordinary transaction and snapshot
+machinery.
+
+[Download the complete example](./learned-choice.ink). Save an empty objective
+argument array, then train, inspect and package it:
+
+```sh
+printf '[]\n' > cases.json
+ink train learned-choice.ink --objective mistakes --data cases.json --seed 7 -o model.snapshot
+ink learn-rows learned-choice.ink --restore model.snapshot
+ink build-model learned-choice.ink model.snapshot.trace.json \
+  --freeze-roots __learned --target javascript -o build/learned-choice
+```
+
+`--method relaxed` can explore coupled choice entries by training distributions
+over exact tables, then returning an exact table. It does not soften authored
+rules or deploy a probabilistic meaning. MLP holes retain their separate
+objective-evaluation/SPSA training path.
+
+Hosts can store and diff parameters as keyed rows. `ink gate-edit SOURCE EDIT.json
+--objective NAME --data HELDOUT.json` checks row types and shapes, then accepts a
+nontrivial edit only if the exact objective strictly improves on the supplied data.
+An optional `--allow-equal` permits equal scores. A person, trainer or model may
+propose rows; the proposal carries no proof authority. Use data held out from the
+proposer to assess acceptance. A frozen learned root has no setter.
+
+[Hole syntax, guarded MLP example and bounds](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/learnable-holes.md) ·
+[Rows, edits and host API](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/learn-rows.md) ·
+[Relaxed training and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/relaxed-meanings.md).
+
+## Call typed services and models
+
+Declare external requests with `effect`, then orchestrate them with a `task`.
+The host supplies the handler; a language model can be one handler. Ink validates
+the response type and any authored result guard.
+
+```ink-cli
+module notifications;
+
+effect summarise(text: String) -> String;
+ordered effect notify(message: String) -> Result<Unit, String>;
+
+task send_summary(text: String) -> Result<String, String> {
+    let summary = summarise(text)
+        ensures string_byte_len(summary) <= 140 else "Summary unavailable";
+    notify(summary)?;
+    return Ok(summary);
+}
+```
+
+The summary falls back on an invalid reply, excessive byte length or handler
+failure. `notify` runs after earlier steps and `?` propagates its typed error.
+[Download this module](./notifications.ink).
+
+```sh
+ink build notifications.ink --target javascript -o notifications.mjs
+ink emit-tasks notifications.ink -o notifications.tasks.json
+```
+
+The JavaScript host uses `runTask({manifest, call, task, args, effects})`, with
+`stateCaller(state)` adapting compiled state. `modelEffect(complete)` wraps a
+host-provided text-completion function; provider access and credentials belong to
+the host. Traces replay accepted replies and fallbacks without calling the service.
+
+Independent unordered requests may overlap. Queries, changes and ordered effects
+wait for every earlier step. A task preserves source-order outcomes, but each
+change is a separate transaction: an external failure does not undo an earlier
+commit. Use ordered effects for outside writes; unordered requests must be safe
+to start speculatively. Task-level loops/branches and native/Wasm runners remain
+open. [Scheduling, host code, replay and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/effect-tasks.md).
+
+## Train, publish and continue serving
+
+Learning is explicit in every phase. Offline training can seed a build;
+`build-model` packages the captured program, complete startup state and lineage.
+Live `learn change` calls apply authored updates. `std:learning_session` adds a
+bounded observation queue, a candidate model, a stable serving version and explicit
+validation/promotion, with a cooperative durable JavaScript service.
+
+The model value must include optimizer moments and step counts needed for exact
+resume. A candidate trained against an old serving version becomes stale. Cancel
+retains observations; discard is explicit. Durable request IDs and observation IDs
+serve different purposes, and retained outbox events need acknowledgement.
+Existing durable state takes precedence over a deployment seed.
+
+Freezing selected roots withdraws their writers and binds exact typed initial rows
+under a new source identity. It can enable checked specialization, while live builds
+retain the degrees of freedom they promise. Neither training loss nor a frozen
+value supplies an optimization proof. Parallel training workers, general device
+optimizer execution and automatic convergence guarantees remain outside this
+cooperative service contract.
+
+[Learning phases](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/learning-lifecycle.md) ·
+[Runnable continuous service and recovery](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/continuous-learning.md) ·
+[Build-stage packaging](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/trained-builds.md).
+
+## Inspect circuits, order and placement
+
+Finite authored rules and learned choice tables can compile into one exact
+`ink-circuit-v1` network of affine, ReLU and ReGLU operations:
+
+```sh
+ink emit-circuit learned-choice.ink decide --restore model.snapshot -o decide.circuit.json
+ink emit-mir notifications.ink --simplify -o notifications.mir.json
+```
+
+The circuit target supports Bool, payload-free enums and their Options. It checks
+every input against reference execution, up to 65,536 combinations. Learned table
+rows are lookup weights. Editing a loaded circuit changes that circuit object;
+publish through gated source rows and emit again to retain the checked boundary.
+F32 functions, word/string data, lists, records and MLP holes are unsupported here.
+This is not yet a differentiable training target or a measured speed advantage.
+
+The mid-level IR makes data dependencies, effect order, lazy branches, placement
+preferences and schedules explicit. It can show independent task effects and
+per-state work. Its JavaScript printer demonstrates pure-function emission; the
+production JavaScript lowering remains separate. Automatic placement across hosts
+and graphs is future work. IR simplification grants no algebraic proof authority.
+
+[Circuit format, checking and host API](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/circuit-target.md) ·
+[Mid-level IR and supported passes](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/mid-level-ir.md).
+
 ## A small example
 
 A table, a derived total and an atomic update:
@@ -250,7 +414,7 @@ Seeing the query together with its consumer creates opportunities to fuse transf
 | Memory and persistent storage | Chunked/out-of-core execution, external database pushdown and an Ink-native storage engine are future work |
 | Logical values and transport | Existing compiled-value and binary interfaces can avoid some repeated conversion; each boundary retains its own validation and ownership contract |
 
-This is the stack-compression ambition: fewer independently designed execution layers and more decisions made over one connected program. It does not require every stage to run on one machine or one device. A future plan might filter at storage, transfer only surviving columns, reduce on the GPU and return a small result. The storage backend, effect model and evidence for such a plan still need implementation.
+This is the stack-compression ambition: fewer independently designed execution layers and more decisions made over one connected program. It does not require every stage to run on one machine or one device. A future plan might filter at storage, transfer only surviving columns, reduce on the GPU and return a small result. The storage backend, automatic cross-host placement and evidence for such a plan still need implementation; typed host effects are available separately.
 
 Queries must not acquire permission to change ordering, float behavior, errors, events or transaction visibility merely because another placement is faster. A GPU scan also pays for upload, dispatch and readback; an indexed CPU lookup can be cheaper. Keeping intermediates resident can change that balance. Passing a device conformance test establishes tested agreement, while profitability needs separate measurements.
 
@@ -275,15 +439,15 @@ Precision is part of the contract. JavaScript text-layout calculations use F64;
 rounding their inputs can change a line break. The current CLI now supports F64
 across CPU targets, with a prepared simple-walker baseline checked against upstream
 geometry. Complete complex text preparation and checked narrower implementations
-or guarded fallbacks still need work. Source derivatives remain F32.
+or guarded fallbacks still need work. Source forward/reverse differentiation now supports homogeneous F32/F64 shapes; neural/Adam library interfaces retain their separate F32 domain.
 
 Initial Freerange-inspired inference now discovers conditional unsigned
 equalities from excluded values and comparisons between ranges. Each proposed
 replacement receives an independently checked proof before database publication.
 General call summaries, backward requirements and floating-point inference remain
-open. [Implementation and measured scope](https://github.com/siliconjungle/ink-lang/blob/452b7f908d51c56bae00ff66986cc98dcc27a80a/docs/conditional-word-facts.md).
+open. [Implementation and measured scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/conditional-word-facts.md).
 
-[Three-project delivery checklist and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/66a2c4c6896a5f961e5fa3a3232ad21af8fdedc3/docs/chenglou-optimisation-programme.md#delivery-checklist) · [Measured search scope](./performance.html#matched-handwired-searches)
+[Three-project delivery checklist and acceptance criteria](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/chenglou-optimisation-programme.md#delivery-checklist) · [Measured search scope](./performance.html#matched-handwired-searches)
 
 ## Authored code with explicit learning
 
@@ -315,7 +479,7 @@ and bounded loops. Authored reverse graphs and neural libraries are also availab
 source reverse differentiation now supports dynamic parameter lists and structured
 context. Broader source/contract transport, device tape training and automatic
 large-graph specialization remain open. The markers grant no approximation or optimisation authority. [Training syntax,
-constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/9ee9969bd0d3a1a6ebd00de7317d87b7387e8808/docs/adaptive-learning.md).
+constraints and tested scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/adaptive-learning.md).
 
 Initial numeric preparation also shares invariant tables inside one invocation.
 The large measured case wins substantially; a small case loses. Neither this nor
@@ -363,7 +527,7 @@ implementation and proofs.
 
 [Complete CLI example](./adaptive-structure.ink) ·
 [Training observations](./adaptive-structure-training.json) ·
-[Proof domain and limits](https://github.com/siliconjungle/ink-lang/blob/4f1863efdb2b9725291ef5e5aa6449efbc5c70a0/docs/frozen-structural-specialization.md).
+[Proof domain and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/frozen-structural-specialization.md).
 This explicit build request does not establish a profitable automatic choice.
 
 ## Compile frozen numeric structure
@@ -444,7 +608,7 @@ weights and target workloads stay live. Every proposed numerical result and comp
 action rewrite still passes the ordinary checker. Trained artifacts also retain one
 checked proof package, with a bound local reference in the generated descriptor.
 
-[Scoring API, proof boundary and runnable examples](https://github.com/siliconjungle/ink-lang/blob/67aa3a2ec42149c400ee52d5e1d7ed8b8384a317/docs/learned-programs.md).
+[Scoring API, proof boundary and runnable examples](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/learned-programs.md).
 
 ## Check whole neural computations
 
@@ -459,7 +623,7 @@ learned representations and profitable device choices still need their own proof
 and measurements. The change passed 480 core tests across all 80 integration
 targets; three retained source-bound compiled artifacts also replay with it.
 
-[Whole neural computation model and limits](https://github.com/siliconjungle/ink-lang/blob/1f5e4e2d1e9582254ce9791e5257094dfd27af69/docs/modular-action-projection.md) ·
+[Whole neural computation model and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/modular-action-projection.md) ·
 [Complete model and validation report](https://github.com/siliconjungle/ink-lang/blob/1f5e4e2d1e9582254ce9791e5257094dfd27af69/reports/modular-action-projection-2026-10-17/README.md).
 This describes the current CLI; the embedded browser editor retains its separately
 pinned distribution.
@@ -480,7 +644,7 @@ This is an ordinary source/proof transformation using the existing syntax, with
 no special neural instruction. Automatic selection still requires performance
 evidence. The embedded browser editor retains its separately pinned distribution.
 
-[Source example, proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/b5f6d9373ab5518ca26c2788b338057c115763e6/docs/fold-state-projection.md) ·
+[Source example, proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/fold-state-projection.md) ·
 [Measurements and complete validation](./performance.html#owned-graph-state-projection).
 
 Pure JavaScript numeric code also emits finite F32 constants directly, preserving
@@ -519,7 +683,7 @@ proposal generation: automatic discovery, measured profitable selection and
 learned representation choice remain further work. This describes the current
 CLI; the browser editor retains its separate pin.
 
-[Function proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/docs/modular-action-projection.md#generate-a-guard-and-fallback) ·
+[Function proof contract and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/modular-action-projection.md#generate-a-guard-and-fallback) ·
 [Complete source, proof and validation evidence](https://github.com/siliconjungle/ink-lang/blob/6f3eb8f59277ed856742f55070219dcdbbf0938e/reports/guarded-function-specialization-2026-10-17/README.md).
 
 `--prefix-plan build/projection.plan.json` composes an earlier checked plan before
@@ -592,12 +756,12 @@ long generated computations and learned device choices remain open. This is a
 verification-capacity improvement, with no new serving-speed measurement.
 
 [Run the configured model](https://github.com/siliconjungle/ink-lang/blob/5fe4eb6a962b0ff7d4a9e8734796a612ca17e4b4/examples/frozen-parameters.ink) ·
-[Factored proofs and build commands](https://github.com/siliconjungle/ink-lang/blob/5fe4eb6a962b0ff7d4a9e8734796a612ca17e4b4/docs/factored-literal-proofs.md) ·
+[Factored proofs and build commands](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/factored-literal-proofs.md) ·
 [Retained source checks, package costs and browser replays](https://github.com/siliconjungle/ink-lang/blob/5fe4eb6a962b0ff7d4a9e8734796a612ca17e4b4/reports/factored-literal-proofs-2026-10-16/README.md).
 
 [Complete operation-sequence example](https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/examples/frozen-program.ink) ·
 [Measurements, costs and source checks](./performance.html#frozen-program-with-live-weights) ·
-[Proof domain and remaining limits](https://github.com/siliconjungle/ink-lang/blob/10704024e2491ac421902853ab5cd43e14d9aa9a/docs/frozen-structural-specialization.md#compile-a-frozen-program-while-weights-remain-trainable).
+[Proof domain and remaining limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/frozen-structural-specialization.md#compile-a-frozen-program-while-weights-remain-trainable).
 
 ### Longer frozen programs
 
@@ -639,7 +803,7 @@ strongly favor CPU/JavaScript; batching and residency need their own measurement
 No automatic profitable placement follows from GPU eligibility.
 [Device checks, timings and clean-source shader images](https://github.com/siliconjungle/ink-lang/blob/43648be78625e60b1dc3022f74b551aabc6cd556/reports/scalar-gpu-stages-2026-10-16/README.md).
 
-[Compile the longer program](https://github.com/siliconjungle/ink-lang/blob/43648be78625e60b1dc3022f74b551aabc6cd556/docs/frozen-composition.md) ·
+[Compile the longer program](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/frozen-composition.md) ·
 [Measurements and startup costs](./performance.html#longer-frozen-programs) ·
 [Exact prefix proofs, source checks and browser histories](https://github.com/siliconjungle/ink-lang/blob/fc714b545d1fc56896d397d96dc8b20095278ddb/reports/parametric-prefix-proofs-2026-10-16/README.md).
 
@@ -670,7 +834,7 @@ search does not yet learn its objective automatically, and a model's score is no
 certified prediction. Binary64 goal code uses CPU fallback on GPU hosts.
 
 [Complete source example](./programmable-objective.ink) ·
-[Host APIs, offline command and limits](https://github.com/siliconjungle/ink-lang/blob/509441c691e83e6f607c87049f01d883f0cc0996/docs/programmable-objectives.md).
+[Host APIs, offline command and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/programmable-objectives.md).
 This feature is available through the current CLI, ahead of the embedded playground.
 
 ## Guide compiler search with a learned policy
@@ -693,7 +857,7 @@ broader learned optimization remain further work.
 
 [Complete CLI policy and training example](./search-policy.ink) ·
 [Initial example context](./search-context.json) ·
-[Options, replay, budgets and validation](https://github.com/siliconjungle/ink-lang/blob/4b2dfe79b7e14c01f94765a47394bfc22d47c734/docs/learned-search.md).
+[Options, replay, budgets and validation](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/learned-search.md).
 This CLI feature is ahead of the embedded playground.
 
 ## Train through authored computation
@@ -705,8 +869,9 @@ nondifferentiable environment. It does not automatically differentiate an
 arbitrary running application across transactions, database operations, I/O and
 GPU execution. Relevant state enters through explicit arguments; the author
 chooses which parameters may change and which constraints must hold. Forward full
-gradients support up to 32 F32 coordinates. Source reverse differentiation supports
-larger dynamic F32 parameter lists, and explicit reverse graphs remain available. [Current interfaces and scope](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/docs/differentiable-computation.md).
+gradients support up to 32 F32/F64 coordinates in one precision. Source reverse differentiation supports
+larger admitted F32/F64 parameter shapes in the objective's precision, and explicit
+reverse graphs remain available. [Current interfaces and scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/differentiable-computation.md).
 
 A trainable field identifies what learning may change. The objective can run that
 model through authored simulation, layout or generation code and measure the final
@@ -731,7 +896,7 @@ cotangents. The result preserves the parameter shape or returns an error.
 results, events and exact checkpoints across compiled targets and browser hosts;
 its tape runs on the CPU. This is a capability check, with measured speed and device
 training still to do. [Complete CLI example](./source-reverse-learning.ink) ·
-[Interfaces, ownership and assurance scope](https://github.com/siliconjungle/ink-lang/blob/411cd0a456d9d267058b30cbf0ff95700ee401d6/docs/source-reverse-differentiation.md).
+[Interfaces, ownership and assurance scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/source-reverse-differentiation.md).
 
 The [world/controller example](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/examples/differentiable-world.ink)
 propagates gradients through twelve feedback-controlled physics steps. Two training
@@ -749,7 +914,7 @@ behaviour. Training observations grant no optimization proof authority.
 Supported arithmetic keeps its authored forward path; generated F32 derivative
 formulas describe a real arithmetic lift, not derivatives of IEEE rounding. Hard
 collisions, discrete switches and singularities need explicit policies and can
-still give unhelpful gradients. [Interfaces, contracts and limits](https://github.com/siliconjungle/ink-lang/blob/d8005a095fe0e560b51df127610991b0980b89e4/docs/differentiable-computation.md).
+still give unhelpful gradients. [Interfaces, contracts and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/differentiable-computation.md).
 
 Full gradients now carry all basis directions through one primal execution.
 Each tangent lane keeps its scalar operation order. Generic JavaScript local
@@ -761,7 +926,7 @@ They strengthen concrete checks without proving the whole AD transform or backen
 
 Unsigned inference now also crosses bounded helper-call graphs. Two new database
 laws replay exact definition contexts and bit-vector proofs; changed callees
-invalidate their summaries. [Source-bound call facts](https://github.com/siliconjungle/ink-lang/blob/15d360d477158a0da314776279724018f759c928/docs/interprocedural-word-facts.md).
+invalidate their summaries. [Source-bound call facts](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/interprocedural-word-facts.md).
 
 ## Reuse prepared computation
 
@@ -790,11 +955,11 @@ while weights, Adam moments and training controls change. It preserves the
 original learning results and full logical state. Held-out JavaScript prediction
 calls improve about 3.45× on one host. Cold setup, memory and frequent invalidation
 can lose; the measured training-only workload regresses about 24%. An explicit
-keep does not guarantee a profitable lifecycle. Automatic cost-aware staging,
-graph specialization and GPU training remain open. The pinned playground can
+keep does not guarantee a profitable lifecycle. Automatic cost-aware staging and general GPU training remain open; explicit
+static reverse requests and bounded frozen specialization have their own admitted domains. The pinned playground can
 compile the syntax above but predates this structured retention implementation.
 
-[Mechanism and ownership](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/docs/structured-preparation.md) · [Runnable neural example](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/examples/prepared-neural.ink) · [Gains and regressions](./performance.html#structured-preparation-lifecycle).
+[Mechanism and ownership](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/structured-preparation.md) · [Runnable neural example](https://github.com/siliconjungle/ink-lang/blob/fcbdfefe18f7d2fef11ceb50798d824a428ba805/examples/prepared-neural.ink) · [Gains and regressions](./performance.html#structured-preparation-lifecycle).
 
 The current CLI also accepts an explicitly kept default for a mutable value cell.
 For example, `keep Seed:List<u32>=[2,3];` can initialize
@@ -811,7 +976,7 @@ The pinned playground predates this initializer extension; these are current CLI
 capabilities. Explicit freezing is additionally checked through compiled startup,
 inference, writer withdrawal and restore.
 
-[Default preparation and ownership](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/docs/prepared-initializers.md) · [Complete staged model](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/examples/staged-neural.ink) · [Retained lifecycle evidence](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/reports/prepared-initializers-2026-10-16/README.md).
+[Default preparation and ownership](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/prepared-initializers.md) · [Complete staged model](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/examples/staged-neural.ink) · [Retained lifecycle evidence](https://github.com/siliconjungle/ink-lang/blob/f1f1f57ea1307226b1731fa8cbb208e9b925c86a/reports/prepared-initializers-2026-10-16/README.md).
 
 ## Prepare a model and learn through it
 
@@ -840,7 +1005,7 @@ approximation or convergence proof. The F32 optimizer differs from Handwired's
 binary64 moment arithmetic.
 
 This delivers a prepared graph interface, not automatic reverse differentiation
-of every source program. [Interfaces, runnable example and assurance scope](https://github.com/siliconjungle/ink-lang/blob/e47ad29de8ea2161d984e78e80a3aeaa1a054c28/docs/reverse-learning.md)
+of every source program. [Interfaces, runnable example and assurance scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/reverse-learning.md)
 · [Matched performance and remaining gaps](./performance.html#prepared-reverse-models).
 The pinned playground remains behind these new CLI libraries.
 
@@ -854,7 +1019,7 @@ results detach, and thrown failures retry. No new Ink keyword is needed.
 This applies preparation to the full helper computation, with a bounded private
 call graph, rather than requiring an application to flatten its source. It is an
 explicit pure-call capability; stateful learning actions do not silently adopt it.
-[Source and boundaries](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/docs/prepared-helpers.md) · [Runnable pure model](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/examples/prepared-network.ink) · [Measured gains and costs](./performance.html#pure-helper-preparation).
+[Source and boundaries](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/prepared-helpers.md) · [Runnable pure model](https://github.com/siliconjungle/ink-lang/blob/3855acdb81c2575c4ffa9c36983359b2cd7f590b/examples/prepared-network.ink) · [Measured gains and costs](./performance.html#pure-helper-preparation).
 
 Programmers control training through ordinary logic. A checked two-learner example
 uses one model's loss to choose another model's rate, invokes its training action,
@@ -874,7 +1039,7 @@ An explicit build stage packages that complete state for adaptive deployment, or
 explicitly freezes selected roots and withdraws their writers. Automatic arithmetic/graph
 specialization, trained implementation selection, parallel worker promotion
 and device training remain open. These phases share the full objective and optimizer lineage.
-[Lifecycle contract and implementation status](https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/learning-lifecycle.md).
+[Lifecycle contract and implementation status](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/learning-lifecycle.md).
 
 ```sh
 ink build-model examples/adaptive-layout.ink examples/adaptive-layout-training.json \
@@ -888,7 +1053,7 @@ include JavaScript, native, Rust projects, Wasm and mixed GPU modules. Runtime l
 stays enabled; existing durable stores retain their newer state. Verification binds
 the package's inputs and files, with optional reference training replay. It establishes
 neither artifact authenticity nor compiler correctness.
-[Build-stage training, startup interfaces and limits](https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/trained-builds.md).
+[Build-stage training, startup interfaces and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/trained-builds.md).
 
 Freeze only when the application wants to remove those degrees of freedom:
 
@@ -906,7 +1071,7 @@ to the fixed rows, and artifact verification replays the full restriction even i
 someone recomputes file hashes. The complete optimizer/control state, pending events
 and commit version survive under a new source identity. These bindings expose
 constant facts to the proof system; they do not yet establish faster neural inference.
-[Immutable state, proof scope and limits](https://github.com/siliconjungle/ink-lang/blob/dc56b528f244b6ce9bf2010592293bc66203319a/docs/frozen-state.md).
+[Immutable state, proof scope and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/frozen-state.md).
 
 A continuous learner remains ordinary source logic. The application can pause a
 session, change its budget or cadence, advance a candidate, publish it, cancel it
@@ -916,7 +1081,7 @@ model. Tests compare 39 lifecycle cases across targets and four compiled durable
 histories against exact reference checkpoints, including storage failures before
 and after publication. This is a cooperative CPU-host service; one synchronous
 work turn still blocks its event loop until it returns.
-[Runnable service, contracts and limitations](https://github.com/siliconjungle/ink-lang/blob/e021405ecddec2bf604907b3d1a709cffb6b3658/docs/continuous-learning.md).
+[Runnable service, contracts and limitations](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/continuous-learning.md).
 
 The application author owns the goal, reward, relevant context, permitted changes
 and invariants. Ink has no built-in engagement or other product objective.
@@ -929,7 +1094,7 @@ transactional rollback. Its two designed training contexts reach about 98.7%
 preferred-action probability; this establishes neither generalization nor a runtime
 speedup. Sampling and score arithmetic have explicit F32 limits; policy training
 runs on CPU hosts.
-[Authored rewards, contracts and evidence](https://github.com/siliconjungle/ink-lang/blob/d6f209ab822814c4c95bd410b86fd1809abe9914/docs/policy-learning.md).
+[Authored rewards, contracts and evidence](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/policy-learning.md).
 
 ## See what growing knowledge changes
 
@@ -960,7 +1125,7 @@ events, keeps and portable checkpoints across Rust, JavaScript and Rust-Wasm.
 This preserves JavaScript measurement precision instead of silently narrowing
 text-layout inputs to F32.
 
-```text
+```ink-cli
 module precise_measurement;
 fn scale(width:f64,ratio:f64)->f64 {
     return width*ratio;
@@ -982,7 +1147,7 @@ precision groundwork for Pretext, not complete text preparation/shaping, GPU
 binary64, automatic application-wide differentiation or a speedup claim. This
 CLI feature is ahead of the browser editor's separately pinned compiler.
 
-[Syntax, semantics and limits](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/docs/binary64.md) · [Retained sources and validation](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/reports/binary64-2026-10-16/README.md).
+[Syntax, semantics and limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/binary64.md) · [Retained sources and validation](https://github.com/siliconjungle/ink-lang/blob/a9d33ae9f72e9af0679eff782fc5922e381b852f/reports/binary64-2026-10-16/README.md).
 
 ## What runs today
 
@@ -995,7 +1160,7 @@ resizes, edits, cursor continuation, rollback and restore. The simple module
 rejects complex break kinds. Font measurement, segmentation and
 upstream speed parity remain open; the first diagnostic still shows a substantial
 gap to Pretext's direct loop. This CLI library is ahead of the browser compiler.
-[Interfaces, evidence and scope](https://github.com/siliconjungle/ink-lang/blob/eb1d3f0a45886d999171f49ff0c4e88203a87f59/docs/prepared-text.md).
+[Interfaces, evidence and scope](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/prepared-text.md).
 
 The current CLI also adds `std:prepared_complex_text` for soft hyphens, tabs,
 preserved spaces, objects, unbroken boundaries and rich-inline geometry. Explicit
@@ -1005,7 +1170,7 @@ histories check edits, resizes, failed updates, events and recovery across compi
 targets. Text geometry stays on CPU hosts, with a separate numeric device control.
 This extends fidelity; the substantial speed gap to Pretext still needs work.
 [Complex CLI source example](./prepared-complex-text.ink) ·
-[Data, profiles, budgets and validation](https://github.com/siliconjungle/ink-lang/blob/74eac1d6ae41674be4b590f8beeadfac4c65421b/docs/prepared-text.md).
+[Data, profiles, budgets and validation](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/prepared-text.md).
 The embedded browser compiler predates this module.
 
 Ink supports typed state, atomic changes, ordered events, scalar retention, generics, owned buffers, pure computation and source specifications with proved implementations and invariants. Targets include Rust, JavaScript and Rust/Wasm, plus eligible GPU work. Database knowledge supplies source algorithms, maintained queries, indexed/grouped representations and physical strategies under their individual admission contracts.
@@ -1054,7 +1219,7 @@ Knowledge supplies ordinary proofs in both directions; core checks the exact
 source codecs, and the backend preserves logical values, validation limits,
 ownership and checkpoint bytes. These layouts apply to general immutable values,
 including recursive trees and exact numbers. They require comparable lifecycle
-evidence for selection. See the [layout contract](https://github.com/siliconjungle/ink-lang/blob/9ebcf86315ce882aae4f3d48019d5e42dca97931/docs/private-sum-layouts.md).
+evidence for selection. See the [layout contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/private-sum-layouts.md).
 
 ### Checked reader alternatives
 
@@ -1081,7 +1246,7 @@ use it for changing queries, loop elements and indices. The source still describ
 the complete computation; the explicit prepared-call interface binds its fixed
 inputs. No new source keyword is required.
 
-```text
+```ink-cli
 module batch;
 fn member(keys:List<u32>,query:u32)->Bool {
     let index:Map<u32,Bool>=foldr(keys,Map.empty(),fn(k)=>fn(m)=>m.set(k,true));
@@ -1122,7 +1287,7 @@ The same mechanism applies to queries, layout helpers and model code, but its
 benefit depends on reusable work. The retained study has large repeated-index
 wins alongside small-case losses and extra retained memory; neural and text
 controls still expose substantial gaps.
-[Execution contract and runnable source](https://github.com/siliconjungle/ink-lang/blob/509441c691e83e6f607c87049f01d883f0cc0996/docs/prepared-loop-callbacks.md) ·
+[Execution contract and runnable source](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/prepared-loop-callbacks.md) ·
 [Measured gains and remaining gaps](./performance.html#sequential-callback-preparation).
 
 ## Prepare through optional and result branches
@@ -1131,7 +1296,7 @@ The current CLI also carries captured immutable data through `Option.fold`,
 `Option.map`, `Result.fold`, `Result.map` and `Result.map_err` callbacks. A changing
 optional query can reuse an index built from fixed keys:
 
-```text
+```ink-cli
 module optional_index;
 fn member(keys:List<u32>,query:u32)->Bool {
     let index:Map<u32,Bool>=foldr(keys,Map.empty(),fn(k)=>fn(m)=>m.set(k,true));
@@ -1155,7 +1320,7 @@ pure-call CLI capability is ahead of the pinned playground. The matched study
 retains both large repeated-work gains and a 3–4% complex-text regression; deeper
 representation and helper optimization remain open.
 
-[Execution contract and captured-payload example](https://github.com/siliconjungle/ink-lang/blob/97131de5a7c57319976e8c2e5fab79ef102cbb3e/docs/prepared-sum-callbacks.md) ·
+[Execution contract and captured-payload example](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/prepared-sum-callbacks.md) ·
 [Measurements and validation](./performance.html#optional-and-result-callback-preparation).
 
 ## Specialize prepared computation structure
@@ -1176,7 +1341,7 @@ helper proposal, but its complete proof construction still reaches a work limit;
 that full-network specialized executable remains unfinished. This is a
 functionality milestone, with no new performance claim.
 
-[Build interface, guarantees and remaining limits](https://github.com/siliconjungle/ink-lang/blob/9bb7627584f64641c62f9cc885e6f55518ef061a/docs/frozen-composition.md).
+[Build interface, guarantees and remaining limits](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/frozen-composition.md).
 
 ## Keep record fields local through helpers
 
@@ -1185,7 +1350,7 @@ JavaScript value loops and bounded pure helpers. Conditional results inside an
 expanded helper can merge their fields directly. The source keeps its ordinary
 record interface:
 
-```text
+```ink-cli
 module points;
 record Pair { x:u32,y:u32, }
 fn advance(p:Pair)->Pair {return Pair{x:p.y,y:p.x+1};}
@@ -1206,7 +1371,7 @@ The retained text study has large-case gains alongside substantial small-call
 losses. That record/helper change leaves the neural module byte-identical. The
 later F32 carrier work below improves derivative execution; deeper model
 representation and graph/tape specialization remain open.
-[Execution contract](https://github.com/siliconjungle/ink-lang/blob/809cd0323b33265035d388a42b40f2335ec43600/docs/local-record-helpers.md) ·
+[Execution contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/local-record-helpers.md) ·
 [Gains, losses and controls](./performance.html#local-record-and-helper-execution).
 
 ## Normalize F32 values once
@@ -1223,5 +1388,24 @@ matched neural workload, while prediction remains mixed. Binary64 text modules
 are unchanged. The capability is ahead of the pinned playground, and supplies no
 graph rewrite or automatic profitable-selection authority.
 
-[Execution contract](https://github.com/siliconjungle/ink-lang/blob/48ab606425d7c38d131bdd656ce4f231a724f4fd/docs/normalized-f32-carriers.md) ·
+[Execution contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/normalized-f32-carriers.md) ·
 [Neural results and controls](./performance.html#normalized-f32-neural-execution).
+
+## Compile bounded reverse work and reuse destinations
+
+`compiled_reverse_gradient` / `compiled_reverse_linearize` (including explicit
+piecewise forms) can compile a bounded F32/F64 scalar graph rather than building an
+owned tape on each invocation. Successful elaboration binds a distinct checked
+source image. Unsupported dynamic shapes and exhausted optional limits retain the
+owned-tape path. Exact operation order, logical node capacity, repeated reverse
+edges and the authored zero-cotangent policy remain observable. This is trusted AD
+implementation machinery, with no algebraic rewrite or general device-training
+claim. [Static reverse contract](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/static-reverse-tapes.md).
+
+JavaScript `callPreparedCompiledInto(prepared, changingHandles, destination)` also
+combines sealed prepared inputs with caller-owned output storage. It can write an
+eligible terminal scalar list directly; other forms retain their ordinary result
+path. The caller supplies enough disjoint storage. Setter failures can leave
+partial writes, so use bounded codec interfaces for untrusted transport. No mutable
+host input is retained across calls. [Prepared destination API and exact ownership
+boundaries](https://github.com/siliconjungle/ink-lang/blob/{{ink_revision}}/docs/prepared-destinations.md).

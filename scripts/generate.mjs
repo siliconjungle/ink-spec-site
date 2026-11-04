@@ -41,7 +41,6 @@ const environment = JSON.parse(await readFile(new URL('../content/environment.js
 for (const value of [implementation.revision, environment.revision, environment.distribution]) {
   if (!/^[a-f0-9]{40}$/.test(value)) throw Error('Documentation pins must be exact Git revisions');
 }
-if (environment.distribution !== implementation.revision) throw Error('Reference and browser editor must describe the same distribution');
 const syntaxPackage=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).devDependencies['@siliconjungle/ink-environment'];
 if(!syntaxPackage.endsWith('#'+environment.revision))throw Error('Docs highlighter and embedded environment must use the same exact revision');
 const read = async (name) => (await readFile(new URL(`../content/${name}`, import.meta.url), "utf8"))
@@ -73,7 +72,7 @@ function page(title, body, skip = "guide", landing = false) {
   return `<!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Ink is a typed language for state and computation, with locally checked optimisation proofs and an independently growing knowledge database. Explore the working prototype, language reference and measured results."><title>${title}</title><link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"></head>
 <body${landing ? ' class="landing"' : ''}><a class="skip" href="#${skip}">Skip to the content</a><main class="site-shell">${body}
-<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="${implementation.repository}/tree/${implementation.revision}">Language ${implementation.revision.slice(0, 7)}</a><a href="${environment.repository}/tree/${environment.revision}">Editor ${environment.revision.slice(0, 7)}</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
+<footer class="source-link"><a href="%BASE_URL%ink-license.txt">MIT licensed</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a><a href="${implementation.repository}/tree/${implementation.revision}">CLI ${implementation.revision.slice(0, 7)}</a><a href="${implementation.repository}/tree/${environment.distribution}">Playground compiler ${environment.distribution.slice(0, 7)}</a><a href="${environment.repository}/tree/${environment.revision}">Editor ${environment.revision.slice(0, 7)}</a><a href="%BASE_URL%build-info.json">Build versions</a></footer>
 </main><div id="copy-status" class="sr-only" aria-live="polite"></div><script type="module" src="/src/main.ts"></script></body></html>`;
 }
 const homeBody = `<h1 id="ink-title">ink</h1>
@@ -90,13 +89,13 @@ const homeBody = `<h1 id="ink-title">ink</h1>
 await writeFile(new URL("../index.html", import.meta.url), page("ink — state is a program", homeBody, "purpose", true));
 codeIndex = 0;
 const guideBody = `<h1 class="reference-title">ink <span>/ guide</span></h1>
-<div class="intro"><p>From a small stateful program to application boundaries and proof-checked optimisation.</p></div>
+<div class="intro"><p>From a small stateful program to application boundaries, learning and proof-checked optimisation.</p><p>Current CLI: <a href="${implementation.repository}/tree/${implementation.revision}">${implementation.revision.slice(0, 7)}</a>. Playground compiler: <a href="${implementation.repository}/tree/${environment.distribution}">${environment.distribution.slice(0, 7)}</a>. Newer CLI examples are labelled separately.</p></div>
 <nav class="reading-links" aria-label="Guide topics"><a href="%BASE_URL%">Introduction</a><a href="#bring-it-into-your-app">Embedding Ink</a><a href="#javascript-values-without-json">JavaScript values</a><a href="#json-across-boundaries">JSON</a><a href="%BASE_URL%reference.html">Reference</a><a href="%BASE_URL%performance.html">Performance</a></nav>
 <div id="guide" class="chapters">${sections(guide)}</div>`;
 await writeFile(new URL("../guide.html", import.meta.url), page("ink — guide", guideBody));
 codeIndex = 0;
 const referenceBody = `<h1 class="reference-title">ink <span>/ reference</span></h1>
-<div class="intro"><p data-measure>The supported language: values, state, changes and compilation.</p><p>Reviewed against <a href="${implementation.repository}/tree/${implementation.revision}">published implementation ${implementation.revision.slice(0, 7)}</a>. The Ink examples on this page have been checked with the compiler. See <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a> for coverage, or the separate <a href="%BASE_URL%ink-design-draft.md" download>design draft</a> for wider proposals and historical overviews.</p></div>
+<div class="intro"><p data-measure>The supported language: values, state, changes and compilation.</p><p>Reviewed against <a href="${implementation.repository}/tree/${implementation.revision}">published CLI ${implementation.revision.slice(0, 7)}</a>. The embedded playground uses <a href="${implementation.repository}/tree/${environment.distribution}">compiler ${environment.distribution.slice(0, 7)}</a>; newer CLI examples are labelled separately. The Ink examples on this page have been checked with the compiler. See <a href="${implementation.repository}/blob/${implementation.revision}/STATUS.md">implementation status</a> for coverage, or the separate <a href="%BASE_URL%ink-design-draft.md" download>design draft</a> for wider proposals and historical overviews.</p></div>
 <nav class="reading-links" aria-label="Reference topics"><a href="%BASE_URL%">Introduction</a><a href="#chapter-3">Types</a><a href="#chapter-5">State</a><a href="#chapter-8">Proofs</a><a href="#chapter-13">Selection</a><a href="#chapter-20">Syntax</a><a href="%BASE_URL%ink-specification.md" download>Download reference</a></nav>
 <div id="specification" class="chapters">${sections(reference, true)}</div>`;
 await writeFile(new URL("../reference.html", import.meta.url), page("ink — language reference", referenceBody, "specification"));
@@ -133,3 +132,9 @@ for (const [name, path] of [['Pretext', '@chenglou/pretext/LICENSE'], ['IBM Plex
   notices.push(`${name}\n${await readFile(new URL('../node_modules/' + path, import.meta.url), 'utf8')}`);
 }
 await writeFile(new URL('../public/third-party-notices.txt', import.meta.url), notices.join('\n\n'));
+
+for (const [name, module] of [['learned-choice.ink', 'learned_choice'], ['notifications.ink', 'notifications']]) {
+  const source = guide.match(new RegExp('```ink-cli\\n(module ' + module + ';[\\s\\S]*?)\\n```'))?.[1];
+  if (!source) throw Error('Missing current CLI example: ' + module);
+  await writeFile(new URL('../public/' + name, import.meta.url), source + '\n');
+}
