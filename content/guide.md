@@ -438,8 +438,8 @@ constrain which work may be skipped.
 Precision is part of the contract. JavaScript text-layout calculations use F64;
 rounding their inputs can change a line break. The current CLI now supports F64
 across CPU targets, with a prepared simple-walker baseline checked against upstream
-geometry. Complete complex text preparation and checked narrower implementations
-or guarded fallbacks still need work. Source forward/reverse differentiation now supports homogeneous F32/F64 shapes; neural/Adam library interfaces retain their separate F32 domain.
+geometry. Complex prepared walkers now have their own supported domain; font measurement,
+segmentation and checked narrower implementations or guarded fallbacks still need work. Source forward/reverse differentiation now supports homogeneous F32/F64 shapes; neural/Adam library interfaces retain their separate F32 domain.
 
 Initial Freerange-inspired inference now discovers conditional unsigned
 equalities from excluded values and comparisons between ranges. Each proposed
@@ -1141,8 +1141,8 @@ snapshots preserve raw float bits. Exact nonfinite values can cross JSON through
 `{"F64Bits":"unsigned decimal u64"}` tags. The same typed value can pass between
 compiled language/runtime boundaries without a separate lower-precision model.
 
-Binary64 functions retain CPU execution in mixed GPU bundles. F64 proof terms
-currently fail closed, and source AD/neural/Adam libraries remain F32. This is
+Binary64 functions retain CPU execution in mixed GPU bundles. F64 proof terms currently fail closed. Source forward/reverse differentiation
+supports F32/F64 in the objective's precision; neural/Adam library interfaces remain F32. This is
 precision groundwork for Pretext, not complete text preparation/shaping, GPU
 binary64, automatic application-wide differentiation or a speedup claim. This
 CLI feature is ahead of the browser editor's separately pinned compiler.
